@@ -1,0 +1,55 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write  # needed to create GitHub releases
+      id-token: write  # needed for npm provenance
+
+    steps:
+      - uses: actions/checkout@v4.2.2
+
+      - uses: actions/setup-node@v4.4.0
+        with:
+          node-version: 24
+          cache: npm
+          registry-url: https://registry.npmjs.org
+
+      - run: npm ci
+      - run: npm run build
+      - run: npm test
+
+      # Package the .skill file
+      - name: Package skill
+        run: |
+          python3 - <<'EOF'
+          import zipfile, pathlib
+
+          skill_name = "ioffice-mcp"
+          out = pathlib.Path(f"{skill_name}.skill")
+
+          with zipfile.ZipFile(out, "w", zipfile.ZIP_DEFLATED) as zf:
+              zf.write(pathlib.Path("SKILL.md"), f"{skill_name}/SKILL.md")
+
+          print(f"Packaged {out} ({out.stat().st_size} bytes)")
+          EOF
+
+      # Publish to npm via OIDC Trusted Publishing (no token required)
+      - name: Publish to npm
+        run: npm publish --access public --provenance
+
+      # Create GitHub Release and attach .skill file
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: ioffice-mcp.skill
+          generate_release_notes: true
