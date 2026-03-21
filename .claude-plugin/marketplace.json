@@ -1,0 +1,42 @@
+{
+  "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
+  "name": "ioffice-mcp",
+  "owner": {
+    "name": "Chris Hall",
+    "email": "chris.c.hall@gmail.com"
+  },
+  "metadata": {
+    "description": "MCP server for iOffice — natural-language workspace and facility management via the iOffice API",
+    "version": "1.0.0"
+  },
+  "plugins": [
+    {
+      "name": "ioffice-mcp",
+      "source": {
+        "source": "npm",
+        "package": "ioffice-mcp",
+        "version": "1.0.0"
+      },
+      "description": "MCP server for iOffice — manage buildings, spaces, reservations, visitors, and more via natural language",
+      "version": "1.0.0",
+      "author": {
+        "name": "Chris Hall"
+      },
+      "homepage": "https://github.com/chrischall/ioffice-mcp",
+      "repository": "https://github.com/chrischall/ioffice-mcp",
+      "license": "MIT",
+      "keywords": ["ioffice", "workspace", "facility-management", "mcp"],
+      "category": "productivity",
+      "mcpServers": {
+        "ioffice": {
+          "command": "npx",
+          "args": ["ioffice-mcp"],
+          "env": {
+            "IOFFICE_HOST": "${IOFFICE_HOST}",
+            "IOFFICE_TOKEN": "${IOFFICE_TOKEN}"
+          }
+        }
+      }
+    }
+  ]
+}
