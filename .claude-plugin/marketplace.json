@@ -7,7 +7,7 @@
   },
   "metadata": {
     "description": "MCP server for iOffice — natural-language workspace and facility management via the iOffice API",
-    "version": "1.0.0"
+    "version": "1.1.0"
   },
   "plugins": [
     {
@@ -15,10 +15,10 @@
       "source": {
         "source": "npm",
         "package": "ioffice-mcp",
-        "version": "1.0.0"
+        "version": "1.1.0"
       },
       "description": "MCP server for iOffice — manage buildings, spaces, reservations, visitors, and more via natural language",
-      "version": "1.0.0",
+      "version": "1.1.0",
       "author": {
         "name": "Chris Hall"
       },
