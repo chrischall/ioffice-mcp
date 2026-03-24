@@ -1,0 +1,16 @@
+src/
+tests/
+node_modules/
+coverage/
+.github/
+.claude/
+.claude-plugin/
+*.md
+*.yml
+*.yaml
+*.json
+!manifest.json
+tsconfig.json
+.env
+.gitignore
+.mcpbignore

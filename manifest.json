@@ -1,0 +1,69 @@
+{
+  "$schema": "https://raw.githubusercontent.com/anthropics/dxt/main/dist/mcpb-manifest.schema.json",
+  "manifest_version": "0.3",
+  "name": "ioffice-mcp",
+  "display_name": "iOffice",
+  "version": "1.1.0",
+  "description": "iOffice workspace and facility management for Claude — book rooms, manage visitors, file maintenance requests, and more via natural language",
+  "author": {
+    "name": "Chris Chall",
+    "email": "chris.c.hall@gmail.com",
+    "url": "https://github.com/chrischall"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/chrischall/ioffice-mcp"
+  },
+  "homepage": "https://github.com/chrischall/ioffice-mcp",
+  "support": "https://github.com/chrischall/ioffice-mcp/issues",
+  "license": "MIT",
+  "keywords": ["ioffice", "workplace", "facilities", "reservations", "visitors"],
+  "server": {
+    "type": "node",
+    "entry_point": "dist/bundle.js",
+    "mcp_config": {
+      "command": "node",
+      "args": ["${__dirname}/dist/bundle.js"],
+      "env": {
+        "IOFFICE_HOST": "${user_config.ioffice_host}",
+        "IOFFICE_TOKEN": "${user_config.ioffice_token}",
+        "IOFFICE_USERNAME": "${user_config.ioffice_username}",
+        "IOFFICE_PASSWORD": "${user_config.ioffice_password}"
+      }
+    }
+  },
+  "user_config": {
+    "ioffice_host": {
+      "type": "string",
+      "title": "iOffice Host",
+      "description": "Your iOffice tenant hostname (e.g. yourcompany.ioffice.com)",
+      "required": true
+    },
+    "ioffice_token": {
+      "type": "string",
+      "title": "API Token",
+      "description": "Your iOffice API token (preferred over username/password)",
+      "required": false,
+      "sensitive": true
+    },
+    "ioffice_username": {
+      "type": "string",
+      "title": "Username",
+      "description": "Your iOffice username (used if no API token is set)",
+      "required": false
+    },
+    "ioffice_password": {
+      "type": "string",
+      "title": "Password",
+      "description": "Your iOffice password (used if no API token is set)",
+      "required": false,
+      "sensitive": true
+    }
+  },
+  "compatibility": {
+    "platforms": ["darwin", "win32", "linux"],
+    "runtimes": {
+      "node": ">=18.0.0"
+    }
+  }
+}
