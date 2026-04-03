@@ -66,6 +66,29 @@ Tests live in `tests/`. Run with `npm test`. No real API calls — `fetch` is mo
 SKILL.md            # Claude Code skill — teaches Claude when/how to use the tools
 ```
 
+## Versioning
+
+Version appears in FOUR places — all must match:
+
+1. `package.json` → `"version"`
+2. `package-lock.json` → run `npm install --package-lock-only` after changing package.json
+3. `src/index.ts` → `Server` constructor `version` field
+4. `manifest.json` → `"version"`
+
+### Important
+
+Do NOT manually bump versions or create tags unless the user explicitly asks. Versioning is handled by the **Cut & Bump** GitHub Action.
+
+### Release workflow
+
+Main is always one version ahead of the latest tag. To release, run the **Cut & Bump** GitHub Action (`cut-and-bump.yml`) which:
+
+1. Runs CI (build + test)
+2. Tags the current commit with the current version
+3. Bumps patch in all four files
+4. Rebuilds, commits, and pushes main + tag
+5. The tag push triggers the **Release** workflow (CI + npm publish + GitHub release)
+
 ## Gotchas
 
 - **ESM + NodeNext**: imports must use `.js` extensions even for `.ts` source files (e.g. `import { IOfficeClient } from './client.js'`).
