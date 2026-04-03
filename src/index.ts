@@ -44,7 +44,7 @@ for (const tool of mailTools) handlers[tool.name] = (n, a) => handleMail(n, a, c
 for (const tool of moveTools) handlers[tool.name] = (n, a) => handleMoves(n, a, client);
 
 const server = new Server(
-  { name: 'ioffice', version: '2.0.0' },
+  { name: 'ioffice', version: '2.0.1' },
   { capabilities: { tools: {} } }
 );
 

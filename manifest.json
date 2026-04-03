@@ -3,7 +3,7 @@
   "manifest_version": "0.3",
   "name": "ioffice-mcp",
   "display_name": "iOffice",
-  "version": "2.0.0",
+  "version": "2.0.1",
   "description": "iOffice workspace and facility management for Claude — book rooms, manage visitors, file maintenance requests, and more via natural language",
   "author": {
     "name": "Chris Chall",
@@ -17,13 +17,21 @@
   "homepage": "https://github.com/chrischall/ioffice-mcp",
   "support": "https://github.com/chrischall/ioffice-mcp/issues",
   "license": "MIT",
-  "keywords": ["ioffice", "workplace", "facilities", "reservations", "visitors"],
+  "keywords": [
+    "ioffice",
+    "workplace",
+    "facilities",
+    "reservations",
+    "visitors"
+  ],
   "server": {
     "type": "node",
     "entry_point": "dist/bundle.js",
     "mcp_config": {
       "command": "node",
-      "args": ["${__dirname}/dist/bundle.js"],
+      "args": [
+        "${__dirname}/dist/bundle.js"
+      ],
       "env": {
         "IOFFICE_HOST": "${user_config.ioffice_host}",
         "IOFFICE_TOKEN": "${user_config.ioffice_token}",
@@ -61,7 +69,11 @@
     }
   },
   "compatibility": {
-    "platforms": ["darwin", "win32", "linux"],
+    "platforms": [
+      "darwin",
+      "win32",
+      "linux"
+    ],
     "runtimes": {
       "node": ">=18.0.0"
     }
