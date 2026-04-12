@@ -3,7 +3,7 @@
   "manifest_version": "0.3",
   "name": "ioffice-mcp",
   "display_name": "iOffice",
-  "version": "2.0.1",
+  "version": "2.0.2",
   "description": "iOffice workspace and facility management for Claude — book rooms, manage visitors, file maintenance requests, and more via natural language",
   "author": {
     "name": "Chris Chall",
