@@ -1,0 +1,48 @@
+{
+  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
+  "name": "io.github.chrischall/ioffice-mcp",
+  "description": "iOffice workspace and facility management for Claude \u2014 book rooms, manage visitors, file maintenance requests, and more via natural language",
+  "repository": {
+    "url": "https://github.com/chrischall/ioffice-mcp",
+    "source": "github"
+  },
+  "version": "2.0.2",
+  "packages": [
+    {
+      "registryType": "npm",
+      "identifier": "ioffice-mcp",
+      "version": "2.0.2",
+      "transport": {
+        "type": "stdio"
+      },
+      "environmentVariables": [
+        {
+          "name": "IOFFICE_HOST",
+          "description": "Your iOffice tenant hostname (e.g. yourcompany.ioffice.com)",
+          "isRequired": true,
+          "format": "string"
+        },
+        {
+          "name": "IOFFICE_TOKEN",
+          "description": "Your iOffice API token (preferred over username/password)",
+          "isRequired": false,
+          "format": "string",
+          "isSecret": true
+        },
+        {
+          "name": "IOFFICE_USERNAME",
+          "description": "Your iOffice username (used if no API token)",
+          "isRequired": false,
+          "format": "string"
+        },
+        {
+          "name": "IOFFICE_PASSWORD",
+          "description": "Your iOffice password (used if no API token)",
+          "isRequired": false,
+          "format": "string",
+          "isSecret": true
+        }
+      ]
+    }
+  ]
+}
