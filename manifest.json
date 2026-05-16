@@ -68,6 +68,216 @@
       "sensitive": true
     }
   },
+  "tools": [
+    {
+      "name": "io_list_buildings",
+      "description": "List iOffice buildings with search, pagination, and sorting"
+    },
+    {
+      "name": "io_get_building",
+      "description": "Get a single building by ID"
+    },
+    {
+      "name": "io_create_building",
+      "description": "Create a new building"
+    },
+    {
+      "name": "io_update_building",
+      "description": "Update an existing building"
+    },
+    {
+      "name": "io_delete_building",
+      "description": "Delete a building by ID"
+    },
+    {
+      "name": "io_list_floors",
+      "description": "List floors, optionally filtered by building"
+    },
+    {
+      "name": "io_get_floor",
+      "description": "Get a single floor by ID"
+    },
+    {
+      "name": "io_create_floor",
+      "description": "Create a new floor within a building"
+    },
+    {
+      "name": "io_update_floor",
+      "description": "Update an existing floor"
+    },
+    {
+      "name": "io_delete_floor",
+      "description": "Delete a floor by ID"
+    },
+    {
+      "name": "io_list_spaces",
+      "description": "List spaces (rooms), optionally filtered by floor"
+    },
+    {
+      "name": "io_get_space",
+      "description": "Get a single space (room) by ID"
+    },
+    {
+      "name": "io_create_space",
+      "description": "Create a new space (room) on a floor"
+    },
+    {
+      "name": "io_update_space",
+      "description": "Update an existing space"
+    },
+    {
+      "name": "io_delete_space",
+      "description": "Delete a space by ID"
+    },
+    {
+      "name": "io_list_users",
+      "description": "List iOffice users with search, pagination, and sorting"
+    },
+    {
+      "name": "io_get_user",
+      "description": "Get a single user by ID"
+    },
+    {
+      "name": "io_create_user",
+      "description": "Create a new user"
+    },
+    {
+      "name": "io_update_user",
+      "description": "Update an existing user"
+    },
+    {
+      "name": "io_delete_user",
+      "description": "Delete a user by ID"
+    },
+    {
+      "name": "io_list_reservations",
+      "description": "List reservations with filtering by date range, space, or user"
+    },
+    {
+      "name": "io_get_reservation",
+      "description": "Get a single reservation by ID"
+    },
+    {
+      "name": "io_create_reservation",
+      "description": "Book a room/space reservation"
+    },
+    {
+      "name": "io_update_reservation",
+      "description": "Update an existing reservation"
+    },
+    {
+      "name": "io_delete_reservation",
+      "description": "Cancel/delete a reservation by ID"
+    },
+    {
+      "name": "io_checkin_reservation",
+      "description": "Check in to a reservation, confirming room usage"
+    },
+    {
+      "name": "io_checkout_reservation",
+      "description": "Check out of a reservation, releasing the room"
+    },
+    {
+      "name": "io_list_visitors",
+      "description": "List visitors with search and date filtering"
+    },
+    {
+      "name": "io_get_visitor",
+      "description": "Get a single visitor by ID"
+    },
+    {
+      "name": "io_create_visitor",
+      "description": "Pre-register a visitor"
+    },
+    {
+      "name": "io_update_visitor",
+      "description": "Update an existing visitor record"
+    },
+    {
+      "name": "io_checkin_visitor",
+      "description": "Check in a visitor upon arrival"
+    },
+    {
+      "name": "io_checkout_visitor",
+      "description": "Check out a visitor upon departure"
+    },
+    {
+      "name": "io_list_maintenance_requests",
+      "description": "List maintenance requests, filterable by status, space, or building"
+    },
+    {
+      "name": "io_get_maintenance_request",
+      "description": "Get a single maintenance request by ID"
+    },
+    {
+      "name": "io_create_maintenance_request",
+      "description": "File a new maintenance request"
+    },
+    {
+      "name": "io_update_maintenance_request",
+      "description": "Update an existing maintenance request"
+    },
+    {
+      "name": "io_accept_maintenance_request",
+      "description": "Accept a maintenance request (pending to accepted)"
+    },
+    {
+      "name": "io_start_maintenance_request",
+      "description": "Start work on a maintenance request"
+    },
+    {
+      "name": "io_complete_maintenance_request",
+      "description": "Mark a maintenance request as complete"
+    },
+    {
+      "name": "io_archive_maintenance_request",
+      "description": "Archive a completed maintenance request"
+    },
+    {
+      "name": "io_list_mail",
+      "description": "List mail items (packages and letters) with filtering"
+    },
+    {
+      "name": "io_get_mail",
+      "description": "Get a single mail item by ID"
+    },
+    {
+      "name": "io_create_mail",
+      "description": "Log a new mail item (package or letter) received"
+    },
+    {
+      "name": "io_deliver_mail",
+      "description": "Mark a mail item as delivered to the recipient"
+    },
+    {
+      "name": "io_return_mail",
+      "description": "Mark a mail item as returned to sender"
+    },
+    {
+      "name": "io_list_moves",
+      "description": "List move requests, filterable by status, building, or assignee"
+    },
+    {
+      "name": "io_get_move",
+      "description": "Get a single move request by ID"
+    },
+    {
+      "name": "io_create_move",
+      "description": "Create a new move request"
+    },
+    {
+      "name": "io_update_move",
+      "description": "Update an existing move request"
+    },
+    {
+      "name": "io_approve_move",
+      "description": "Approve a move request"
+    },
+    {
+      "name": "io_cancel_move",
+      "description": "Cancel a move request"
+    }
+  ],
   "compatibility": {
     "platforms": [
       "darwin",
