@@ -16,43 +16,43 @@ describe('IOfficeClient', () => {
     delete process.env.IOFFICE_TOKEN;
   });
 
-  it('throws at construction if IOFFICE_HOST is not set', () => {
-    expect(() => {
-      const orig = process.env.IOFFICE_HOST;
-      process.env.IOFFICE_HOST = '';
-      try {
-        new IOfficeClient();
-      } finally {
-        process.env.IOFFICE_HOST = orig;
+  // Constructor stays silent so the server can boot and respond to the host's
+  // install-time smoke test before the user has filled in env vars. The same
+  // error surfaces at request time instead.
+  async function expectDeferred(missing: 'host' | 'auth' | 'partial-auth', message: RegExp | string) {
+    const orig = {
+      IOFFICE_HOST: process.env.IOFFICE_HOST,
+      IOFFICE_TOKEN: process.env.IOFFICE_TOKEN,
+      IOFFICE_USERNAME: process.env.IOFFICE_USERNAME,
+      IOFFICE_PASSWORD: process.env.IOFFICE_PASSWORD,
+    };
+    try {
+      if (missing === 'host') process.env.IOFFICE_HOST = '';
+      else if (missing === 'auth') {
+        process.env.IOFFICE_USERNAME = '';
+        process.env.IOFFICE_PASSWORD = '';
+        delete process.env.IOFFICE_TOKEN;
+      } else if (missing === 'partial-auth') {
+        process.env.IOFFICE_PASSWORD = '';
+        delete process.env.IOFFICE_TOKEN;
       }
-    }).toThrow('IOFFICE_HOST environment variable is required');
+      const client = new IOfficeClient();
+      await expect(client.request('GET', '/anything')).rejects.toThrow(message);
+    } finally {
+      Object.assign(process.env, orig);
+    }
+  }
+
+  it('defers the missing-host error until request time', async () => {
+    await expectDeferred('host', 'IOFFICE_HOST environment variable is required');
   });
 
-  it('throws at construction if no auth credentials are set', () => {
-    expect(() => {
-      const origU = process.env.IOFFICE_USERNAME;
-      const origP = process.env.IOFFICE_PASSWORD;
-      process.env.IOFFICE_USERNAME = '';
-      process.env.IOFFICE_PASSWORD = '';
-      try {
-        new IOfficeClient();
-      } finally {
-        process.env.IOFFICE_USERNAME = origU;
-        process.env.IOFFICE_PASSWORD = origP;
-      }
-    }).toThrow('Authentication required');
+  it('defers "no auth configured" until request time', async () => {
+    await expectDeferred('auth', 'Authentication required');
   });
 
-  it('throws at construction if only username is set (no password, no token)', () => {
-    expect(() => {
-      const origP = process.env.IOFFICE_PASSWORD;
-      process.env.IOFFICE_PASSWORD = '';
-      try {
-        new IOfficeClient();
-      } finally {
-        process.env.IOFFICE_PASSWORD = origP;
-      }
-    }).toThrow('Authentication required');
+  it('defers "partial auth (username without password)" until request time', async () => {
+    await expectDeferred('partial-auth', 'Authentication required');
   });
 
   it('sends x-auth-username and x-auth-password headers when using username/password auth', async () => {
