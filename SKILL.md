@@ -199,3 +199,25 @@ io_approve_move(id, notes: "Approved")
 - All list tools support `search`, `limit` (default 50, max 100), `startAt`, `orderBy`, and `orderByType`
 - `io_list_floors(buildingId)` and `io_list_spaces(floorId)` use nested API paths when an ID is provided
 - Building → Floor → Space is the physical location hierarchy
+
+## Acknowledgement of Terms
+
+By using this MCP server, you acknowledge and agree to the following:
+
+**1. This server accesses your own iOffice / Eptura Workplace tenant.** Auth happens via your own credentials, scoped to the tenant your employer has provisioned for you. It does not — and cannot — access anyone else's organization's data.
+
+**2. [Eptura's Acceptable Use Policy](https://eptura.com/terms/acceptable-use-policy/) governs your use of this server**, just as it governs your direct use of iOffice. (iOffice rebranded to Eptura Workplace in 2023.) The clauses most relevant here:
+
+> Customers may not use any robot, spider, site search/retrieval application or other manual or automatic device to retrieve, index, "scrape," "data mine" or otherwise gather Service content.
+
+And: customers must "identify and authenticate all Users," may not resell or sublicense, must "promptly deactivate access to terminated personnel."
+
+You are agreeing to those terms — read by the maintainer 2026-05-23 — every time you invoke a tool in this server.
+
+**3. Eptura's contract is with your employer, not you.** iOffice / Eptura Workplace is typically licensed by an organization, not by individual employees. Your use of this server is *also* subject to your employer's separate IT/security/acceptable-use policies, which may restrict automation in ways the Eptura AUP doesn't. **Check with your employer's IT before using this server.** Using it without authorization may violate your employment agreement even if Eptura itself doesn't notice.
+
+**4. Personal, single-employee use only.** This project is not affiliated with, endorsed by, sponsored by, or in partnership with Eptura, Inc. It is a personal automation tool for an individual authenticated user to drive their own workplace bookings (reservations, visitors, work orders). Do not use it to bulk-extract floor plans, employee directories, or other workspace data, and do not build a competing workplace product on top of it.
+
+**5. You accept full responsibility** for any consequences of using this server in connection with your iOffice account — rate limiting, session revocation, tenant suspension, your employer's IT calling you, or any other enforcement action. If Eptura or your employer objects to your use, stop using this server.
+
+This section is the maintainer's good-faith summary of the terms — it is not legal advice and does not modify or supersede Eptura's actual AUP, Master Subscription Agreement, or your employer's policies.
