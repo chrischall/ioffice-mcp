@@ -1,17 +1,17 @@
 {
   "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
   "name": "io.github.chrischall/ioffice-mcp",
-  "description": "iOffice workspace management for Claude \u2014 book rooms, manage visitors, maintenance tickets",
+  "description": "iOffice workspace management for Claude — book rooms, manage visitors, maintenance tickets",
   "repository": {
     "url": "https://github.com/chrischall/ioffice-mcp",
     "source": "github"
   },
-  "version": "2.0.2",
+  "version": "2.1.0",
   "packages": [
     {
       "registryType": "npm",
       "identifier": "ioffice-mcp",
-      "version": "2.0.2",
+      "version": "2.1.0",
       "transport": {
         "type": "stdio"
       },
