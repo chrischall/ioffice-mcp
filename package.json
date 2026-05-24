@@ -1,6 +1,6 @@
 {
   "name": "ioffice-mcp",
-  "version": "2.0.2",
+  "version": "2.1.0",
   "mcpName": "io.github.chrischall/ioffice-mcp",
   "description": "iOffice MCP server for Claude — developed and maintained by AI (Claude Code)",
   "author": "Claude Code (AI) <https://www.anthropic.com/claude>",
