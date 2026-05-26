@@ -15,7 +15,7 @@ import { registerMoveTools } from './tools/moves.js';
 const client = new IOfficeClient();
 
 const server = new McpServer(
-  { name: 'ioffice', version: '2.1.2' }, // x-release-please-version
+  { name: 'ioffice', version: '2.1.3' }, // x-release-please-version
   { capabilities: { tools: {} } }
 );
 
