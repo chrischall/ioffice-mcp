@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.1.2](https://github.com/chrischall/ioffice-mcp/compare/v2.1.1...v2.1.2) (2026-05-26)
+
+
+### Documentation
+
+* **claude:** warn against opening PRs before the feature is done ([#28](https://github.com/chrischall/ioffice-mcp/issues/28)) ([564c53e](https://github.com/chrischall/ioffice-mcp/commit/564c53efba6850914c8af6dd723364ed6b06f8e8))
+
 ## [2.1.1](https://github.com/chrischall/ioffice-mcp/compare/v2.1.0...v2.1.1) (2026-05-25)
 
 
