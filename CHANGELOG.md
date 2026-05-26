@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.1.3](https://github.com/chrischall/ioffice-mcp/compare/v2.1.2...v2.1.3) (2026-05-26)
+
+
+### Bug Fixes
+
+* **ci:** substitute repo name in publish workflow ([#30](https://github.com/chrischall/ioffice-mcp/issues/30)) ([e5a54f4](https://github.com/chrischall/ioffice-mcp/commit/e5a54f4ab03885c17e3e88220d87faa3f9d5b8ad))
+
 ## [2.1.2](https://github.com/chrischall/ioffice-mcp/compare/v2.1.1...v2.1.2) (2026-05-26)
 
 
