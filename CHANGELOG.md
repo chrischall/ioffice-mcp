@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.1.1](https://github.com/chrischall/ioffice-mcp/compare/v2.1.0...v2.1.1) (2026-05-25)
+
+
+### Bug Fixes
+
+* **ci:** prevent labeled event from cancelling auto-review ([#26](https://github.com/chrischall/ioffice-mcp/issues/26)) ([fffab9a](https://github.com/chrischall/ioffice-mcp/commit/fffab9a054a206b4425c2ba937ef57b40a08bce0))
+
 ## [2.1.0](https://github.com/chrischall/ioffice-mcp/compare/v2.0.2...v2.1.0) (2026-05-24)
 
 
