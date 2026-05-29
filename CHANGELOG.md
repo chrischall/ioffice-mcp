@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.1.4](https://github.com/chrischall/ioffice-mcp/compare/v2.1.3...v2.1.4) (2026-05-29)
+
+
+### Bug Fixes
+
+* **ci:** auto-merge arm guards ([#33](https://github.com/chrischall/ioffice-mcp/issues/33)) ([df14f7d](https://github.com/chrischall/ioffice-mcp/commit/df14f7d6b24fc1772b5df941ebe61c8747cdcac9))
+
 ## [2.1.3](https://github.com/chrischall/ioffice-mcp/compare/v2.1.2...v2.1.3) (2026-05-26)
 
 
