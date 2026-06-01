@@ -1,7 +1,7 @@
 import { z } from 'zod';
 import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import type { IOfficeClient } from '../client.js';
-import { buildQueryString, buildOptionalBody } from '../client.js';
+import { buildQueryString, optionalBody } from '../client.js';
 import { textResult } from '@chrischall/mcp-utils';
 
 export function registerMoveTools(server: McpServer, client: IOfficeClient): void {
@@ -78,8 +78,8 @@ export function registerMoveTools(server: McpServer, client: IOfficeClient): voi
     },
     annotations: { readOnlyHint: false },
   }, async ({ id, notes }) => {
-    const body = buildOptionalBody({ notes }, ['notes']);
-    const data = await client.request('POST', `/moves/${id}/approve`, Object.keys(body).length > 0 ? body : undefined);
+    const body = optionalBody({ notes }, ['notes']);
+    const data = await client.request('POST', `/moves/${id}/approve`, body);
     return textResult(data);
   });
 
@@ -91,8 +91,8 @@ export function registerMoveTools(server: McpServer, client: IOfficeClient): voi
     },
     annotations: { readOnlyHint: false, destructiveHint: true },
   }, async ({ id, reason }) => {
-    const body = buildOptionalBody({ reason }, ['reason']);
-    const data = await client.request('POST', `/moves/${id}/cancel`, Object.keys(body).length > 0 ? body : undefined);
+    const body = optionalBody({ reason }, ['reason']);
+    const data = await client.request('POST', `/moves/${id}/cancel`, body);
     return textResult(data);
   });
 }

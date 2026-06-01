@@ -1,7 +1,7 @@
 import { z } from 'zod';
 import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import type { IOfficeClient } from '../client.js';
-import { buildQueryString, buildOptionalBody } from '../client.js';
+import { buildQueryString, optionalBody } from '../client.js';
 import { textResult } from '@chrischall/mcp-utils';
 
 export function registerMaintenanceTools(server: McpServer, client: IOfficeClient): void {
@@ -98,8 +98,8 @@ export function registerMaintenanceTools(server: McpServer, client: IOfficeClien
     },
     annotations: { readOnlyHint: false },
   }, async ({ id, resolution }) => {
-    const body = buildOptionalBody({ resolution }, ['resolution']);
-    const data = await client.request('POST', `/maintenanceRequests/${id}/complete`, Object.keys(body).length > 0 ? body : undefined);
+    const body = optionalBody({ resolution }, ['resolution']);
+    const data = await client.request('POST', `/maintenanceRequests/${id}/complete`, body);
     return textResult(data);
   });
 

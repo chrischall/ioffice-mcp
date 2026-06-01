@@ -9,7 +9,22 @@ await loadDotenvSafely({ path: join(__dirname, '..', '.env'), override: false })
 
 // Re-exported from @chrischall/mcp-utils so tool modules keep importing these
 // from '../client.js' while the implementation lives in the shared package.
+import { buildOptionalBody } from '@chrischall/mcp-utils';
 export { buildQueryString, buildOptionalBody } from '@chrischall/mcp-utils';
+
+/**
+ * Like `buildOptionalBody`, but returns `undefined` for an all-absent body so
+ * callers pass `undefined` (no JSON body) instead of `{}` to `client.request`.
+ * Local convenience wrapper — collapses the `Object.keys(...).length` ternary
+ * that every optional-body tool call site would otherwise repeat.
+ */
+export function optionalBody(
+  values: Record<string, unknown>,
+  keys: string[],
+): Record<string, unknown> | undefined {
+  const body = buildOptionalBody(values, keys);
+  return Object.keys(body).length > 0 ? body : undefined;
+}
 
 export class IOfficeClient {
   private readonly baseUrl: string | null;
