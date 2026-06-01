@@ -2,6 +2,7 @@ import { z } from 'zod';
 import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import type { IOfficeClient } from '../client.js';
 import { buildQueryString } from '../client.js';
+import { textResult } from '@chrischall/mcp-utils';
 
 export function registerSpaceTools(server: McpServer, client: IOfficeClient): void {
   server.registerTool('io_list_spaces', {
@@ -19,7 +20,7 @@ export function registerSpaceTools(server: McpServer, client: IOfficeClient): vo
     const qs = buildQueryString({ search, limit, startAt, orderBy, orderByType });
     const path = floorId ? `/floors/${floorId}/spaces${qs}` : `/spaces${qs}`;
     const data = await client.request('GET', path);
-    return { content: [{ type: 'text', text: JSON.stringify(data, null, 2) }] };
+    return textResult(data);
   });
 
   server.registerTool('io_get_space', {
@@ -30,7 +31,7 @@ export function registerSpaceTools(server: McpServer, client: IOfficeClient): vo
     annotations: { readOnlyHint: true },
   }, async ({ id }) => {
     const data = await client.request('GET', `/spaces/${id}`);
-    return { content: [{ type: 'text', text: JSON.stringify(data, null, 2) }] };
+    return textResult(data);
   });
 
   server.registerTool('io_create_space', {
@@ -46,7 +47,7 @@ export function registerSpaceTools(server: McpServer, client: IOfficeClient): vo
     annotations: { readOnlyHint: false },
   }, async (args) => {
     const data = await client.request('POST', '/spaces', args);
-    return { content: [{ type: 'text', text: JSON.stringify(data, null, 2) }] };
+    return textResult(data);
   });
 
   server.registerTool('io_update_space', {
@@ -62,7 +63,7 @@ export function registerSpaceTools(server: McpServer, client: IOfficeClient): vo
     annotations: { readOnlyHint: false },
   }, async ({ id, ...body }) => {
     const data = await client.request('PUT', `/spaces/${id}`, body);
-    return { content: [{ type: 'text', text: JSON.stringify(data, null, 2) }] };
+    return textResult(data);
   });
 
   server.registerTool('io_delete_space', {
@@ -73,6 +74,6 @@ export function registerSpaceTools(server: McpServer, client: IOfficeClient): vo
     annotations: { readOnlyHint: false, destructiveHint: true },
   }, async ({ id }) => {
     const data = await client.request('DELETE', `/spaces/${id}`);
-    return { content: [{ type: 'text', text: JSON.stringify(data, null, 2) }] };
+    return textResult(data);
   });
 }

@@ -2,6 +2,7 @@ import { z } from 'zod';
 import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import type { IOfficeClient } from '../client.js';
 import { buildQueryString } from '../client.js';
+import { textResult } from '@chrischall/mcp-utils';
 
 export function registerBuildingTools(server: McpServer, client: IOfficeClient): void {
   server.registerTool('io_list_buildings', {
@@ -17,7 +18,7 @@ export function registerBuildingTools(server: McpServer, client: IOfficeClient):
   }, async ({ search, limit, startAt, orderBy, orderByType }) => {
     const qs = buildQueryString({ search, limit, startAt, orderBy, orderByType });
     const data = await client.request('GET', `/buildings${qs}`);
-    return { content: [{ type: 'text', text: JSON.stringify(data, null, 2) }] };
+    return textResult(data);
   });
 
   server.registerTool('io_get_building', {
@@ -28,7 +29,7 @@ export function registerBuildingTools(server: McpServer, client: IOfficeClient):
     annotations: { readOnlyHint: true },
   }, async ({ id }) => {
     const data = await client.request('GET', `/buildings/${id}`);
-    return { content: [{ type: 'text', text: JSON.stringify(data, null, 2) }] };
+    return textResult(data);
   });
 
   server.registerTool('io_create_building', {
@@ -48,7 +49,7 @@ export function registerBuildingTools(server: McpServer, client: IOfficeClient):
     annotations: { readOnlyHint: false },
   }, async (args) => {
     const data = await client.request('POST', '/buildings', args);
-    return { content: [{ type: 'text', text: JSON.stringify(data, null, 2) }] };
+    return textResult(data);
   });
 
   server.registerTool('io_update_building', {
@@ -69,7 +70,7 @@ export function registerBuildingTools(server: McpServer, client: IOfficeClient):
     annotations: { readOnlyHint: false },
   }, async ({ id, ...body }) => {
     const data = await client.request('PUT', `/buildings/${id}`, body);
-    return { content: [{ type: 'text', text: JSON.stringify(data, null, 2) }] };
+    return textResult(data);
   });
 
   server.registerTool('io_delete_building', {
@@ -80,6 +81,6 @@ export function registerBuildingTools(server: McpServer, client: IOfficeClient):
     annotations: { readOnlyHint: false, destructiveHint: true },
   }, async ({ id }) => {
     const data = await client.request('DELETE', `/buildings/${id}`);
-    return { content: [{ type: 'text', text: JSON.stringify(data, null, 2) }] };
+    return textResult(data);
   });
 }

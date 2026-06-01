@@ -2,6 +2,7 @@ import { z } from 'zod';
 import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import type { IOfficeClient } from '../client.js';
 import { buildQueryString } from '../client.js';
+import { textResult } from '@chrischall/mcp-utils';
 
 export function registerVisitorTools(server: McpServer, client: IOfficeClient): void {
   server.registerTool('io_list_visitors', {
@@ -20,7 +21,7 @@ export function registerVisitorTools(server: McpServer, client: IOfficeClient): 
   }, async ({ search, startDate, endDate, buildingId, limit, startAt, orderBy, orderByType }) => {
     const qs = buildQueryString({ search, startDate, endDate, buildingId, limit, startAt, orderBy, orderByType });
     const data = await client.request('GET', `/visitors${qs}`);
-    return { content: [{ type: 'text', text: JSON.stringify(data, null, 2) }] };
+    return textResult(data);
   });
 
   server.registerTool('io_get_visitor', {
@@ -31,7 +32,7 @@ export function registerVisitorTools(server: McpServer, client: IOfficeClient): 
     annotations: { readOnlyHint: true },
   }, async ({ id }) => {
     const data = await client.request('GET', `/visitors/${id}`);
-    return { content: [{ type: 'text', text: JSON.stringify(data, null, 2) }] };
+    return textResult(data);
   });
 
   server.registerTool('io_create_visitor', {
@@ -51,7 +52,7 @@ export function registerVisitorTools(server: McpServer, client: IOfficeClient): 
     annotations: { readOnlyHint: false },
   }, async (args) => {
     const data = await client.request('POST', '/visitors', args);
-    return { content: [{ type: 'text', text: JSON.stringify(data, null, 2) }] };
+    return textResult(data);
   });
 
   server.registerTool('io_update_visitor', {
@@ -70,7 +71,7 @@ export function registerVisitorTools(server: McpServer, client: IOfficeClient): 
     annotations: { readOnlyHint: false },
   }, async ({ id, ...body }) => {
     const data = await client.request('PUT', `/visitors/${id}`, body);
-    return { content: [{ type: 'text', text: JSON.stringify(data, null, 2) }] };
+    return textResult(data);
   });
 
   server.registerTool('io_checkin_visitor', {
@@ -81,7 +82,7 @@ export function registerVisitorTools(server: McpServer, client: IOfficeClient): 
     annotations: { readOnlyHint: false },
   }, async ({ id }) => {
     const data = await client.request('POST', `/visitors/${id}/checkIn`);
-    return { content: [{ type: 'text', text: JSON.stringify(data, null, 2) }] };
+    return textResult(data);
   });
 
   server.registerTool('io_checkout_visitor', {
@@ -92,6 +93,6 @@ export function registerVisitorTools(server: McpServer, client: IOfficeClient): 
     annotations: { readOnlyHint: false },
   }, async ({ id }) => {
     const data = await client.request('POST', `/visitors/${id}/checkOut`);
-    return { content: [{ type: 'text', text: JSON.stringify(data, null, 2) }] };
+    return textResult(data);
   });
 }

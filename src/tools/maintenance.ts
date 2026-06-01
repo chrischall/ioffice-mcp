@@ -1,7 +1,8 @@
 import { z } from 'zod';
 import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import type { IOfficeClient } from '../client.js';
-import { buildQueryString } from '../client.js';
+import { buildQueryString, optionalBody } from '../client.js';
+import { textResult } from '@chrischall/mcp-utils';
 
 export function registerMaintenanceTools(server: McpServer, client: IOfficeClient): void {
   server.registerTool('io_list_maintenance_requests', {
@@ -21,7 +22,7 @@ export function registerMaintenanceTools(server: McpServer, client: IOfficeClien
   }, async ({ search, status, spaceId, buildingId, assignedUserId, limit, startAt, orderBy, orderByType }) => {
     const qs = buildQueryString({ search, status, spaceId, buildingId, assignedUserId, limit, startAt, orderBy, orderByType });
     const data = await client.request('GET', `/maintenanceRequests${qs}`);
-    return { content: [{ type: 'text', text: JSON.stringify(data, null, 2) }] };
+    return textResult(data);
   });
 
   server.registerTool('io_get_maintenance_request', {
@@ -32,7 +33,7 @@ export function registerMaintenanceTools(server: McpServer, client: IOfficeClien
     annotations: { readOnlyHint: true },
   }, async ({ id }) => {
     const data = await client.request('GET', `/maintenanceRequests/${id}`);
-    return { content: [{ type: 'text', text: JSON.stringify(data, null, 2) }] };
+    return textResult(data);
   });
 
   server.registerTool('io_create_maintenance_request', {
@@ -49,7 +50,7 @@ export function registerMaintenanceTools(server: McpServer, client: IOfficeClien
     annotations: { readOnlyHint: false },
   }, async (args) => {
     const data = await client.request('POST', '/maintenanceRequests', args);
-    return { content: [{ type: 'text', text: JSON.stringify(data, null, 2) }] };
+    return textResult(data);
   });
 
   server.registerTool('io_update_maintenance_request', {
@@ -64,7 +65,7 @@ export function registerMaintenanceTools(server: McpServer, client: IOfficeClien
     annotations: { readOnlyHint: false },
   }, async ({ id, ...body }) => {
     const data = await client.request('PUT', `/maintenanceRequests/${id}`, body);
-    return { content: [{ type: 'text', text: JSON.stringify(data, null, 2) }] };
+    return textResult(data);
   });
 
   server.registerTool('io_accept_maintenance_request', {
@@ -75,7 +76,7 @@ export function registerMaintenanceTools(server: McpServer, client: IOfficeClien
     annotations: { readOnlyHint: false },
   }, async ({ id }) => {
     const data = await client.request('POST', `/maintenanceRequests/${id}/accept`);
-    return { content: [{ type: 'text', text: JSON.stringify(data, null, 2) }] };
+    return textResult(data);
   });
 
   server.registerTool('io_start_maintenance_request', {
@@ -86,7 +87,7 @@ export function registerMaintenanceTools(server: McpServer, client: IOfficeClien
     annotations: { readOnlyHint: false },
   }, async ({ id }) => {
     const data = await client.request('POST', `/maintenanceRequests/${id}/start`);
-    return { content: [{ type: 'text', text: JSON.stringify(data, null, 2) }] };
+    return textResult(data);
   });
 
   server.registerTool('io_complete_maintenance_request', {
@@ -97,9 +98,9 @@ export function registerMaintenanceTools(server: McpServer, client: IOfficeClien
     },
     annotations: { readOnlyHint: false },
   }, async ({ id, resolution }) => {
-    const body = resolution !== undefined ? { resolution } : undefined;
+    const body = optionalBody({ resolution }, ['resolution']);
     const data = await client.request('POST', `/maintenanceRequests/${id}/complete`, body);
-    return { content: [{ type: 'text', text: JSON.stringify(data, null, 2) }] };
+    return textResult(data);
   });
 
   server.registerTool('io_archive_maintenance_request', {
@@ -110,6 +111,6 @@ export function registerMaintenanceTools(server: McpServer, client: IOfficeClien
     annotations: { readOnlyHint: false },
   }, async ({ id }) => {
     const data = await client.request('POST', `/maintenanceRequests/${id}/archive`);
-    return { content: [{ type: 'text', text: JSON.stringify(data, null, 2) }] };
+    return textResult(data);
   });
 }

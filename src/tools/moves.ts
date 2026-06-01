@@ -1,7 +1,8 @@
 import { z } from 'zod';
 import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import type { IOfficeClient } from '../client.js';
-import { buildQueryString } from '../client.js';
+import { buildQueryString, optionalBody } from '../client.js';
+import { textResult } from '@chrischall/mcp-utils';
 
 export function registerMoveTools(server: McpServer, client: IOfficeClient): void {
   server.registerTool('io_list_moves', {
@@ -22,7 +23,7 @@ export function registerMoveTools(server: McpServer, client: IOfficeClient): voi
   }, async ({ search, status, buildingId, requesterId, startDate, endDate, limit, startAt, orderBy, orderByType }) => {
     const qs = buildQueryString({ search, status, buildingId, requesterId, startDate, endDate, limit, startAt, orderBy, orderByType });
     const data = await client.request('GET', `/moves${qs}`);
-    return { content: [{ type: 'text', text: JSON.stringify(data, null, 2) }] };
+    return textResult(data);
   });
 
   server.registerTool('io_get_move', {
@@ -33,7 +34,7 @@ export function registerMoveTools(server: McpServer, client: IOfficeClient): voi
     annotations: { readOnlyHint: true },
   }, async ({ id }) => {
     const data = await client.request('GET', `/moves/${id}`);
-    return { content: [{ type: 'text', text: JSON.stringify(data, null, 2) }] };
+    return textResult(data);
   });
 
   server.registerTool('io_create_move', {
@@ -50,7 +51,7 @@ export function registerMoveTools(server: McpServer, client: IOfficeClient): voi
     annotations: { readOnlyHint: false },
   }, async (args) => {
     const data = await client.request('POST', '/moves', args);
-    return { content: [{ type: 'text', text: JSON.stringify(data, null, 2) }] };
+    return textResult(data);
   });
 
   server.registerTool('io_update_move', {
@@ -66,7 +67,7 @@ export function registerMoveTools(server: McpServer, client: IOfficeClient): voi
     annotations: { readOnlyHint: false },
   }, async ({ id, ...body }) => {
     const data = await client.request('PUT', `/moves/${id}`, body);
-    return { content: [{ type: 'text', text: JSON.stringify(data, null, 2) }] };
+    return textResult(data);
   });
 
   server.registerTool('io_approve_move', {
@@ -77,9 +78,9 @@ export function registerMoveTools(server: McpServer, client: IOfficeClient): voi
     },
     annotations: { readOnlyHint: false },
   }, async ({ id, notes }) => {
-    const body = notes !== undefined ? { notes } : undefined;
+    const body = optionalBody({ notes }, ['notes']);
     const data = await client.request('POST', `/moves/${id}/approve`, body);
-    return { content: [{ type: 'text', text: JSON.stringify(data, null, 2) }] };
+    return textResult(data);
   });
 
   server.registerTool('io_cancel_move', {
@@ -90,8 +91,8 @@ export function registerMoveTools(server: McpServer, client: IOfficeClient): voi
     },
     annotations: { readOnlyHint: false, destructiveHint: true },
   }, async ({ id, reason }) => {
-    const body = reason !== undefined ? { reason } : undefined;
+    const body = optionalBody({ reason }, ['reason']);
     const data = await client.request('POST', `/moves/${id}/cancel`, body);
-    return { content: [{ type: 'text', text: JSON.stringify(data, null, 2) }] };
+    return textResult(data);
   });
 }
