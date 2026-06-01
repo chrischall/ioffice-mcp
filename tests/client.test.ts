@@ -216,7 +216,8 @@ describe('IOfficeClient', () => {
     );
   });
 
-  it('aborts the request after a 30s timeout', async () => {
+  it('passes a timeout AbortSignal to fetch so requests cannot hang forever', async () => {
+    const timeoutSpy = vi.spyOn(AbortSignal, 'timeout');
     const mockFetch = vi.fn().mockResolvedValue({
       ok: true,
       status: 200,
@@ -229,6 +230,10 @@ describe('IOfficeClient', () => {
 
     const opts = mockFetch.mock.calls[0][1];
     expect(opts.signal).toBeInstanceOf(AbortSignal);
+    expect(opts.signal.aborted).toBe(false);
+    expect(timeoutSpy).toHaveBeenCalledWith(30000);
+
+    timeoutSpy.mockRestore();
   });
 
   it('sends POST body as JSON', async () => {
