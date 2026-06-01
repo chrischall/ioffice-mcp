@@ -1,14 +1,15 @@
 import { dirname, join } from 'path';
 import { fileURLToPath } from 'url';
+import { formatApiError, loadDotenvSafely } from '@chrischall/mcp-utils';
 
-// Load .env for local dev; silently skip if dotenv is unavailable (e.g. mcpb bundle)
-try {
-  const { config } = await import('dotenv');
-  const __dirname = dirname(fileURLToPath(import.meta.url));
-  config({ path: join(__dirname, '..', '.env'), override: false, quiet: true });
-} catch {
-  // not available — rely on process.env (mcpb sets credentials via mcp_config.env)
-}
+// Load .env for local dev; silently skip when the file or dotenv is absent
+// (e.g. the mcpb bundle, which sets credentials via mcp_config.env).
+const __dirname = dirname(fileURLToPath(import.meta.url));
+await loadDotenvSafely({ path: join(__dirname, '..', '.env'), override: false });
+
+// Re-exported from @chrischall/mcp-utils so tool modules keep importing these
+// from '../client.js' while the implementation lives in the shared package.
+export { buildQueryString, buildOptionalBody } from '@chrischall/mcp-utils';
 
 export class IOfficeClient {
   private readonly baseUrl: string | null;
@@ -73,6 +74,7 @@ export class IOfficeClient {
       method,
       headers,
       ...(body !== undefined ? { body: JSON.stringify(body) } : {}),
+      signal: AbortSignal.timeout(30000),
     });
 
     if (response.status === 401) {
@@ -88,21 +90,10 @@ export class IOfficeClient {
     }
 
     if (!response.ok) {
-      throw new Error(
-        `iOffice API error: ${response.status} ${response.statusText} for ${method} ${path}`
-      );
+      const errorText = await response.text().catch(() => '');
+      throw new Error(formatApiError(response.status, method, path, errorText, { service: 'iOffice' }));
     }
 
     return response.json() as Promise<T>;
   }
-}
-
-export function buildQueryString(params: Record<string, unknown>): string {
-  const parts: string[] = [];
-  for (const [key, value] of Object.entries(params)) {
-    if (value !== undefined && value !== null && value !== '') {
-      parts.push(`${encodeURIComponent(key)}=${encodeURIComponent(String(value))}`);
-    }
-  }
-  return parts.length > 0 ? `?${parts.join('&')}` : '';
 }

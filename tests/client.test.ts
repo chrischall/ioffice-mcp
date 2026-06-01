@@ -169,17 +169,66 @@ describe('IOfficeClient', () => {
     vi.useRealTimers();
   });
 
-  it('throws on other non-2xx errors', async () => {
+  it('throws on other non-2xx errors with the redacted formatApiError message', async () => {
     vi.stubGlobal('fetch', vi.fn().mockResolvedValue({
       ok: false,
       status: 500,
       statusText: 'Internal Server Error',
+      text: async () => 'upstream exploded',
+    }));
+
+    const client = new IOfficeClient();
+    // formatApiError (from @chrischall/mcp-utils) formats as
+    // "{service} error {status} for {METHOD} {path}: {body}" with the
+    // upstream body run through token-redaction + truncation first.
+    await expect(client.request('GET', '/buildings')).rejects.toThrow(
+      'iOffice error 500 for GET /buildings: upstream exploded'
+    );
+  });
+
+  it('drops the body from the error when the upstream sends an empty body', async () => {
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({
+      ok: false,
+      status: 500,
+      statusText: 'Internal Server Error',
+      text: async () => '',
     }));
 
     const client = new IOfficeClient();
     await expect(client.request('GET', '/buildings')).rejects.toThrow(
-      'iOffice API error: 500 Internal Server Error for GET /buildings'
+      'iOffice error 500 for GET /buildings'
     );
+  });
+
+  it('falls back to an empty body when reading the error body fails', async () => {
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({
+      ok: false,
+      status: 503,
+      statusText: 'Service Unavailable',
+      text: async () => {
+        throw new Error('stream already consumed');
+      },
+    }));
+
+    const client = new IOfficeClient();
+    await expect(client.request('GET', '/buildings')).rejects.toThrow(
+      'iOffice error 503 for GET /buildings'
+    );
+  });
+
+  it('aborts the request after a 30s timeout', async () => {
+    const mockFetch = vi.fn().mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: async () => ({}),
+    });
+    vi.stubGlobal('fetch', mockFetch);
+
+    const client = new IOfficeClient();
+    await client.request('GET', '/buildings');
+
+    const opts = mockFetch.mock.calls[0][1];
+    expect(opts.signal).toBeInstanceOf(AbortSignal);
   });
 
   it('sends POST body as JSON', async () => {

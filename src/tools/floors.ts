@@ -2,6 +2,7 @@ import { z } from 'zod';
 import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import type { IOfficeClient } from '../client.js';
 import { buildQueryString } from '../client.js';
+import { textResult } from '@chrischall/mcp-utils';
 
 export function registerFloorTools(server: McpServer, client: IOfficeClient): void {
   server.registerTool('io_list_floors', {
@@ -19,7 +20,7 @@ export function registerFloorTools(server: McpServer, client: IOfficeClient): vo
     const qs = buildQueryString({ search, limit, startAt, orderBy, orderByType });
     const path = buildingId ? `/buildings/${buildingId}/floors${qs}` : `/floors${qs}`;
     const data = await client.request('GET', path);
-    return { content: [{ type: 'text', text: JSON.stringify(data, null, 2) }] };
+    return textResult(data);
   });
 
   server.registerTool('io_get_floor', {
@@ -30,7 +31,7 @@ export function registerFloorTools(server: McpServer, client: IOfficeClient): vo
     annotations: { readOnlyHint: true },
   }, async ({ id }) => {
     const data = await client.request('GET', `/floors/${id}`);
-    return { content: [{ type: 'text', text: JSON.stringify(data, null, 2) }] };
+    return textResult(data);
   });
 
   server.registerTool('io_create_floor', {
@@ -45,7 +46,7 @@ export function registerFloorTools(server: McpServer, client: IOfficeClient): vo
     annotations: { readOnlyHint: false },
   }, async (args) => {
     const data = await client.request('POST', '/floors', args);
-    return { content: [{ type: 'text', text: JSON.stringify(data, null, 2) }] };
+    return textResult(data);
   });
 
   server.registerTool('io_update_floor', {
@@ -60,7 +61,7 @@ export function registerFloorTools(server: McpServer, client: IOfficeClient): vo
     annotations: { readOnlyHint: false },
   }, async ({ id, ...body }) => {
     const data = await client.request('PUT', `/floors/${id}`, body);
-    return { content: [{ type: 'text', text: JSON.stringify(data, null, 2) }] };
+    return textResult(data);
   });
 
   server.registerTool('io_delete_floor', {
@@ -71,6 +72,6 @@ export function registerFloorTools(server: McpServer, client: IOfficeClient): vo
     annotations: { readOnlyHint: false, destructiveHint: true },
   }, async ({ id }) => {
     const data = await client.request('DELETE', `/floors/${id}`);
-    return { content: [{ type: 'text', text: JSON.stringify(data, null, 2) }] };
+    return textResult(data);
   });
 }

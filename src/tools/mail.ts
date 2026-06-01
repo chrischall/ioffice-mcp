@@ -1,7 +1,8 @@
 import { z } from 'zod';
 import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import type { IOfficeClient } from '../client.js';
-import { buildQueryString } from '../client.js';
+import { buildQueryString, buildOptionalBody } from '../client.js';
+import { textResult } from '@chrischall/mcp-utils';
 
 export function registerMailTools(server: McpServer, client: IOfficeClient): void {
   server.registerTool('io_list_mail', {
@@ -22,7 +23,7 @@ export function registerMailTools(server: McpServer, client: IOfficeClient): voi
   }, async ({ search, status, buildingId, recipientId, startDate, endDate, limit, startAt, orderBy, orderByType }) => {
     const qs = buildQueryString({ search, status, buildingId, recipientId, startDate, endDate, limit, startAt, orderBy, orderByType });
     const data = await client.request('GET', `/mail${qs}`);
-    return { content: [{ type: 'text', text: JSON.stringify(data, null, 2) }] };
+    return textResult(data);
   });
 
   server.registerTool('io_get_mail', {
@@ -33,7 +34,7 @@ export function registerMailTools(server: McpServer, client: IOfficeClient): voi
     annotations: { readOnlyHint: true },
   }, async ({ id }) => {
     const data = await client.request('GET', `/mail/${id}`);
-    return { content: [{ type: 'text', text: JSON.stringify(data, null, 2) }] };
+    return textResult(data);
   });
 
   server.registerTool('io_create_mail', {
@@ -50,7 +51,7 @@ export function registerMailTools(server: McpServer, client: IOfficeClient): voi
     annotations: { readOnlyHint: false },
   }, async (args) => {
     const data = await client.request('POST', '/mail', args);
-    return { content: [{ type: 'text', text: JSON.stringify(data, null, 2) }] };
+    return textResult(data);
   });
 
   server.registerTool('io_deliver_mail', {
@@ -61,9 +62,10 @@ export function registerMailTools(server: McpServer, client: IOfficeClient): voi
       signature: z.string().describe('Recipient signature or name confirmation').optional(),
     },
     annotations: { readOnlyHint: false },
-  }, async ({ id, ...body }) => {
+  }, async ({ id, deliveredDate, signature }) => {
+    const body = buildOptionalBody({ deliveredDate, signature }, ['deliveredDate', 'signature']);
     const data = await client.request('POST', `/mail/${id}/deliver`, Object.keys(body).length > 0 ? body : undefined);
-    return { content: [{ type: 'text', text: JSON.stringify(data, null, 2) }] };
+    return textResult(data);
   });
 
   server.registerTool('io_return_mail', {
@@ -73,8 +75,9 @@ export function registerMailTools(server: McpServer, client: IOfficeClient): voi
       reason: z.string().describe('Reason for return').optional(),
     },
     annotations: { readOnlyHint: false },
-  }, async ({ id, ...body }) => {
+  }, async ({ id, reason }) => {
+    const body = buildOptionalBody({ reason }, ['reason']);
     const data = await client.request('POST', `/mail/${id}/return`, Object.keys(body).length > 0 ? body : undefined);
-    return { content: [{ type: 'text', text: JSON.stringify(data, null, 2) }] };
+    return textResult(data);
   });
 }
