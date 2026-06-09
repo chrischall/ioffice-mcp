@@ -80,6 +80,13 @@ describe('io_delete_reservation', () => {
     await call('io_delete_reservation', { id: 101 });
     expect(mockClient.request).toHaveBeenCalledWith('DELETE', '/reservations/101');
   });
+
+  it('returns a success result when the API responds 204 No Content', async () => {
+    const { call } = setup();
+    mockClient.request = vi.fn().mockResolvedValue(undefined);
+    const result = await call('io_delete_reservation', { id: 101 });
+    expect(result.content[0].text).toContain('\"success\": true');
+  });
 });
 
 describe('io_checkin_reservation', () => {

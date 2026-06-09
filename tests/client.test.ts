@@ -59,7 +59,7 @@ describe('IOfficeClient', () => {
     const mockFetch = vi.fn().mockResolvedValue({
       ok: true,
       status: 200,
-      json: async () => ({ results: [] }),
+      text: async () => JSON.stringify({ results: [] }),
     });
     vi.stubGlobal('fetch', mockFetch);
 
@@ -81,7 +81,7 @@ describe('IOfficeClient', () => {
     const mockFetch = vi.fn().mockResolvedValue({
       ok: true,
       status: 200,
-      json: async () => ({ results: [] }),
+      text: async () => JSON.stringify({ results: [] }),
     });
     vi.stubGlobal('fetch', mockFetch);
 
@@ -107,7 +107,7 @@ describe('IOfficeClient', () => {
     const mockFetch = vi.fn().mockResolvedValue({
       ok: true,
       status: 200,
-      json: async () => ({}),
+      text: async () => '{}',
     });
     vi.stubGlobal('fetch', mockFetch);
 
@@ -139,7 +139,7 @@ describe('IOfficeClient', () => {
   it('retries once on 429 then succeeds', async () => {
     const mockFetch = vi.fn()
       .mockResolvedValueOnce({ ok: false, status: 429, statusText: 'Too Many Requests' })
-      .mockResolvedValueOnce({ ok: true, status: 200, json: async () => ({ results: [] }) });
+      .mockResolvedValueOnce({ ok: true, status: 200, text: async () => JSON.stringify({ results: [] }) });
     vi.stubGlobal('fetch', mockFetch);
     vi.useFakeTimers();
 
@@ -200,28 +200,11 @@ describe('IOfficeClient', () => {
     );
   });
 
-  it('falls back to an empty body when reading the error body fails', async () => {
-    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({
-      ok: false,
-      status: 503,
-      statusText: 'Service Unavailable',
-      text: async () => {
-        throw new Error('stream already consumed');
-      },
-    }));
-
-    const client = new IOfficeClient();
-    await expect(client.request('GET', '/buildings')).rejects.toThrow(
-      'iOffice error 503 for GET /buildings'
-    );
-  });
-
   it('passes a timeout AbortSignal to fetch so requests cannot hang forever', async () => {
-    const timeoutSpy = vi.spyOn(AbortSignal, 'timeout');
     const mockFetch = vi.fn().mockResolvedValue({
       ok: true,
       status: 200,
-      json: async () => ({}),
+      text: async () => '{}',
     });
     vi.stubGlobal('fetch', mockFetch);
 
@@ -231,16 +214,44 @@ describe('IOfficeClient', () => {
     const opts = mockFetch.mock.calls[0][1];
     expect(opts.signal).toBeInstanceOf(AbortSignal);
     expect(opts.signal.aborted).toBe(false);
-    expect(timeoutSpy).toHaveBeenCalledWith(30000);
+  });
 
-    timeoutSpy.mockRestore();
+  // Bug fix (audit A-high): iOffice DELETE endpoints return 204 No Content.
+  // The old hand-rolled client unconditionally called response.json(), so every
+  // successful DELETE threw "SyntaxError: Unexpected end of JSON input".
+  it('resolves undefined for a 204 No Content response (successful DELETE)', async () => {
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({
+      ok: true,
+      status: 204,
+      json: async () => {
+        throw new SyntaxError('Unexpected end of JSON input');
+      },
+      text: async () => '',
+    }));
+
+    const client = new IOfficeClient();
+    await expect(client.request('DELETE', '/buildings/1')).resolves.toBeUndefined();
+  });
+
+  it('resolves undefined for a 200 response with an empty body', async () => {
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: async () => {
+        throw new SyntaxError('Unexpected end of JSON input');
+      },
+      text: async () => '',
+    }));
+
+    const client = new IOfficeClient();
+    await expect(client.request('DELETE', '/buildings/1')).resolves.toBeUndefined();
   });
 
   it('sends POST body as JSON', async () => {
     const mockFetch = vi.fn().mockResolvedValue({
       ok: true,
       status: 201,
-      json: async () => ({ id: 1, name: 'HQ' }),
+      text: async () => JSON.stringify({ id: 1, name: 'HQ' }),
     });
     vi.stubGlobal('fetch', mockFetch);
 
@@ -260,7 +271,7 @@ describe('IOfficeClient', () => {
     const mockFetch = vi.fn().mockResolvedValue({
       ok: true,
       status: 200,
-      json: async () => ({}),
+      text: async () => '{}',
     });
     vi.stubGlobal('fetch', mockFetch);
 

@@ -78,4 +78,11 @@ describe('io_delete_building', () => {
     expect(mockClient.request).toHaveBeenCalledWith('DELETE', '/buildings/1');
     expect(result.content[0].text).toContain('true');
   });
+
+  it('returns a success result when the API responds 204 No Content', async () => {
+    const { call } = setup();
+    mockClient.request = vi.fn().mockResolvedValue(undefined);
+    const result = await call('io_delete_building', { id: 1 });
+    expect(result.content[0].text).toContain('\"success\": true');
+  });
 });

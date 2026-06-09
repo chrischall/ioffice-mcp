@@ -77,7 +77,9 @@ export function registerReservationTools(server: McpServer, client: IOfficeClien
     annotations: { readOnlyHint: false, destructiveHint: true },
   }, async ({ id }) => {
     const data = await client.request('DELETE', `/reservations/${id}`);
-    return textResult(data);
+    // iOffice DELETEs return 204 No Content; the client resolves that to
+    // undefined, so synthesize a small success payload for the tool result.
+    return textResult(data ?? { success: true });
   });
 
   server.registerTool('io_checkin_reservation', {
