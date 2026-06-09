@@ -79,4 +79,11 @@ describe('io_delete_user', () => {
     await call('io_delete_user', { id: 43 });
     expect(mockClient.request).toHaveBeenCalledWith('DELETE', '/users/43');
   });
+
+  it('returns a success result when the API responds 204 No Content', async () => {
+    const { call } = setup();
+    mockClient.request = vi.fn().mockResolvedValue(undefined);
+    const result = await call('io_delete_user', { id: 43 });
+    expect(result.content[0].text).toContain('\"success\": true');
+  });
 });

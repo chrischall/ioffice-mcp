@@ -84,4 +84,11 @@ describe('io_delete_space', () => {
     await call('io_delete_space', { id: 11 });
     expect(mockClient.request).toHaveBeenCalledWith('DELETE', '/spaces/11');
   });
+
+  it('returns a success result when the API responds 204 No Content', async () => {
+    const { call } = setup();
+    mockClient.request = vi.fn().mockResolvedValue(undefined);
+    const result = await call('io_delete_space', { id: 11 });
+    expect(result.content[0].text).toContain('\"success\": true');
+  });
 });

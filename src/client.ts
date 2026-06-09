@@ -1,6 +1,11 @@
 import { dirname, join } from 'path';
 import { fileURLToPath } from 'url';
-import { formatApiError, loadDotenvSafely } from '@chrischall/mcp-utils';
+import {
+  createApiClient,
+  loadDotenvSafely,
+  readEnvVar,
+  type ApiClient,
+} from '@chrischall/mcp-utils';
 
 // Load .env for local dev; silently skip when the file or dotenv is absent
 // (e.g. the mcpb bundle, which sets credentials via mcp_config.env).
@@ -27,8 +32,7 @@ export function optionalBody(
 }
 
 export class IOfficeClient {
-  private readonly baseUrl: string | null;
-  private readonly authHeaders: Record<string, string> | null;
+  private readonly api: ApiClient | null;
   private readonly configError: Error | null;
 
   /**
@@ -37,78 +41,48 @@ export class IOfficeClient {
    * re-raise the error at request time.
    */
   constructor() {
-    const host = process.env.IOFFICE_HOST;
-    const token = process.env.IOFFICE_TOKEN;
-    const username = process.env.IOFFICE_USERNAME;
-    const password = process.env.IOFFICE_PASSWORD;
+    const host = readEnvVar('IOFFICE_HOST');
+    const token = readEnvVar('IOFFICE_TOKEN');
+    const username = readEnvVar('IOFFICE_USERNAME');
+    const password = readEnvVar('IOFFICE_PASSWORD');
 
+    let authHeaders: Record<string, string> | null = null;
     if (!host) {
-      this.baseUrl = null;
-      this.authHeaders = null;
       this.configError = new Error('IOFFICE_HOST environment variable is required');
     } else if (token) {
-      this.baseUrl = `https://${host}/external/api/rest/v2`;
-      this.authHeaders = { 'x-auth-token': token };
+      authHeaders = { 'x-auth-token': token };
       this.configError = null;
     } else if (username && password) {
-      this.baseUrl = `https://${host}/external/api/rest/v2`;
-      this.authHeaders = { 'x-auth-username': username, 'x-auth-password': password };
+      authHeaders = { 'x-auth-username': username, 'x-auth-password': password };
       this.configError = null;
     } else {
-      this.baseUrl = null;
-      this.authHeaders = null;
       this.configError = new Error(
         'Authentication required: set IOFFICE_TOKEN, or both IOFFICE_USERNAME and IOFFICE_PASSWORD',
       );
     }
-  }
 
-  private requireConfig(): { baseUrl: string; authHeaders: Record<string, string> } {
-    if (this.configError) throw this.configError;
-    return { baseUrl: this.baseUrl!, authHeaders: this.authHeaders! };
+    // Shared bearer-client kit, configured for iOffice's static header auth
+    // (x-auth-token or x-auth-username/x-auth-password — no Bearer token, so
+    // baseHeaders instead of getToken). Defaults give the fleet-standard
+    // one-shot 429 retry (2 s); 204/empty bodies resolve to `undefined`
+    // instead of throwing on `response.json()`.
+    this.api = authHeaders
+      ? createApiClient({
+          baseUrl: `https://${host}/external/api/rest/v2`,
+          baseHeaders: authHeaders,
+          serviceName: 'iOffice',
+          timeout: 30_000,
+          onUnauthorized: () =>
+            new Error(
+              'iOffice credentials are invalid (check IOFFICE_TOKEN or IOFFICE_USERNAME/IOFFICE_PASSWORD)',
+            ),
+          onRateLimited: () => new Error('Rate limited by iOffice API'),
+        })
+      : null;
   }
 
   async request<T>(method: string, path: string, body?: unknown): Promise<T> {
-    return this.doRequest<T>(method, path, body, false);
-  }
-
-  private async doRequest<T>(
-    method: string,
-    path: string,
-    body: unknown,
-    isRetry: boolean
-  ): Promise<T> {
-    const { baseUrl, authHeaders } = this.requireConfig();
-    const headers: Record<string, string> = {
-      ...authHeaders,
-      'Content-Type': 'application/json',
-      Accept: 'application/json',
-    };
-
-    const response = await fetch(`${baseUrl}${path}`, {
-      method,
-      headers,
-      ...(body !== undefined ? { body: JSON.stringify(body) } : {}),
-      signal: AbortSignal.timeout(30000),
-    });
-
-    if (response.status === 401) {
-      throw new Error('iOffice credentials are invalid (check IOFFICE_TOKEN or IOFFICE_USERNAME/IOFFICE_PASSWORD)');
-    }
-
-    if (response.status === 429) {
-      if (!isRetry) {
-        await new Promise<void>((r) => setTimeout(r, 2000));
-        return this.doRequest<T>(method, path, body, true);
-      }
-      throw new Error('Rate limited by iOffice API');
-    }
-
-    if (!response.ok) {
-      const errorText = await response.text().catch(() => '');
-      throw new Error(formatApiError(response.status, method, path, errorText, { service: 'iOffice' }));
-    }
-
-    return response.json() as Promise<T>;
+    if (this.configError) throw this.configError;
+    return this.api!.fetchJson<T>(method, path, body !== undefined ? { body } : {});
   }
 }
