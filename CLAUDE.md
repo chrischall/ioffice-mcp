@@ -88,7 +88,7 @@ jq -r '.description | length' server.json
 
 ## Versioning
 
-Version appears in MANY places — all must match. The **Tag & Bump** GitHub Action handles them automatically; if updating manually, hit each one:
+Version appears in MANY places — all must match. release-please bumps them automatically (registered as `extra-files` in its config); if updating manually, hit each one:
 
 1. `package.json` → `"version"`
 2. `package-lock.json` → run `npm install --package-lock-only` after changing package.json (`npm version` does this)
@@ -98,21 +98,15 @@ Version appears in MANY places — all must match. The **Tag & Bump** GitHub Act
 6. `.claude-plugin/plugin.json` → `"version"`
 7. `.claude-plugin/marketplace.json` → outer `metadata.version`, `plugins[].version`, and `plugins[].source.version`
 
-Note: `package.json` / `manifest.json` / `server.json` are currently at `2.0.2`; the `.claude-plugin/*` files lag at `1.1.0` because the Tag & Bump bumper only rewrites them when `o.version` exists at the top level of each object it touches.
+Note: `package.json` / `manifest.json` / `server.json` are currently at `2.0.2`; the `.claude-plugin/*` files lag at `1.1.0` because they were added to release-please's `extra-files` set after the earlier bumps and have not yet been carried forward by a release PR.
+
+### Release flow
+
+Commits land on `main` via PR. release-please (`.github/workflows/release-please.yml`) opens or updates a `chore(main): release X.Y.Z` PR whenever Conventional-Commit messages (`feat:`, `fix:`, etc.) accumulate. Merging the release PR (arm `ready-to-merge`) creates the tag and a GitHub Release; the `publish` job then packs `.mcpb` + `.skill`, publishes to npm with provenance, and pushes to the MCP Registry.
 
 ### Important
 
-Do NOT manually bump versions or create tags unless the user explicitly asks. Versioning is handled by the **Tag & Bump** GitHub Action (`.github/workflows/tag-and-bump.yml`).
-
-### Release workflow
-
-Main is always one version ahead of the latest tag. To release, run the **Tag & Bump** workflow (`workflow_dispatch`) which:
-
-1. Runs CI (build + test) via the reusable `ci.yml`
-2. Tags the current commit `vX.Y.Z` with the current `package.json` version
-3. Bumps patch via `npm version patch --no-git-tag-version` plus a node script that walks every JSON version field (and `sed` for `src/index.ts`)
-4. Rebuilds (`npm run build`), commits, and pushes main + tag
-5. The tag push triggers `.github/workflows/release.yml` (npm publish + GitHub release with auto-generated notes per `.github/release.yml`)
+Do NOT manually bump versions or create tags unless the user explicitly asks. release-please owns versioning.
 
 ## Gotchas
 
