@@ -1,5 +1,18 @@
 # Changelog
 
+## [2.1.5](https://github.com/chrischall/ioffice-mcp/compare/v2.1.4...v2.1.5) (2026-06-13)
+
+
+### Bug Fixes
+
+* bot PRs bypass the CI gate unconditionally (upstream curtaincall[#86](https://github.com/chrischall/ioffice-mcp/issues/86) review) ([#53](https://github.com/chrischall/ioffice-mcp/issues/53)) ([dac7fa8](https://github.com/chrischall/ioffice-mcp/commit/dac7fa825eebcd7798d9b099aac804c8a4d825d5))
+
+
+### Documentation
+
+* correct release flow to describe release-please ([#49](https://github.com/chrischall/ioffice-mcp/issues/49)) ([0592f69](https://github.com/chrischall/ioffice-mcp/commit/0592f6928681848f11764f032da0e4e28aa67eb2))
+* declare MIT license and add README badges ([#54](https://github.com/chrischall/ioffice-mcp/issues/54)) ([714e87c](https://github.com/chrischall/ioffice-mcp/commit/714e87c73aad631ee6663ceafa426fd83fc59a17))
+
 ## [2.1.4](https://github.com/chrischall/ioffice-mcp/compare/v2.1.3...v2.1.4) (2026-05-29)
 
 
