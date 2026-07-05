@@ -6,12 +6,12 @@
     "url": "https://github.com/chrischall/ioffice-mcp",
     "source": "github"
   },
-  "version": "2.1.5",
+  "version": "2.1.6",
   "packages": [
     {
       "registryType": "npm",
       "identifier": "ioffice-mcp",
-      "version": "2.1.5",
+      "version": "2.1.6",
       "transport": {
         "type": "stdio"
       },

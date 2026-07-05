@@ -1,5 +1,13 @@
 # Changelog
 
+## [2.1.6](https://github.com/chrischall/ioffice-mcp/compare/v2.1.5...v2.1.6) (2026-07-05)
+
+
+### Documentation
+
+* refresh CLAUDE.md for mcp-utils refactor + auto-review follow-up convention ([#62](https://github.com/chrischall/ioffice-mcp/issues/62)) ([78eb324](https://github.com/chrischall/ioffice-mcp/commit/78eb32485bf027f156699e4fe48afa3e72d764e7))
+* require Conventional Commit PR titles for release-please ([#58](https://github.com/chrischall/ioffice-mcp/issues/58)) ([8584012](https://github.com/chrischall/ioffice-mcp/commit/8584012c740e136eda5eaefda00a09d4c541c905))
+
 ## [2.1.5](https://github.com/chrischall/ioffice-mcp/compare/v2.1.4...v2.1.5) (2026-06-13)
 
 
