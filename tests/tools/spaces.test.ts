@@ -63,7 +63,7 @@ describe('io_create_space', () => {
   it('calls POST /spaces with args', async () => {
     const { call } = setup();
     mockClient.request = vi.fn().mockResolvedValue({ id: 11 });
-    await call('io_create_space', { name: 'Conf A', floorId: 3, capacity: 10 });
+    await call('io_create_space', { name: 'Conf A', floorId: 3, capacity: 10, confirm: true });
     expect(mockClient.request).toHaveBeenCalledWith('POST', '/spaces', { name: 'Conf A', floorId: 3, capacity: 10 });
   });
 });
@@ -72,7 +72,7 @@ describe('io_update_space', () => {
   it('calls PUT /spaces/{id} without id in body', async () => {
     const { call } = setup();
     mockClient.request = vi.fn().mockResolvedValue({ id: 11 });
-    await call('io_update_space', { id: 11, capacity: 20 });
+    await call('io_update_space', { id: 11, capacity: 20, confirm: true });
     expect(mockClient.request).toHaveBeenCalledWith('PUT', '/spaces/11', { capacity: 20 });
   });
 });
@@ -81,14 +81,42 @@ describe('io_delete_space', () => {
   it('calls DELETE /spaces/{id}', async () => {
     const { call } = setup();
     mockClient.request = vi.fn().mockResolvedValue({ success: true });
-    await call('io_delete_space', { id: 11 });
+    await call('io_delete_space', { id: 11, confirm: true });
     expect(mockClient.request).toHaveBeenCalledWith('DELETE', '/spaces/11');
   });
 
   it('returns a success result when the API responds 204 No Content', async () => {
     const { call } = setup();
     mockClient.request = vi.fn().mockResolvedValue(undefined);
-    const result = await call('io_delete_space', { id: 11 });
+    const result = await call('io_delete_space', { id: 11, confirm: true });
     expect(result.content[0].text).toContain('\"success\": true');
+  });
+});
+
+describe('confirm-gate - spaces', () => {
+  it('io_create_space without confirm returns dry-run and makes NO request', async () => {
+    const { call } = setup();
+    mockClient.request = vi.fn();
+    const result = await call('io_create_space', { name: 'Conf A', floorId: 3 });
+    expect(mockClient.request).not.toHaveBeenCalled();
+    const payload = JSON.parse(result.content[0].text as string);
+    expect(payload.dryRun).toBe(true);
+    expect(payload.willSend).not.toHaveProperty('confirm');
+  });
+
+  it('io_update_space without confirm returns dry-run and makes NO request', async () => {
+    const { call } = setup();
+    mockClient.request = vi.fn();
+    const result = await call('io_update_space', { id: 11, capacity: 20 });
+    expect(mockClient.request).not.toHaveBeenCalled();
+    expect(JSON.parse(result.content[0].text as string).dryRun).toBe(true);
+  });
+
+  it('io_delete_space without confirm returns dry-run and makes NO request', async () => {
+    const { call } = setup();
+    mockClient.request = vi.fn();
+    const result = await call('io_delete_space', { id: 11 });
+    expect(mockClient.request).not.toHaveBeenCalled();
+    expect(JSON.parse(result.content[0].text as string).dryRun).toBe(true);
   });
 });

@@ -3,6 +3,7 @@ import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import type { IOfficeClient } from '../client.js';
 import { buildQueryString } from '../client.js';
 import { textResult } from '@chrischall/mcp-utils';
+import { previewUnlessConfirmed, schemaConfirm } from './_confirm.js';
 
 export function registerFloorTools(server: McpServer, client: IOfficeClient): void {
   server.registerTool('io_list_floors', {
@@ -35,42 +36,51 @@ export function registerFloorTools(server: McpServer, client: IOfficeClient): vo
   });
 
   server.registerTool('io_create_floor', {
-    description: 'Create a new iOffice floor within a building.',
+    description: 'Create a new iOffice floor within a building. Without confirm:true this returns a dry-run preview and makes NO network call; with confirm:true it executes.',
     inputSchema: {
       name: z.string().describe('Floor name'),
       buildingId: z.number().describe('ID of the building this floor belongs to'),
       description: z.string().describe('Floor description').optional(),
       totalSquareFootage: z.number().describe('Total square footage of the floor').optional(),
       floorNumber: z.number().describe('Physical floor number').optional(),
+      confirm: schemaConfirm,
     },
-    annotations: { readOnlyHint: false },
-  }, async (args) => {
+    annotations: { readOnlyHint: false, destructiveHint: true },
+  }, async ({ confirm, ...args }) => {
+    const gate = previewUnlessConfirmed(confirm, 'Create iOffice floor', 'POST', '/floors', args);
+    if (gate) return gate;
     const data = await client.request('POST', '/floors', args);
     return textResult(data);
   });
 
   server.registerTool('io_update_floor', {
-    description: 'Update an existing iOffice floor. Only provide fields to change.',
+    description: 'Update an existing iOffice floor. Only provide fields to change. Without confirm:true this returns a dry-run preview and makes NO network call; with confirm:true it executes.',
     inputSchema: {
       id: z.number().describe('Floor ID'),
       name: z.string().describe('Floor name').optional(),
       description: z.string().describe('Floor description').optional(),
       totalSquareFootage: z.number().describe('Total square footage').optional(),
       floorNumber: z.number().describe('Physical floor number').optional(),
+      confirm: schemaConfirm,
     },
-    annotations: { readOnlyHint: false },
-  }, async ({ id, ...body }) => {
+    annotations: { readOnlyHint: false, destructiveHint: true },
+  }, async ({ id, confirm, ...body }) => {
+    const gate = previewUnlessConfirmed(confirm, `Update iOffice floor ${id}`, 'PUT', `/floors/${id}`, body);
+    if (gate) return gate;
     const data = await client.request('PUT', `/floors/${id}`, body);
     return textResult(data);
   });
 
   server.registerTool('io_delete_floor', {
-    description: 'Delete an iOffice floor by ID.',
+    description: 'Delete an iOffice floor by ID. Without confirm:true this returns a dry-run preview and makes NO network call; with confirm:true it executes.',
     inputSchema: {
       id: z.number().describe('Floor ID'),
+      confirm: schemaConfirm,
     },
     annotations: { readOnlyHint: false, destructiveHint: true },
-  }, async ({ id }) => {
+  }, async ({ id, confirm }) => {
+    const gate = previewUnlessConfirmed(confirm, `Delete iOffice floor ${id}`, 'DELETE', `/floors/${id}`);
+    if (gate) return gate;
     const data = await client.request('DELETE', `/floors/${id}`);
     // iOffice DELETEs return 204 No Content; the client resolves that to
     // undefined, so synthesize a small success payload for the tool result.

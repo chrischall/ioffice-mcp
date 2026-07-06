@@ -3,6 +3,7 @@ import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import type { IOfficeClient } from '../client.js';
 import { buildQueryString } from '../client.js';
 import { textResult } from '@chrischall/mcp-utils';
+import { previewUnlessConfirmed, schemaConfirm } from './_confirm.js';
 
 export function registerUserTools(server: McpServer, client: IOfficeClient): void {
   server.registerTool('io_list_users', {
@@ -33,7 +34,7 @@ export function registerUserTools(server: McpServer, client: IOfficeClient): voi
   });
 
   server.registerTool('io_create_user', {
-    description: 'Create a new iOffice user.',
+    description: 'Create a new iOffice user. Without confirm:true this returns a dry-run preview and makes NO network call; with confirm:true it executes.',
     inputSchema: {
       firstName: z.string().describe('First name'),
       lastName: z.string().describe('Last name'),
@@ -43,15 +44,18 @@ export function registerUserTools(server: McpServer, client: IOfficeClient): voi
       title: z.string().describe('Job title').optional(),
       centerId: z.number().describe('Primary center/cost center ID').optional(),
       buildingId: z.number().describe('Default building ID').optional(),
+      confirm: schemaConfirm,
     },
-    annotations: { readOnlyHint: false },
-  }, async (args) => {
+    annotations: { readOnlyHint: false, destructiveHint: true },
+  }, async ({ confirm, ...args }) => {
+    const gate = previewUnlessConfirmed(confirm, 'Create iOffice user', 'POST', '/users', args);
+    if (gate) return gate;
     const data = await client.request('POST', '/users', args);
     return textResult(data);
   });
 
   server.registerTool('io_update_user', {
-    description: 'Update an existing iOffice user. Only provide fields to change.',
+    description: 'Update an existing iOffice user. Only provide fields to change. Without confirm:true this returns a dry-run preview and makes NO network call; with confirm:true it executes.',
     inputSchema: {
       id: z.number().describe('User ID'),
       firstName: z.string().describe('First name').optional(),
@@ -61,20 +65,26 @@ export function registerUserTools(server: McpServer, client: IOfficeClient): voi
       title: z.string().describe('Job title').optional(),
       centerId: z.number().describe('Primary center/cost center ID').optional(),
       buildingId: z.number().describe('Default building ID').optional(),
+      confirm: schemaConfirm,
     },
-    annotations: { readOnlyHint: false },
-  }, async ({ id, ...body }) => {
+    annotations: { readOnlyHint: false, destructiveHint: true },
+  }, async ({ id, confirm, ...body }) => {
+    const gate = previewUnlessConfirmed(confirm, `Update iOffice user ${id}`, 'PUT', `/users/${id}`, body);
+    if (gate) return gate;
     const data = await client.request('PUT', `/users/${id}`, body);
     return textResult(data);
   });
 
   server.registerTool('io_delete_user', {
-    description: 'Delete an iOffice user by ID.',
+    description: 'Delete an iOffice user by ID. Without confirm:true this returns a dry-run preview and makes NO network call; with confirm:true it executes.',
     inputSchema: {
       id: z.number().describe('User ID'),
+      confirm: schemaConfirm,
     },
     annotations: { readOnlyHint: false, destructiveHint: true },
-  }, async ({ id }) => {
+  }, async ({ id, confirm }) => {
+    const gate = previewUnlessConfirmed(confirm, `Delete iOffice user ${id}`, 'DELETE', `/users/${id}`);
+    if (gate) return gate;
     const data = await client.request('DELETE', `/users/${id}`);
     // iOffice DELETEs return 204 No Content; the client resolves that to
     // undefined, so synthesize a small success payload for the tool result.
