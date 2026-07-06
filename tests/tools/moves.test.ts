@@ -58,7 +58,7 @@ describe('io_create_move', () => {
     const { call } = setup();
     mockClient.request = vi.fn().mockResolvedValue({ id: 501 });
     const args = { name: 'Office Relocation', fromSpaceId: 10, toSpaceId: 20 };
-    await call('io_create_move', args);
+    await call('io_create_move', { ...args, confirm: true });
     expect(mockClient.request).toHaveBeenCalledWith('POST', '/moves', args);
   });
 });
@@ -67,7 +67,7 @@ describe('io_update_move', () => {
   it('calls PUT /moves/{id} without id in body', async () => {
     const { call } = setup();
     mockClient.request = vi.fn().mockResolvedValue({ id: 501 });
-    await call('io_update_move', { id: 501, name: 'Updated Move' });
+    await call('io_update_move', { id: 501, name: 'Updated Move', confirm: true });
     expect(mockClient.request).toHaveBeenCalledWith('PUT', '/moves/501', { name: 'Updated Move' });
   });
 });
@@ -76,14 +76,14 @@ describe('io_approve_move', () => {
   it('calls POST /moves/{id}/approve without body when no notes', async () => {
     const { call } = setup();
     mockClient.request = vi.fn().mockResolvedValue({ status: 'approved' });
-    await call('io_approve_move', { id: 501 });
+    await call('io_approve_move', { id: 501, confirm: true });
     expect(mockClient.request).toHaveBeenCalledWith('POST', '/moves/501/approve', undefined);
   });
 
   it('calls POST /moves/{id}/approve with notes body', async () => {
     const { call } = setup();
     mockClient.request = vi.fn().mockResolvedValue({ status: 'approved' });
-    await call('io_approve_move', { id: 501, notes: 'Approved by facilities' });
+    await call('io_approve_move', { id: 501, notes: 'Approved by facilities', confirm: true });
     expect(mockClient.request).toHaveBeenCalledWith('POST', '/moves/501/approve', { notes: 'Approved by facilities' });
   });
 });
@@ -92,14 +92,50 @@ describe('io_cancel_move', () => {
   it('calls POST /moves/{id}/cancel without body when no reason', async () => {
     const { call } = setup();
     mockClient.request = vi.fn().mockResolvedValue({ status: 'cancelled' });
-    await call('io_cancel_move', { id: 501 });
+    await call('io_cancel_move', { id: 501, confirm: true });
     expect(mockClient.request).toHaveBeenCalledWith('POST', '/moves/501/cancel', undefined);
   });
 
   it('calls POST /moves/{id}/cancel with reason body', async () => {
     const { call } = setup();
     mockClient.request = vi.fn().mockResolvedValue({ status: 'cancelled' });
-    await call('io_cancel_move', { id: 501, reason: 'Project cancelled' });
+    await call('io_cancel_move', { id: 501, reason: 'Project cancelled', confirm: true });
     expect(mockClient.request).toHaveBeenCalledWith('POST', '/moves/501/cancel', { reason: 'Project cancelled' });
+  });
+});
+
+describe('confirm-gate - moves', () => {
+  it('io_create_move without confirm returns dry-run and makes NO request', async () => {
+    const { call } = setup();
+    mockClient.request = vi.fn();
+    const result = await call('io_create_move', { name: 'Office Relocation', fromSpaceId: 10, toSpaceId: 20 });
+    expect(mockClient.request).not.toHaveBeenCalled();
+    const payload = JSON.parse(result.content[0].text as string);
+    expect(payload.dryRun).toBe(true);
+    expect(payload.willSend).not.toHaveProperty('confirm');
+  });
+
+  it('io_update_move without confirm returns dry-run and makes NO request', async () => {
+    const { call } = setup();
+    mockClient.request = vi.fn();
+    const result = await call('io_update_move', { id: 501, name: 'Updated Move' });
+    expect(mockClient.request).not.toHaveBeenCalled();
+    expect(JSON.parse(result.content[0].text as string).dryRun).toBe(true);
+  });
+
+  it('io_approve_move without confirm returns dry-run and makes NO request', async () => {
+    const { call } = setup();
+    mockClient.request = vi.fn();
+    const result = await call('io_approve_move', { id: 501, notes: 'ok' });
+    expect(mockClient.request).not.toHaveBeenCalled();
+    expect(JSON.parse(result.content[0].text as string).dryRun).toBe(true);
+  });
+
+  it('io_cancel_move without confirm returns dry-run and makes NO request', async () => {
+    const { call } = setup();
+    mockClient.request = vi.fn();
+    const result = await call('io_cancel_move', { id: 501 });
+    expect(mockClient.request).not.toHaveBeenCalled();
+    expect(JSON.parse(result.content[0].text as string).dryRun).toBe(true);
   });
 });

@@ -63,7 +63,7 @@ describe('io_create_floor', () => {
   it('calls POST /floors with full args', async () => {
     const { call } = setup();
     mockClient.request = vi.fn().mockResolvedValue({ id: 4 });
-    await call('io_create_floor', { name: 'Level 1', buildingId: 2 });
+    await call('io_create_floor', { name: 'Level 1', buildingId: 2, confirm: true });
     expect(mockClient.request).toHaveBeenCalledWith('POST', '/floors', { name: 'Level 1', buildingId: 2 });
   });
 });
@@ -72,7 +72,7 @@ describe('io_update_floor', () => {
   it('calls PUT /floors/{id} without id in body', async () => {
     const { call } = setup();
     mockClient.request = vi.fn().mockResolvedValue({ id: 4 });
-    await call('io_update_floor', { id: 4, name: 'Updated' });
+    await call('io_update_floor', { id: 4, name: 'Updated', confirm: true });
     expect(mockClient.request).toHaveBeenCalledWith('PUT', '/floors/4', { name: 'Updated' });
   });
 });
@@ -81,14 +81,42 @@ describe('io_delete_floor', () => {
   it('calls DELETE /floors/{id}', async () => {
     const { call } = setup();
     mockClient.request = vi.fn().mockResolvedValue({ success: true });
-    await call('io_delete_floor', { id: 4 });
+    await call('io_delete_floor', { id: 4, confirm: true });
     expect(mockClient.request).toHaveBeenCalledWith('DELETE', '/floors/4');
   });
 
   it('returns a success result when the API responds 204 No Content', async () => {
     const { call } = setup();
     mockClient.request = vi.fn().mockResolvedValue(undefined);
-    const result = await call('io_delete_floor', { id: 4 });
+    const result = await call('io_delete_floor', { id: 4, confirm: true });
     expect(result.content[0].text).toContain('\"success\": true');
+  });
+});
+
+describe('confirm-gate - floors', () => {
+  it('io_create_floor without confirm returns dry-run and makes NO request', async () => {
+    const { call } = setup();
+    mockClient.request = vi.fn();
+    const result = await call('io_create_floor', { name: 'Level 1', buildingId: 2 });
+    expect(mockClient.request).not.toHaveBeenCalled();
+    const payload = JSON.parse(result.content[0].text as string);
+    expect(payload.dryRun).toBe(true);
+    expect(payload.willSend).not.toHaveProperty('confirm');
+  });
+
+  it('io_update_floor without confirm returns dry-run and makes NO request', async () => {
+    const { call } = setup();
+    mockClient.request = vi.fn();
+    const result = await call('io_update_floor', { id: 4, name: 'Updated' });
+    expect(mockClient.request).not.toHaveBeenCalled();
+    expect(JSON.parse(result.content[0].text as string).dryRun).toBe(true);
+  });
+
+  it('io_delete_floor without confirm returns dry-run and makes NO request', async () => {
+    const { call } = setup();
+    mockClient.request = vi.fn();
+    const result = await call('io_delete_floor', { id: 4 });
+    expect(mockClient.request).not.toHaveBeenCalled();
+    expect(JSON.parse(result.content[0].text as string).dryRun).toBe(true);
   });
 });

@@ -58,7 +58,7 @@ describe('io_create_visitor', () => {
     const { call } = setup();
     mockClient.request = vi.fn().mockResolvedValue({ id: 201 });
     const args = { firstName: 'Bob', lastName: 'Jones', email: 'bob@example.com' };
-    await call('io_create_visitor', args);
+    await call('io_create_visitor', { ...args, confirm: true });
     expect(mockClient.request).toHaveBeenCalledWith('POST', '/visitors', args);
   });
 });
@@ -67,7 +67,7 @@ describe('io_update_visitor', () => {
   it('calls PUT /visitors/{id} without id in body', async () => {
     const { call } = setup();
     mockClient.request = vi.fn().mockResolvedValue({ id: 201 });
-    await call('io_update_visitor', { id: 201, company: 'Acme' });
+    await call('io_update_visitor', { id: 201, company: 'Acme', confirm: true });
     expect(mockClient.request).toHaveBeenCalledWith('PUT', '/visitors/201', { company: 'Acme' });
   });
 });
@@ -76,7 +76,7 @@ describe('io_checkin_visitor', () => {
   it('calls POST /visitors/{id}/checkIn', async () => {
     const { call } = setup();
     mockClient.request = vi.fn().mockResolvedValue({ status: 'checked_in' });
-    await call('io_checkin_visitor', { id: 201 });
+    await call('io_checkin_visitor', { id: 201, confirm: true });
     expect(mockClient.request).toHaveBeenCalledWith('POST', '/visitors/201/checkIn');
   });
 });
@@ -85,7 +85,43 @@ describe('io_checkout_visitor', () => {
   it('calls POST /visitors/{id}/checkOut', async () => {
     const { call } = setup();
     mockClient.request = vi.fn().mockResolvedValue({ status: 'checked_out' });
-    await call('io_checkout_visitor', { id: 201 });
+    await call('io_checkout_visitor', { id: 201, confirm: true });
     expect(mockClient.request).toHaveBeenCalledWith('POST', '/visitors/201/checkOut');
+  });
+});
+
+describe('confirm-gate - visitors', () => {
+  it('io_create_visitor without confirm returns dry-run and makes NO request', async () => {
+    const { call } = setup();
+    mockClient.request = vi.fn();
+    const result = await call('io_create_visitor', { firstName: 'Bob', lastName: 'Jones', email: 'bob@example.com' });
+    expect(mockClient.request).not.toHaveBeenCalled();
+    const payload = JSON.parse(result.content[0].text as string);
+    expect(payload.dryRun).toBe(true);
+    expect(payload.willSend).not.toHaveProperty('confirm');
+  });
+
+  it('io_update_visitor without confirm returns dry-run and makes NO request', async () => {
+    const { call } = setup();
+    mockClient.request = vi.fn();
+    const result = await call('io_update_visitor', { id: 201, company: 'Acme' });
+    expect(mockClient.request).not.toHaveBeenCalled();
+    expect(JSON.parse(result.content[0].text as string).dryRun).toBe(true);
+  });
+
+  it('io_checkin_visitor without confirm returns dry-run and makes NO request', async () => {
+    const { call } = setup();
+    mockClient.request = vi.fn();
+    const result = await call('io_checkin_visitor', { id: 201 });
+    expect(mockClient.request).not.toHaveBeenCalled();
+    expect(JSON.parse(result.content[0].text as string).dryRun).toBe(true);
+  });
+
+  it('io_checkout_visitor without confirm returns dry-run and makes NO request', async () => {
+    const { call } = setup();
+    mockClient.request = vi.fn();
+    const result = await call('io_checkout_visitor', { id: 201 });
+    expect(mockClient.request).not.toHaveBeenCalled();
+    expect(JSON.parse(result.content[0].text as string).dryRun).toBe(true);
   });
 });

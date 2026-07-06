@@ -57,7 +57,7 @@ describe('io_create_mail', () => {
     const { call } = setup();
     mockClient.request = vi.fn().mockResolvedValue({ id: 401 });
     const args = { recipientId: 42, buildingId: 1, trackingNumber: '1Z999AA1' };
-    await call('io_create_mail', args);
+    await call('io_create_mail', { ...args, confirm: true });
     expect(mockClient.request).toHaveBeenCalledWith('POST', '/mail', args);
   });
 });
@@ -66,14 +66,14 @@ describe('io_deliver_mail', () => {
   it('calls POST /mail/{id}/deliver with no body when only id provided', async () => {
     const { call } = setup();
     mockClient.request = vi.fn().mockResolvedValue({ status: 'delivered' });
-    await call('io_deliver_mail', { id: 401 });
+    await call('io_deliver_mail', { id: 401, confirm: true });
     expect(mockClient.request).toHaveBeenCalledWith('POST', '/mail/401/deliver', undefined);
   });
 
   it('calls POST /mail/{id}/deliver with body when extra fields provided', async () => {
     const { call } = setup();
     mockClient.request = vi.fn().mockResolvedValue({ status: 'delivered' });
-    await call('io_deliver_mail', { id: 401, signature: 'John Doe' });
+    await call('io_deliver_mail', { id: 401, signature: 'John Doe', confirm: true });
     expect(mockClient.request).toHaveBeenCalledWith('POST', '/mail/401/deliver', { signature: 'John Doe' });
   });
 });
@@ -82,14 +82,42 @@ describe('io_return_mail', () => {
   it('calls POST /mail/{id}/return with no body when only id provided', async () => {
     const { call } = setup();
     mockClient.request = vi.fn().mockResolvedValue({ status: 'returned' });
-    await call('io_return_mail', { id: 401 });
+    await call('io_return_mail', { id: 401, confirm: true });
     expect(mockClient.request).toHaveBeenCalledWith('POST', '/mail/401/return', undefined);
   });
 
   it('calls POST /mail/{id}/return with reason body', async () => {
     const { call } = setup();
     mockClient.request = vi.fn().mockResolvedValue({ status: 'returned' });
-    await call('io_return_mail', { id: 401, reason: 'Unknown recipient' });
+    await call('io_return_mail', { id: 401, reason: 'Unknown recipient', confirm: true });
     expect(mockClient.request).toHaveBeenCalledWith('POST', '/mail/401/return', { reason: 'Unknown recipient' });
+  });
+});
+
+describe('confirm-gate - mail', () => {
+  it('io_create_mail without confirm returns dry-run and makes NO request', async () => {
+    const { call } = setup();
+    mockClient.request = vi.fn();
+    const result = await call('io_create_mail', { recipientId: 42, buildingId: 1, trackingNumber: '1Z999AA1' });
+    expect(mockClient.request).not.toHaveBeenCalled();
+    const payload = JSON.parse(result.content[0].text as string);
+    expect(payload.dryRun).toBe(true);
+    expect(payload.willSend).not.toHaveProperty('confirm');
+  });
+
+  it('io_deliver_mail without confirm returns dry-run and makes NO request', async () => {
+    const { call } = setup();
+    mockClient.request = vi.fn();
+    const result = await call('io_deliver_mail', { id: 401, signature: 'John Doe' });
+    expect(mockClient.request).not.toHaveBeenCalled();
+    expect(JSON.parse(result.content[0].text as string).dryRun).toBe(true);
+  });
+
+  it('io_return_mail without confirm returns dry-run and makes NO request', async () => {
+    const { call } = setup();
+    mockClient.request = vi.fn();
+    const result = await call('io_return_mail', { id: 401 });
+    expect(mockClient.request).not.toHaveBeenCalled();
+    expect(JSON.parse(result.content[0].text as string).dryRun).toBe(true);
   });
 });

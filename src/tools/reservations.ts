@@ -3,6 +3,7 @@ import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import type { IOfficeClient } from '../client.js';
 import { buildQueryString } from '../client.js';
 import { textResult } from '@chrischall/mcp-utils';
+import { previewUnlessConfirmed, schemaConfirm } from './_confirm.js';
 
 export function registerReservationTools(server: McpServer, client: IOfficeClient): void {
   server.registerTool('io_list_reservations', {
@@ -37,7 +38,7 @@ export function registerReservationTools(server: McpServer, client: IOfficeClien
   });
 
   server.registerTool('io_create_reservation', {
-    description: 'Create a new iOffice room/space reservation.',
+    description: 'Create a new iOffice room/space reservation. Without confirm:true this returns a dry-run preview and makes NO network call; with confirm:true it executes.',
     inputSchema: {
       title: z.string().describe('Reservation title/name'),
       spaceId: z.number().describe('Space/room ID to reserve'),
@@ -46,15 +47,18 @@ export function registerReservationTools(server: McpServer, client: IOfficeClien
       description: z.string().describe('Reservation notes or description').optional(),
       attendeeCount: z.number().describe('Expected number of attendees').optional(),
       userId: z.number().describe('Organizer user ID (defaults to authenticated user)').optional(),
+      confirm: schemaConfirm,
     },
-    annotations: { readOnlyHint: false },
-  }, async (args) => {
+    annotations: { readOnlyHint: false, destructiveHint: true },
+  }, async ({ confirm, ...args }) => {
+    const gate = previewUnlessConfirmed(confirm, 'Create iOffice reservation', 'POST', '/reservations', args);
+    if (gate) return gate;
     const data = await client.request('POST', '/reservations', args);
     return textResult(data);
   });
 
   server.registerTool('io_update_reservation', {
-    description: 'Update an existing iOffice reservation. Only provide fields to change.',
+    description: 'Update an existing iOffice reservation. Only provide fields to change. Without confirm:true this returns a dry-run preview and makes NO network call; with confirm:true it executes.',
     inputSchema: {
       id: z.number().describe('Reservation ID'),
       title: z.string().describe('Reservation title').optional(),
@@ -62,20 +66,26 @@ export function registerReservationTools(server: McpServer, client: IOfficeClien
       endDate: z.string().describe('New end date/time (ISO 8601)').optional(),
       description: z.string().describe('Notes or description').optional(),
       attendeeCount: z.number().describe('Expected number of attendees').optional(),
+      confirm: schemaConfirm,
     },
-    annotations: { readOnlyHint: false },
-  }, async ({ id, ...body }) => {
+    annotations: { readOnlyHint: false, destructiveHint: true },
+  }, async ({ id, confirm, ...body }) => {
+    const gate = previewUnlessConfirmed(confirm, `Update iOffice reservation ${id}`, 'PUT', `/reservations/${id}`, body);
+    if (gate) return gate;
     const data = await client.request('PUT', `/reservations/${id}`, body);
     return textResult(data);
   });
 
   server.registerTool('io_delete_reservation', {
-    description: 'Delete/cancel an iOffice reservation by ID.',
+    description: 'Delete/cancel an iOffice reservation by ID. Without confirm:true this returns a dry-run preview and makes NO network call; with confirm:true it executes.',
     inputSchema: {
       id: z.number().describe('Reservation ID'),
+      confirm: schemaConfirm,
     },
     annotations: { readOnlyHint: false, destructiveHint: true },
-  }, async ({ id }) => {
+  }, async ({ id, confirm }) => {
+    const gate = previewUnlessConfirmed(confirm, `Delete iOffice reservation ${id}`, 'DELETE', `/reservations/${id}`);
+    if (gate) return gate;
     const data = await client.request('DELETE', `/reservations/${id}`);
     // iOffice DELETEs return 204 No Content; the client resolves that to
     // undefined, so synthesize a small success payload for the tool result.
@@ -83,23 +93,29 @@ export function registerReservationTools(server: McpServer, client: IOfficeClien
   });
 
   server.registerTool('io_checkin_reservation', {
-    description: 'Check in to an iOffice reservation, confirming room usage.',
+    description: 'Check in to an iOffice reservation, confirming room usage. Without confirm:true this returns a dry-run preview and makes NO network call; with confirm:true it executes.',
     inputSchema: {
       id: z.number().describe('Reservation ID'),
+      confirm: schemaConfirm,
     },
-    annotations: { readOnlyHint: false },
-  }, async ({ id }) => {
+    annotations: { readOnlyHint: false, destructiveHint: true },
+  }, async ({ id, confirm }) => {
+    const gate = previewUnlessConfirmed(confirm, `Check in iOffice reservation ${id}`, 'POST', `/reservations/${id}/checkIn`);
+    if (gate) return gate;
     const data = await client.request('POST', `/reservations/${id}/checkIn`);
     return textResult(data);
   });
 
   server.registerTool('io_checkout_reservation', {
-    description: 'Check out of an iOffice reservation, releasing the room early if needed.',
+    description: 'Check out of an iOffice reservation, releasing the room early if needed. Without confirm:true this returns a dry-run preview and makes NO network call; with confirm:true it executes.',
     inputSchema: {
       id: z.number().describe('Reservation ID'),
+      confirm: schemaConfirm,
     },
-    annotations: { readOnlyHint: false },
-  }, async ({ id }) => {
+    annotations: { readOnlyHint: false, destructiveHint: true },
+  }, async ({ id, confirm }) => {
+    const gate = previewUnlessConfirmed(confirm, `Check out iOffice reservation ${id}`, 'POST', `/reservations/${id}/checkOut`);
+    if (gate) return gate;
     const data = await client.request('POST', `/reservations/${id}/checkOut`);
     return textResult(data);
   });

@@ -3,6 +3,7 @@ import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import type { IOfficeClient } from '../client.js';
 import { buildQueryString } from '../client.js';
 import { textResult } from '@chrischall/mcp-utils';
+import { previewUnlessConfirmed, schemaConfirm } from './_confirm.js';
 
 export function registerSpaceTools(server: McpServer, client: IOfficeClient): void {
   server.registerTool('io_list_spaces', {
@@ -35,7 +36,7 @@ export function registerSpaceTools(server: McpServer, client: IOfficeClient): vo
   });
 
   server.registerTool('io_create_space', {
-    description: 'Create a new iOffice space (room) on a floor.',
+    description: 'Create a new iOffice space (room) on a floor. Without confirm:true this returns a dry-run preview and makes NO network call; with confirm:true it executes.',
     inputSchema: {
       name: z.string().describe('Space name'),
       floorId: z.number().describe('Floor ID this space belongs to'),
@@ -43,15 +44,18 @@ export function registerSpaceTools(server: McpServer, client: IOfficeClient): vo
       capacity: z.number().describe('Maximum occupancy').optional(),
       squareFootage: z.number().describe('Square footage of the space').optional(),
       typeId: z.number().describe('Space type ID').optional(),
+      confirm: schemaConfirm,
     },
-    annotations: { readOnlyHint: false },
-  }, async (args) => {
+    annotations: { readOnlyHint: false, destructiveHint: true },
+  }, async ({ confirm, ...args }) => {
+    const gate = previewUnlessConfirmed(confirm, 'Create iOffice space', 'POST', '/spaces', args);
+    if (gate) return gate;
     const data = await client.request('POST', '/spaces', args);
     return textResult(data);
   });
 
   server.registerTool('io_update_space', {
-    description: 'Update an existing iOffice space. Only provide fields to change.',
+    description: 'Update an existing iOffice space. Only provide fields to change. Without confirm:true this returns a dry-run preview and makes NO network call; with confirm:true it executes.',
     inputSchema: {
       id: z.number().describe('Space ID'),
       name: z.string().describe('Space name').optional(),
@@ -59,20 +63,26 @@ export function registerSpaceTools(server: McpServer, client: IOfficeClient): vo
       capacity: z.number().describe('Maximum occupancy').optional(),
       squareFootage: z.number().describe('Square footage').optional(),
       typeId: z.number().describe('Space type ID').optional(),
+      confirm: schemaConfirm,
     },
-    annotations: { readOnlyHint: false },
-  }, async ({ id, ...body }) => {
+    annotations: { readOnlyHint: false, destructiveHint: true },
+  }, async ({ id, confirm, ...body }) => {
+    const gate = previewUnlessConfirmed(confirm, `Update iOffice space ${id}`, 'PUT', `/spaces/${id}`, body);
+    if (gate) return gate;
     const data = await client.request('PUT', `/spaces/${id}`, body);
     return textResult(data);
   });
 
   server.registerTool('io_delete_space', {
-    description: 'Delete an iOffice space by ID.',
+    description: 'Delete an iOffice space by ID. Without confirm:true this returns a dry-run preview and makes NO network call; with confirm:true it executes.',
     inputSchema: {
       id: z.number().describe('Space ID'),
+      confirm: schemaConfirm,
     },
     annotations: { readOnlyHint: false, destructiveHint: true },
-  }, async ({ id }) => {
+  }, async ({ id, confirm }) => {
+    const gate = previewUnlessConfirmed(confirm, `Delete iOffice space ${id}`, 'DELETE', `/spaces/${id}`);
+    if (gate) return gate;
     const data = await client.request('DELETE', `/spaces/${id}`);
     // iOffice DELETEs return 204 No Content; the client resolves that to
     // undefined, so synthesize a small success payload for the tool result.

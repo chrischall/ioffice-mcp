@@ -3,6 +3,7 @@ import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import type { IOfficeClient } from '../client.js';
 import { buildQueryString } from '../client.js';
 import { textResult } from '@chrischall/mcp-utils';
+import { previewUnlessConfirmed, schemaConfirm } from './_confirm.js';
 
 export function registerVisitorTools(server: McpServer, client: IOfficeClient): void {
   server.registerTool('io_list_visitors', {
@@ -36,7 +37,7 @@ export function registerVisitorTools(server: McpServer, client: IOfficeClient): 
   });
 
   server.registerTool('io_create_visitor', {
-    description: 'Pre-register a visitor in iOffice.',
+    description: 'Pre-register a visitor in iOffice. Without confirm:true this returns a dry-run preview and makes NO network call; with confirm:true it executes.',
     inputSchema: {
       firstName: z.string().describe('Visitor first name'),
       lastName: z.string().describe('Visitor last name'),
@@ -48,15 +49,18 @@ export function registerVisitorTools(server: McpServer, client: IOfficeClient): 
       expectedArrival: z.string().describe('Expected arrival date/time (ISO 8601)').optional(),
       expectedDeparture: z.string().describe('Expected departure date/time (ISO 8601)').optional(),
       purpose: z.string().describe('Purpose of visit').optional(),
+      confirm: schemaConfirm,
     },
-    annotations: { readOnlyHint: false },
-  }, async (args) => {
+    annotations: { readOnlyHint: false, destructiveHint: true },
+  }, async ({ confirm, ...args }) => {
+    const gate = previewUnlessConfirmed(confirm, 'Create iOffice visitor', 'POST', '/visitors', args);
+    if (gate) return gate;
     const data = await client.request('POST', '/visitors', args);
     return textResult(data);
   });
 
   server.registerTool('io_update_visitor', {
-    description: 'Update an existing iOffice visitor record. Only provide fields to change.',
+    description: 'Update an existing iOffice visitor record. Only provide fields to change. Without confirm:true this returns a dry-run preview and makes NO network call; with confirm:true it executes.',
     inputSchema: {
       id: z.number().describe('Visitor ID'),
       firstName: z.string().describe('Visitor first name').optional(),
@@ -67,31 +71,40 @@ export function registerVisitorTools(server: McpServer, client: IOfficeClient): 
       expectedArrival: z.string().describe('Expected arrival date/time (ISO 8601)').optional(),
       expectedDeparture: z.string().describe('Expected departure date/time (ISO 8601)').optional(),
       purpose: z.string().describe('Purpose of visit').optional(),
+      confirm: schemaConfirm,
     },
-    annotations: { readOnlyHint: false },
-  }, async ({ id, ...body }) => {
+    annotations: { readOnlyHint: false, destructiveHint: true },
+  }, async ({ id, confirm, ...body }) => {
+    const gate = previewUnlessConfirmed(confirm, `Update iOffice visitor ${id}`, 'PUT', `/visitors/${id}`, body);
+    if (gate) return gate;
     const data = await client.request('PUT', `/visitors/${id}`, body);
     return textResult(data);
   });
 
   server.registerTool('io_checkin_visitor', {
-    description: 'Check in a visitor upon arrival at the building.',
+    description: 'Check in a visitor upon arrival at the building. Without confirm:true this returns a dry-run preview and makes NO network call; with confirm:true it executes.',
     inputSchema: {
       id: z.number().describe('Visitor ID'),
+      confirm: schemaConfirm,
     },
-    annotations: { readOnlyHint: false },
-  }, async ({ id }) => {
+    annotations: { readOnlyHint: false, destructiveHint: true },
+  }, async ({ id, confirm }) => {
+    const gate = previewUnlessConfirmed(confirm, `Check in iOffice visitor ${id}`, 'POST', `/visitors/${id}/checkIn`);
+    if (gate) return gate;
     const data = await client.request('POST', `/visitors/${id}/checkIn`);
     return textResult(data);
   });
 
   server.registerTool('io_checkout_visitor', {
-    description: 'Check out a visitor upon departure from the building.',
+    description: 'Check out a visitor upon departure from the building. Without confirm:true this returns a dry-run preview and makes NO network call; with confirm:true it executes.',
     inputSchema: {
       id: z.number().describe('Visitor ID'),
+      confirm: schemaConfirm,
     },
-    annotations: { readOnlyHint: false },
-  }, async ({ id }) => {
+    annotations: { readOnlyHint: false, destructiveHint: true },
+  }, async ({ id, confirm }) => {
+    const gate = previewUnlessConfirmed(confirm, `Check out iOffice visitor ${id}`, 'POST', `/visitors/${id}/checkOut`);
+    if (gate) return gate;
     const data = await client.request('POST', `/visitors/${id}/checkOut`);
     return textResult(data);
   });
