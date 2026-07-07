@@ -1,5 +1,18 @@
 # Changelog
 
+## [2.1.7](https://github.com/chrischall/ioffice-mcp/compare/v2.1.6...v2.1.7) (2026-07-07)
+
+
+### Bug Fixes
+
+* bump @chrischall/mcp-utils to 0.12.0 ([#75](https://github.com/chrischall/ioffice-mcp/issues/75)) ([a8e21cc](https://github.com/chrischall/ioffice-mcp/commit/a8e21ccb69e0bcb0677c90f025ad13c4ca5033c2))
+* confirm-gate iOffice write tools ([#73](https://github.com/chrischall/ioffice-mcp/issues/73)) ([09c63b7](https://github.com/chrischall/ioffice-mcp/commit/09c63b7ba702cfe0312219451525b0b79965c25a))
+
+
+### Documentation
+
+* document first-party dependency-bump label exception ([#76](https://github.com/chrischall/ioffice-mcp/issues/76)) ([f5451ca](https://github.com/chrischall/ioffice-mcp/commit/f5451ca53f524694140fcc31114979bf65584fe8))
+
 ## [2.1.6](https://github.com/chrischall/ioffice-mcp/compare/v2.1.5...v2.1.6) (2026-07-05)
 
 

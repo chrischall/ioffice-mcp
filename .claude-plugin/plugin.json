@@ -1,6 +1,6 @@
 {
   "name": "ioffice-mcp",
-  "version": "2.1.6",
+  "version": "2.1.7",
   "description": "MCP server for iOffice — natural-language workspace and facility management via the iOffice API",
   "author": {
     "name": "Chris Hall",
