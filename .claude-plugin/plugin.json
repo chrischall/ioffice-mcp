@@ -15,7 +15,7 @@
     "facility-management",
     "mcp"
   ],
-  "skills": "./SKILL.md",
+  "skills": "./skills/",
   "mcpServers": {
     "ioffice": {
       "command": "npx",

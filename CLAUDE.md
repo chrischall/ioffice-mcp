@@ -73,7 +73,8 @@ Tests live in `tests/` (one file per tool module under `tests/tools/` + `client.
 manifest.json       # MCPB (Anthropic desktop bundle) manifest — declares tools[], user_config, entry_point
 server.json         # MCP Registry submission (io.github.chrischall/ioffice-mcp)
 .mcp.json           # Local MCP client config
-SKILL.md            # Claude Code skill — teaches Claude when/how to use the tools
+skills/ioffice-mcp/
+  SKILL.md          # Claude Code skill — teaches Claude when/how to use the tools
 ```
 
 The MCPB entry point is `dist/bundle.js` (esbuild output), not `dist/index.js`. `npm run build` produces both.
