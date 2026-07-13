@@ -16,7 +16,7 @@
   "files": [
     "dist",
     ".claude-plugin",
-    "SKILL.md",
+    "skills/",
     ".mcp.json",
     "server.json"
   ],
