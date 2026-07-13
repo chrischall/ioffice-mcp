@@ -48,6 +48,15 @@ jobs:
         with:
           ref: ${{ needs.release-please.outputs.tag_name }}
 
+      # The shared mcp-publish action hardcodes a root-level SKILL.md for its
+      # "Package skill" and "Publish skill to ClawHub" steps, but this repo
+      # keeps the skill at skills/ioffice-mcp/SKILL.md (Claude Code plugin
+      # layout). Stage a root copy so those steps don't silently skip.
+      # TODO: drop this once chrischall/workflows mcp-publish resolves
+      # skills/*/SKILL.md itself (or grows a skill-path input).
+      - name: Stage SKILL.md at repo root for mcp-publish
+        run: cp skills/ioffice-mcp/SKILL.md SKILL.md
+
       - uses: chrischall/workflows/.github/actions/mcp-publish@main
         with:
           version: ${{ needs.release-please.outputs.version }}
