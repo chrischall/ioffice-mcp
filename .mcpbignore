@@ -41,6 +41,10 @@ server.json
 plugin.json
 .claude-plugin/
 .mcp.json
+# The skill lives at skills/ioffice-mcp/SKILL.md, but release-please.yml
+# stages a root-level SKILL.md copy for mcp-publish BEFORE `mcpb pack` runs
+# in the same workspace — keep it excluded from the .mcpb bundle.
+SKILL.md
 skills/
 
 # Companion native bits (e.g. Chrome extension) are installed separately
