@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.1.8](https://github.com/chrischall/ioffice-mcp/compare/v2.1.7...v2.1.8) (2026-07-13)
+
+
+### Bug Fixes
+
+* **plugin:** move SKILL.md into skills/ directory so plugin skills load ([#80](https://github.com/chrischall/ioffice-mcp/issues/80)) ([5a835c8](https://github.com/chrischall/ioffice-mcp/commit/5a835c8e94eb2ca396345bd4ed5a07fa66ee5495))
+
 ## [2.1.7](https://github.com/chrischall/ioffice-mcp/compare/v2.1.6...v2.1.7) (2026-07-07)
 
 
