@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.1.9](https://github.com/chrischall/ioffice-mcp/compare/v2.1.8...v2.1.9) (2026-07-19)
+
+
+### Documentation
+
+* replace duplicated fleet policy with a pointer ([#82](https://github.com/chrischall/ioffice-mcp/issues/82)) ([87824e9](https://github.com/chrischall/ioffice-mcp/commit/87824e9390b0d632694ae91668be6d83409f97d2))
+
 ## [2.1.8](https://github.com/chrischall/ioffice-mcp/compare/v2.1.7...v2.1.8) (2026-07-13)
 
 

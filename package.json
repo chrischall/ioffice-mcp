@@ -1,6 +1,6 @@
 {
   "name": "ioffice-mcp",
-  "version": "2.1.8",
+  "version": "2.1.9",
   "license": "MIT",
   "mcpName": "io.github.chrischall/ioffice-mcp",
   "description": "iOffice MCP server for Claude — developed and maintained by AI (Claude Code)",
