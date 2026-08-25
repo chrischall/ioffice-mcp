@@ -1,0 +1,31 @@
+version: 1
+name: iOffice
+slug: ioffice
+summary: >-
+  iOffice workspace and facility management for Claude — book rooms, manage
+  visitors, file maintenance requests, and more via natural language
+env:
+  - name: IOFFICE_HOST
+    required: true
+    help: >-
+      Your iOffice tenant hostname (e.g. yourcompany.ioffice.com)
+  - name: IOFFICE_TOKEN
+    secret: true
+    required: false
+    help: >-
+      Your iOffice API token (preferred over username/password)
+  - name: IOFFICE_USERNAME
+    required: false
+    help: >-
+      Your iOffice username (used if no API token)
+  - name: IOFFICE_PASSWORD
+    secret: true
+    required: false
+    help: >-
+      Your iOffice password (used if no API token)
+# egress: intentionally NOT declared.
+#
+# This server's upstream host is per-deployment, so no fixed allowlist can
+# be correct here. On the isolated tier, allow:
+#   your organisation's iOffice/Eptura tenant host, from the configured base URL
+# Everything else in this file applies regardless of which host that is.
