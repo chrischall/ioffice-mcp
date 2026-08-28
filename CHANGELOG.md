@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.1.10](https://github.com/chrischall/ioffice-mcp/compare/v2.1.9...v2.1.10) (2026-08-28)
+
+
+### Bug Fixes
+
+* **egress:** declare every host the server dials in mint.yaml ([#105](https://github.com/chrischall/ioffice-mcp/issues/105)) ([a2ee90b](https://github.com/chrischall/ioffice-mcp/commit/a2ee90b0ac4963cd88fc0b0ddd911933f00b5483))
+
 ## [2.1.9](https://github.com/chrischall/ioffice-mcp/compare/v2.1.8...v2.1.9) (2026-07-19)
 
 
