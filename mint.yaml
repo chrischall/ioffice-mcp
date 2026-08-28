@@ -23,9 +23,19 @@ env:
     required: false
     help: >-
       Your iOffice password (used if no API token)
-# egress: intentionally NOT declared.
-#
-# This server's upstream host is per-deployment, so no fixed allowlist can
-# be correct here. On the isolated tier, allow:
-#   your organisation's iOffice/Eptura tenant host, from the configured base URL
-# Everything else in this file applies regardless of which host that is.
+egress:
+  allow:
+    # Only hosts the SERVER process actually fetches; hosts that appear solely
+    # in a URL this server builds and returns are excluded. Matching is EXACT:
+    # an apex entry covers no subdomain, and `*.` covers labels beneath it but
+    # not the apex — which is why the wildcard below is a wildcard.
+    #
+    # The ONE host this process dials is IOFFICE_HOST — every tool call goes to
+    # https://$IOFFICE_HOST/external/api/rest/v2 (src/client.ts), with no login
+    # hop and no redirect (the API answers 401 in place). iOffice/Eptura is
+    # multi-tenant per customer on <tenant>.iofficeconnect.com, so the tenant
+    # label genuinely varies and the wildcard stands in for it. Narrow it to
+    # YOUR tenant's host if you prefer. An IOFFICE_HOST outside
+    # iofficeconnect.com (the older <tenant>.ioffice.com form in the docs no
+    # longer resolves) is env-selected and must be added here by hand.
+    - "*.iofficeconnect.com"
