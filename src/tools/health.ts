@@ -1,5 +1,4 @@
 import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
-import { readEnvVar } from '@chrischall/mcp-utils';
 import { registerCredentialHealthcheckTool } from '@chrischall/mcp-utils/healthcheck';
 import type { IOfficeClient } from '../client.js';
 
@@ -21,9 +20,6 @@ import type { IOfficeClient } from '../client.js';
  *    far side rejecting the credential; conflating them sends someone to
  *    rotate a token that is fine.
  */
-
-/** Non-secret read of the env: which credential is configured, never its value. */
-type ReadEnv = (key: string) => string | undefined;
 
 const NO_HOST = 'IOFFICE_HOST environment variable is required';
 
@@ -54,28 +50,19 @@ export function classifyIOfficeError(err: unknown): { kind: string; hint?: strin
   return undefined;
 }
 
-export function registerHealthcheckTools(
-  server: McpServer,
-  client: IOfficeClient,
-  /** Seam: injectable so tests need no process env. */
-  readEnv: ReadEnv = (k) => readEnvVar(k),
-): void {
+export function registerHealthcheckTools(server: McpServer, client: IOfficeClient): void {
   registerCredentialHealthcheckTool({
     server,
     prefix: 'io',
     hostLabel: 'iOffice',
     probePath: '/buildings',
     resolveCredential: async () => {
-      const host = readEnv('IOFFICE_HOST');
-      // Ordered as the client orders it: no host is fatal regardless of
-      // credential, so it is reported first rather than as "no credential".
+      // Delegated to the client rather than re-read from the env: it reports
+      // the precedence it actually applied, so this cannot drift from it.
+      const { source, host } = client.describeCredential();
+      // No host is fatal regardless of credential, so it is reported first
+      // rather than as "no credential" — the fixes are different.
       if (!host) throw new Error(NO_HOST);
-
-      const source = readEnv('IOFFICE_TOKEN')
-        ? 'IOFFICE_TOKEN'
-        : readEnv('IOFFICE_USERNAME') && readEnv('IOFFICE_PASSWORD')
-          ? 'IOFFICE_USERNAME+IOFFICE_PASSWORD'
-          : null;
       // `source: null` short-circuits the probe: probing without a credential
       // returns a 401 that reads like a rejected one and points at the wrong fix.
       return { source, detail: { host } };

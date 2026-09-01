@@ -31,9 +31,18 @@ export function optionalBody(
   return Object.keys(body).length > 0 ? body : undefined;
 }
 
+/** What resolved from the env — never the credential value itself. */
+export interface CredentialDescription {
+  /** Which env var supplied the credential, or `null` when none did. */
+  source: 'IOFFICE_TOKEN' | 'IOFFICE_USERNAME+IOFFICE_PASSWORD' | null;
+  /** The configured tenant host, or `null` when IOFFICE_HOST is unset. */
+  host: string | null;
+}
+
 export class IOfficeClient {
   private readonly api: ApiClient | null;
   private readonly configError: Error | null;
+  private readonly credential: CredentialDescription;
 
   /**
    * Defer config errors so the server can still start (and respond to the
@@ -61,6 +70,14 @@ export class IOfficeClient {
       );
     }
 
+    // Recorded from the SAME values the precedence above consumed, so
+    // `io_healthcheck` reports what this client actually did rather than
+    // re-deriving it from the env and drifting when the order changes.
+    this.credential = {
+      source: token ? 'IOFFICE_TOKEN' : username && password ? 'IOFFICE_USERNAME+IOFFICE_PASSWORD' : null,
+      host: host ?? null,
+    };
+
     // Shared bearer-client kit, configured for iOffice's static header auth
     // (x-auth-token or x-auth-username/x-auth-password — no Bearer token, so
     // baseHeaders instead of getToken). Defaults give the fleet-standard
@@ -79,6 +96,11 @@ export class IOfficeClient {
           onRateLimited: () => new Error('Rate limited by iOffice API'),
         })
       : null;
+  }
+
+  /** Which credential this client resolved, for healthcheck reporting. */
+  describeCredential(): CredentialDescription {
+    return this.credential;
   }
 
   async request<T>(method: string, path: string, body?: unknown): Promise<T> {
