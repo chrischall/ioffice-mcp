@@ -1,13 +1,23 @@
 import { describe, it, expect, vi, afterEach } from 'vitest';
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
-import type { IOfficeClient } from '../../src/client.js';
+import { IOfficeClient as RealIOfficeClient, type IOfficeClient } from '../../src/client.js';
 import { registerHealthcheckTools } from '../../src/tools/health.js';
 
 function setup(env: Record<string, string | undefined>, probe?: () => Promise<unknown>) {
   const request = vi.fn(probe ?? (async () => ({ data: [] })));
-  const client = { request } as unknown as IOfficeClient;
+  // Mirrors IOfficeClient.describeCredential()'s own precedence, driven from
+  // the same env shape the old test used.
+  const describeCredential = () => ({
+    source: env.IOFFICE_TOKEN
+      ? ('IOFFICE_TOKEN' as const)
+      : env.IOFFICE_USERNAME && env.IOFFICE_PASSWORD
+        ? ('IOFFICE_USERNAME+IOFFICE_PASSWORD' as const)
+        : null,
+    host: env.IOFFICE_HOST ?? null,
+  });
+  const client = { request, describeCredential } as unknown as IOfficeClient;
   const server = new McpServer({ name: 'test', version: '0.0.0' });
-  registerHealthcheckTools(server, client, (k: string) => env[k]);
+  registerHealthcheckTools(server, client);
   const call = async () =>
     JSON.parse((await (server as any)._registeredTools.io_healthcheck.handler({}, {})).content[0].text);
   return { server, call, request };
@@ -95,19 +105,30 @@ describe('io_healthcheck', () => {
     expect(out.error.kind).not.toBe('rate_limited');
   });
 
-  // The default seam reads the real process env; without this the injected
-  // reader hides whether the production path works at all.
-  it('reads the real environment when no reader is injected', async () => {
+  // Drives a REAL IOfficeClient so the healthcheck is verified against the
+  // precedence the client actually applies, not a restatement of it.
+  it('reports what a real client resolved, without echoing the credential', async () => {
     vi.stubEnv('IOFFICE_HOST', 'real.iofficeconnect.com');
     vi.stubEnv('IOFFICE_TOKEN', 'REAL-TKN');
+    const real = new RealIOfficeClient();
+    (real as unknown as { api: unknown }).api = { fetchJson: async () => ({ data: [] }) };
     const server = new McpServer({ name: 'test', version: '0.0.0' });
-    registerHealthcheckTools(server, { request: vi.fn(async () => ({})) } as any);
+    registerHealthcheckTools(server, real);
     const out = JSON.parse(
       (await (server as any)._registeredTools.io_healthcheck.handler({}, {})).content[0].text,
     );
     expect(out.credential.source).toBe('IOFFICE_TOKEN');
     expect(out.credential.detail.host).toBe('real.iofficeconnect.com');
     expect(JSON.stringify(out)).not.toContain('REAL-TKN');
+    vi.unstubAllEnvs();
+  });
+
+  it('prefers the token over a username/password pair, as the client does', async () => {
+    vi.stubEnv('IOFFICE_HOST', 'h');
+    vi.stubEnv('IOFFICE_TOKEN', 'T');
+    vi.stubEnv('IOFFICE_USERNAME', 'u');
+    vi.stubEnv('IOFFICE_PASSWORD', 'p');
+    expect(new RealIOfficeClient().describeCredential().source).toBe('IOFFICE_TOKEN');
     vi.unstubAllEnvs();
   });
 

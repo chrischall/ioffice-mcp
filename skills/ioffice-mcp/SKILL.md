@@ -152,6 +152,12 @@ Token auth (preferred) — set `IOFFICE_TOKEN`. Alternatively, set `IOFFICE_USER
 | `io_deliver_mail(id, deliveredDate?, signature?)` | Mark a mail item as delivered |
 | `io_return_mail(id, reason?)` | Mark a mail item as returned to sender |
 
+### Health
+
+| Tool | Purpose |
+|---|---|
+| `io_healthcheck()` | Is this connector working? Reports which credential resolved, whether iOffice accepted it, and what to fix. Start here when any other tool fails — an empty result from a list tool can mean "no data" or "never authenticated", and this separates them. |
+
 ## Workflows
 
 **Book a meeting room:**
