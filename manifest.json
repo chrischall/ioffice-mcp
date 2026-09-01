@@ -4,7 +4,7 @@
   "name": "ioffice-mcp",
   "display_name": "iOffice",
   "version": "2.1.10",
-  "description": "iOffice workspace and facility management for Claude \u2014 book rooms, manage visitors, file maintenance requests, and more via natural language",
+  "description": "iOffice workspace and facility management for Claude — book rooms, manage visitors, file maintenance requests, and more via natural language",
   "author": {
     "name": "Chris Chall",
     "email": "chris.c.hall@gmail.com",
