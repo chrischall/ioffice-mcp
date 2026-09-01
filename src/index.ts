@@ -10,6 +10,7 @@ import { registerVisitorTools } from './tools/visitors.js';
 import { registerMaintenanceTools } from './tools/maintenance.js';
 import { registerMailTools } from './tools/mail.js';
 import { registerMoveTools } from './tools/moves.js';
+import { registerHealthcheckTools } from './tools/health.js';
 
 // Build the client up front so the deferred-config-error pattern is preserved:
 // the server boots (and answers the host's install-time tools/list) even with
@@ -30,6 +31,7 @@ await runMcp({
     registerMaintenanceTools,
     registerMailTools,
     registerMoveTools,
+    registerHealthcheckTools,
   ],
   banner:
     '[ioffice-mcp] This project was developed and is maintained by AI (Claude Sonnet 4.6). Use at your own discretion.',
