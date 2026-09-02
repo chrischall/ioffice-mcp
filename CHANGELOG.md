@@ -1,5 +1,18 @@
 # Changelog
 
+## [2.2.0](https://github.com/chrischall/ioffice-mcp/compare/v2.1.10...v2.2.0) (2026-09-01)
+
+
+### Features
+
+* **health:** add io_healthcheck ([#114](https://github.com/chrischall/ioffice-mcp/issues/114)) ([4164586](https://github.com/chrischall/ioffice-mcp/commit/4164586f4646ff2bd3e1f24ff12ac5524980e073))
+
+
+### Bug Fixes
+
+* **health:** register io_healthcheck in manifest.json and SKILL.md ([#117](https://github.com/chrischall/ioffice-mcp/issues/117)) ([c5a123a](https://github.com/chrischall/ioffice-mcp/commit/c5a123a07aa9d7ae196d912a8713f70a63c63ce5))
+* **manifest:** restore an em dash mangled into a \u2014 escape ([#118](https://github.com/chrischall/ioffice-mcp/issues/118)) ([cb0a386](https://github.com/chrischall/ioffice-mcp/commit/cb0a386370ffb71a436bc74457a47a992a3420ac))
+
 ## [2.1.10](https://github.com/chrischall/ioffice-mcp/compare/v2.1.9...v2.1.10) (2026-08-28)
 
 
