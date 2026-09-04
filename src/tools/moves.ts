@@ -2,13 +2,15 @@ import { z } from 'zod';
 import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import type { IOfficeClient } from '../client.js';
 import { buildQueryString, optionalBody } from '../client.js';
-import { textResult } from '@chrischall/mcp-utils';
+import { minifiedResult } from '@chrischall/mcp-utils';
+import { viewArg, viewResponse } from '../view.js';
 import { previewUnlessConfirmed, schemaConfirm } from './_confirm.js';
 
 export function registerMoveTools(server: McpServer, client: IOfficeClient): void {
   server.registerTool('io_list_moves', {
     description: 'List iOffice move requests. Supports filtering by status, building, or assignee.',
     inputSchema: {
+      view: viewArg(),
       search: z.string().describe('Filter by name or description').optional(),
       status: z.string().describe('Filter by status (e.g. pending, approved, completed)').optional(),
       buildingId: z.number().describe('Filter by building ID').optional(),
@@ -21,21 +23,22 @@ export function registerMoveTools(server: McpServer, client: IOfficeClient): voi
       orderByType: z.enum(['asc', 'desc']).describe('Sort direction (default: asc)').optional(),
     },
     annotations: { readOnlyHint: true },
-  }, async ({ search, status, buildingId, requesterId, startDate, endDate, limit, startAt, orderBy, orderByType }) => {
+  }, async ({ search, status, buildingId, requesterId, startDate, endDate, limit, startAt, orderBy, orderByType, view }) => {
     const qs = buildQueryString({ search, status, buildingId, requesterId, startDate, endDate, limit, startAt, orderBy, orderByType });
     const data = await client.request('GET', `/moves${qs}`);
-    return textResult(data);
+    return viewResponse(view, data);
   });
 
   server.registerTool('io_get_move', {
     description: 'Get a single iOffice move request by ID.',
     inputSchema: {
+      view: viewArg(),
       id: z.number().describe('Move request ID'),
     },
     annotations: { readOnlyHint: true },
-  }, async ({ id }) => {
+  }, async ({ id, view }) => {
     const data = await client.request('GET', `/moves/${id}`);
-    return textResult(data);
+    return viewResponse(view, data);
   });
 
   server.registerTool('io_create_move', {
@@ -55,7 +58,7 @@ export function registerMoveTools(server: McpServer, client: IOfficeClient): voi
     const gate = previewUnlessConfirmed(confirm, 'Create iOffice move request', 'POST', '/moves', args);
     if (gate) return gate;
     const data = await client.request('POST', '/moves', args);
-    return textResult(data);
+    return minifiedResult(data);
   });
 
   server.registerTool('io_update_move', {
@@ -74,7 +77,7 @@ export function registerMoveTools(server: McpServer, client: IOfficeClient): voi
     const gate = previewUnlessConfirmed(confirm, `Update iOffice move request ${id}`, 'PUT', `/moves/${id}`, body);
     if (gate) return gate;
     const data = await client.request('PUT', `/moves/${id}`, body);
-    return textResult(data);
+    return minifiedResult(data);
   });
 
   server.registerTool('io_approve_move', {
@@ -90,7 +93,7 @@ export function registerMoveTools(server: McpServer, client: IOfficeClient): voi
     const gate = previewUnlessConfirmed(confirm, `Approve iOffice move request ${id}`, 'POST', `/moves/${id}/approve`, body);
     if (gate) return gate;
     const data = await client.request('POST', `/moves/${id}/approve`, body);
-    return textResult(data);
+    return minifiedResult(data);
   });
 
   server.registerTool('io_cancel_move', {
@@ -106,6 +109,6 @@ export function registerMoveTools(server: McpServer, client: IOfficeClient): voi
     const gate = previewUnlessConfirmed(confirm, `Cancel iOffice move request ${id}`, 'POST', `/moves/${id}/cancel`, body);
     if (gate) return gate;
     const data = await client.request('POST', `/moves/${id}/cancel`, body);
-    return textResult(data);
+    return minifiedResult(data);
   });
 }

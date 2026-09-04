@@ -3,7 +3,7 @@
   "version": "2.2.0",
   "license": "MIT",
   "mcpName": "io.github.chrischall/ioffice-mcp",
-  "description": "iOffice MCP server for Claude — developed and maintained by AI (Claude Code)",
+  "description": "iOffice MCP server for Claude \u2014 developed and maintained by AI (Claude Code)",
   "author": "Claude Code (AI) <https://www.anthropic.com/claude>",
   "repository": {
     "type": "git",
@@ -31,7 +31,7 @@
     "typecheck": "tsc -p tsconfig.json --noEmit"
   },
   "dependencies": {
-    "@chrischall/mcp-utils": "^0.19.3",
+    "@chrischall/mcp-utils": "^0.22.0",
     "@modelcontextprotocol/sdk": "^1.29.0",
     "dotenv": "^17.4.0",
     "zod": "^4.4.3"
