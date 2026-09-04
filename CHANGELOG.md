@@ -1,5 +1,18 @@
 # Changelog
 
+## [2.3.0](https://github.com/chrischall/ioffice-mcp/compare/v2.2.0...v2.3.0) (2026-09-04)
+
+
+### Features
+
+* **tools:** compact by default — strip media URLs, and minify every response ([#124](https://github.com/chrischall/ioffice-mcp/issues/124)) ([ab753a3](https://github.com/chrischall/ioffice-mcp/commit/ab753a3610b8729f9e58a95e3be06db3ee7ab269))
+
+
+### Bug Fixes
+
+* **build:** restore the literal em dash in the package description ([#128](https://github.com/chrischall/ioffice-mcp/issues/128)) ([ad34e65](https://github.com/chrischall/ioffice-mcp/commit/ad34e65db67f97da6cb44d4aca76a6f95a224577))
+* **deps:** pick up @chrischall/mcp-utils 0.23.2 ([#130](https://github.com/chrischall/ioffice-mcp/issues/130)) ([5f8e288](https://github.com/chrischall/ioffice-mcp/commit/5f8e28804c1c68bd42e568cf653fe4fc86b64703))
+
 ## [2.2.0](https://github.com/chrischall/ioffice-mcp/compare/v2.1.10...v2.2.0) (2026-09-01)
 
 
