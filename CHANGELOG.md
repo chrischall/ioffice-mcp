@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.3.1](https://github.com/chrischall/ioffice-mcp/compare/v2.3.0...v2.3.1) (2026-09-04)
+
+
+### Documentation
+
+* **skill:** document the `view` response shape on iOffice read tools ([#132](https://github.com/chrischall/ioffice-mcp/issues/132)) ([a892598](https://github.com/chrischall/ioffice-mcp/commit/a8925985a6ab3dd320ca203b810098983f6b024f))
+
 ## [2.3.0](https://github.com/chrischall/ioffice-mcp/compare/v2.2.0...v2.3.0) (2026-09-04)
 
 
