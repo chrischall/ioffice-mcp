@@ -2,13 +2,15 @@ import { z } from 'zod';
 import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import type { IOfficeClient } from '../client.js';
 import { buildQueryString, optionalBody } from '../client.js';
-import { textResult } from '@chrischall/mcp-utils';
+import { minifiedResult } from '@chrischall/mcp-utils';
+import { viewArg, viewResponse } from '../view.js';
 import { previewUnlessConfirmed, schemaConfirm } from './_confirm.js';
 
 export function registerMaintenanceTools(server: McpServer, client: IOfficeClient): void {
   server.registerTool('io_list_maintenance_requests', {
     description: 'List iOffice maintenance requests. Supports filtering by status, space, or building.',
     inputSchema: {
+      view: viewArg(),
       search: z.string().describe('Filter by title or description').optional(),
       status: z.string().describe('Filter by status (e.g. pending, accepted, started, completed, archived)').optional(),
       spaceId: z.number().describe('Filter by space/room ID').optional(),
@@ -20,21 +22,22 @@ export function registerMaintenanceTools(server: McpServer, client: IOfficeClien
       orderByType: z.enum(['asc', 'desc']).describe('Sort direction (default: asc)').optional(),
     },
     annotations: { readOnlyHint: true },
-  }, async ({ search, status, spaceId, buildingId, assignedUserId, limit, startAt, orderBy, orderByType }) => {
+  }, async ({ search, status, spaceId, buildingId, assignedUserId, limit, startAt, orderBy, orderByType, view }) => {
     const qs = buildQueryString({ search, status, spaceId, buildingId, assignedUserId, limit, startAt, orderBy, orderByType });
     const data = await client.request('GET', `/maintenanceRequests${qs}`);
-    return textResult(data);
+    return viewResponse(view, data);
   });
 
   server.registerTool('io_get_maintenance_request', {
     description: 'Get a single iOffice maintenance request by ID.',
     inputSchema: {
+      view: viewArg(),
       id: z.number().describe('Maintenance request ID'),
     },
     annotations: { readOnlyHint: true },
-  }, async ({ id }) => {
+  }, async ({ id, view }) => {
     const data = await client.request('GET', `/maintenanceRequests/${id}`);
-    return textResult(data);
+    return viewResponse(view, data);
   });
 
   server.registerTool('io_create_maintenance_request', {
@@ -54,7 +57,7 @@ export function registerMaintenanceTools(server: McpServer, client: IOfficeClien
     const gate = previewUnlessConfirmed(confirm, 'Create iOffice maintenance request', 'POST', '/maintenanceRequests', args);
     if (gate) return gate;
     const data = await client.request('POST', '/maintenanceRequests', args);
-    return textResult(data);
+    return minifiedResult(data);
   });
 
   server.registerTool('io_update_maintenance_request', {
@@ -72,7 +75,7 @@ export function registerMaintenanceTools(server: McpServer, client: IOfficeClien
     const gate = previewUnlessConfirmed(confirm, `Update iOffice maintenance request ${id}`, 'PUT', `/maintenanceRequests/${id}`, body);
     if (gate) return gate;
     const data = await client.request('PUT', `/maintenanceRequests/${id}`, body);
-    return textResult(data);
+    return minifiedResult(data);
   });
 
   server.registerTool('io_accept_maintenance_request', {
@@ -86,7 +89,7 @@ export function registerMaintenanceTools(server: McpServer, client: IOfficeClien
     const gate = previewUnlessConfirmed(confirm, `Accept iOffice maintenance request ${id}`, 'POST', `/maintenanceRequests/${id}/accept`);
     if (gate) return gate;
     const data = await client.request('POST', `/maintenanceRequests/${id}/accept`);
-    return textResult(data);
+    return minifiedResult(data);
   });
 
   server.registerTool('io_start_maintenance_request', {
@@ -100,7 +103,7 @@ export function registerMaintenanceTools(server: McpServer, client: IOfficeClien
     const gate = previewUnlessConfirmed(confirm, `Start iOffice maintenance request ${id}`, 'POST', `/maintenanceRequests/${id}/start`);
     if (gate) return gate;
     const data = await client.request('POST', `/maintenanceRequests/${id}/start`);
-    return textResult(data);
+    return minifiedResult(data);
   });
 
   server.registerTool('io_complete_maintenance_request', {
@@ -116,7 +119,7 @@ export function registerMaintenanceTools(server: McpServer, client: IOfficeClien
     const gate = previewUnlessConfirmed(confirm, `Complete iOffice maintenance request ${id}`, 'POST', `/maintenanceRequests/${id}/complete`, body);
     if (gate) return gate;
     const data = await client.request('POST', `/maintenanceRequests/${id}/complete`, body);
-    return textResult(data);
+    return minifiedResult(data);
   });
 
   server.registerTool('io_archive_maintenance_request', {
@@ -130,6 +133,6 @@ export function registerMaintenanceTools(server: McpServer, client: IOfficeClien
     const gate = previewUnlessConfirmed(confirm, `Archive iOffice maintenance request ${id}`, 'POST', `/maintenanceRequests/${id}/archive`);
     if (gate) return gate;
     const data = await client.request('POST', `/maintenanceRequests/${id}/archive`);
-    return textResult(data);
+    return minifiedResult(data);
   });
 }

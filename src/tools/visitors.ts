@@ -2,13 +2,15 @@ import { z } from 'zod';
 import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import type { IOfficeClient } from '../client.js';
 import { buildQueryString } from '../client.js';
-import { textResult } from '@chrischall/mcp-utils';
+import { minifiedResult } from '@chrischall/mcp-utils';
+import { viewArg, viewResponse } from '../view.js';
 import { previewUnlessConfirmed, schemaConfirm } from './_confirm.js';
 
 export function registerVisitorTools(server: McpServer, client: IOfficeClient): void {
   server.registerTool('io_list_visitors', {
     description: 'List iOffice visitors. Supports search, date filtering, and pagination.',
     inputSchema: {
+      view: viewArg(),
       search: z.string().describe('Filter by visitor name or email').optional(),
       startDate: z.string().describe('Filter visitors expected on or after this date (ISO 8601)').optional(),
       endDate: z.string().describe('Filter visitors expected on or before this date (ISO 8601)').optional(),
@@ -19,21 +21,22 @@ export function registerVisitorTools(server: McpServer, client: IOfficeClient): 
       orderByType: z.enum(['asc', 'desc']).describe('Sort direction (default: asc)').optional(),
     },
     annotations: { readOnlyHint: true },
-  }, async ({ search, startDate, endDate, buildingId, limit, startAt, orderBy, orderByType }) => {
+  }, async ({ search, startDate, endDate, buildingId, limit, startAt, orderBy, orderByType, view }) => {
     const qs = buildQueryString({ search, startDate, endDate, buildingId, limit, startAt, orderBy, orderByType });
     const data = await client.request('GET', `/visitors${qs}`);
-    return textResult(data);
+    return viewResponse(view, data);
   });
 
   server.registerTool('io_get_visitor', {
     description: 'Get a single iOffice visitor by ID.',
     inputSchema: {
+      view: viewArg(),
       id: z.number().describe('Visitor ID'),
     },
     annotations: { readOnlyHint: true },
-  }, async ({ id }) => {
+  }, async ({ id, view }) => {
     const data = await client.request('GET', `/visitors/${id}`);
-    return textResult(data);
+    return viewResponse(view, data);
   });
 
   server.registerTool('io_create_visitor', {
@@ -56,7 +59,7 @@ export function registerVisitorTools(server: McpServer, client: IOfficeClient): 
     const gate = previewUnlessConfirmed(confirm, 'Create iOffice visitor', 'POST', '/visitors', args);
     if (gate) return gate;
     const data = await client.request('POST', '/visitors', args);
-    return textResult(data);
+    return minifiedResult(data);
   });
 
   server.registerTool('io_update_visitor', {
@@ -78,7 +81,7 @@ export function registerVisitorTools(server: McpServer, client: IOfficeClient): 
     const gate = previewUnlessConfirmed(confirm, `Update iOffice visitor ${id}`, 'PUT', `/visitors/${id}`, body);
     if (gate) return gate;
     const data = await client.request('PUT', `/visitors/${id}`, body);
-    return textResult(data);
+    return minifiedResult(data);
   });
 
   server.registerTool('io_checkin_visitor', {
@@ -92,7 +95,7 @@ export function registerVisitorTools(server: McpServer, client: IOfficeClient): 
     const gate = previewUnlessConfirmed(confirm, `Check in iOffice visitor ${id}`, 'POST', `/visitors/${id}/checkIn`);
     if (gate) return gate;
     const data = await client.request('POST', `/visitors/${id}/checkIn`);
-    return textResult(data);
+    return minifiedResult(data);
   });
 
   server.registerTool('io_checkout_visitor', {
@@ -106,6 +109,6 @@ export function registerVisitorTools(server: McpServer, client: IOfficeClient): 
     const gate = previewUnlessConfirmed(confirm, `Check out iOffice visitor ${id}`, 'POST', `/visitors/${id}/checkOut`);
     if (gate) return gate;
     const data = await client.request('POST', `/visitors/${id}/checkOut`);
-    return textResult(data);
+    return minifiedResult(data);
   });
 }

@@ -2,13 +2,15 @@ import { z } from 'zod';
 import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import type { IOfficeClient } from '../client.js';
 import { buildQueryString } from '../client.js';
-import { textResult } from '@chrischall/mcp-utils';
+import { minifiedResult } from '@chrischall/mcp-utils';
+import { viewArg, viewResponse } from '../view.js';
 import { previewUnlessConfirmed, schemaConfirm } from './_confirm.js';
 
 export function registerReservationTools(server: McpServer, client: IOfficeClient): void {
   server.registerTool('io_list_reservations', {
     description: 'List iOffice reservations. Supports filtering by date range, space, or user.',
     inputSchema: {
+      view: viewArg(),
       search: z.string().describe('Filter by title or description').optional(),
       startDate: z.string().describe('Filter reservations starting on or after this date (ISO 8601)').optional(),
       endDate: z.string().describe('Filter reservations ending on or before this date (ISO 8601)').optional(),
@@ -20,21 +22,22 @@ export function registerReservationTools(server: McpServer, client: IOfficeClien
       orderByType: z.enum(['asc', 'desc']).describe('Sort direction (default: asc)').optional(),
     },
     annotations: { readOnlyHint: true },
-  }, async ({ search, startDate, endDate, spaceId, userId, limit, startAt, orderBy, orderByType }) => {
+  }, async ({ search, startDate, endDate, spaceId, userId, limit, startAt, orderBy, orderByType, view }) => {
     const qs = buildQueryString({ search, startDate, endDate, spaceId, userId, limit, startAt, orderBy, orderByType });
     const data = await client.request('GET', `/reservations${qs}`);
-    return textResult(data);
+    return viewResponse(view, data);
   });
 
   server.registerTool('io_get_reservation', {
     description: 'Get a single iOffice reservation by ID.',
     inputSchema: {
+      view: viewArg(),
       id: z.number().describe('Reservation ID'),
     },
     annotations: { readOnlyHint: true },
-  }, async ({ id }) => {
+  }, async ({ id, view }) => {
     const data = await client.request('GET', `/reservations/${id}`);
-    return textResult(data);
+    return viewResponse(view, data);
   });
 
   server.registerTool('io_create_reservation', {
@@ -54,7 +57,7 @@ export function registerReservationTools(server: McpServer, client: IOfficeClien
     const gate = previewUnlessConfirmed(confirm, 'Create iOffice reservation', 'POST', '/reservations', args);
     if (gate) return gate;
     const data = await client.request('POST', '/reservations', args);
-    return textResult(data);
+    return minifiedResult(data);
   });
 
   server.registerTool('io_update_reservation', {
@@ -73,7 +76,7 @@ export function registerReservationTools(server: McpServer, client: IOfficeClien
     const gate = previewUnlessConfirmed(confirm, `Update iOffice reservation ${id}`, 'PUT', `/reservations/${id}`, body);
     if (gate) return gate;
     const data = await client.request('PUT', `/reservations/${id}`, body);
-    return textResult(data);
+    return minifiedResult(data);
   });
 
   server.registerTool('io_delete_reservation', {
@@ -89,7 +92,7 @@ export function registerReservationTools(server: McpServer, client: IOfficeClien
     const data = await client.request('DELETE', `/reservations/${id}`);
     // iOffice DELETEs return 204 No Content; the client resolves that to
     // undefined, so synthesize a small success payload for the tool result.
-    return textResult(data ?? { success: true });
+    return minifiedResult(data ?? { success: true });
   });
 
   server.registerTool('io_checkin_reservation', {
@@ -103,7 +106,7 @@ export function registerReservationTools(server: McpServer, client: IOfficeClien
     const gate = previewUnlessConfirmed(confirm, `Check in iOffice reservation ${id}`, 'POST', `/reservations/${id}/checkIn`);
     if (gate) return gate;
     const data = await client.request('POST', `/reservations/${id}/checkIn`);
-    return textResult(data);
+    return minifiedResult(data);
   });
 
   server.registerTool('io_checkout_reservation', {
@@ -117,6 +120,6 @@ export function registerReservationTools(server: McpServer, client: IOfficeClien
     const gate = previewUnlessConfirmed(confirm, `Check out iOffice reservation ${id}`, 'POST', `/reservations/${id}/checkOut`);
     if (gate) return gate;
     const data = await client.request('POST', `/reservations/${id}/checkOut`);
-    return textResult(data);
+    return minifiedResult(data);
   });
 }

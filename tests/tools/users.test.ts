@@ -84,7 +84,7 @@ describe('io_delete_user', () => {
     const { call } = setup();
     mockClient.request = vi.fn().mockResolvedValue(undefined);
     const result = await call('io_delete_user', { id: 43, confirm: true });
-    expect(result.content[0].text).toContain('\"success\": true');
+    expect(JSON.parse(result.content[0].text)).toEqual({ success: true });
   });
 });
 
