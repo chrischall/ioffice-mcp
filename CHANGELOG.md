@@ -1,5 +1,14 @@
 # Changelog
 
+## [2.3.2](https://github.com/chrischall/ioffice-mcp/compare/v2.3.1...v2.3.2) (2026-09-10)
+
+
+### Bug Fixes
+
+* **deps:** @chrischall/mcp-utils 0.26.1 ([#142](https://github.com/chrischall/ioffice-mcp/issues/142)) ([2cd382d](https://github.com/chrischall/ioffice-mcp/commit/2cd382d2d8223de38b8ff6878921a0d89d58fc0b))
+* **deps:** bump hono from 4.13.0 to 4.13.7 ([#140](https://github.com/chrischall/ioffice-mcp/issues/140)) ([a02682b](https://github.com/chrischall/ioffice-mcp/commit/a02682b879a05a0fc9e541e4837fcfd0b0a076c1))
+* **deps:** declare the peer floors mcp-utils 0.26.1 requires ([#143](https://github.com/chrischall/ioffice-mcp/issues/143)) ([e6a5129](https://github.com/chrischall/ioffice-mcp/commit/e6a51297e30d599822a6a9eecfdb4b3570e28b03))
+
 ## [2.3.1](https://github.com/chrischall/ioffice-mcp/compare/v2.3.0...v2.3.1) (2026-09-04)
 
 
