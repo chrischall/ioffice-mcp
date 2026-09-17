@@ -1,5 +1,27 @@
 # Changelog
 
+## [3.0.0](https://github.com/chrischall/ioffice-mcp/compare/v2.3.2...v3.0.0) (2026-09-17)
+
+
+### ⚠ BREAKING CHANGES
+
+* **mcp:** migrate server to SDK v2 ([#147](https://github.com/chrischall/ioffice-mcp/issues/147))
+
+### Features
+
+* **mcp:** migrate server to SDK v2 ([#147](https://github.com/chrischall/ioffice-mcp/issues/147)) ([324765e](https://github.com/chrischall/ioffice-mcp/commit/324765e584c1f2b3dda087bcb9bf9c758ab38e14))
+
+
+### Bug Fixes
+
+* **mcp:** enforce repository source style ([#152](https://github.com/chrischall/ioffice-mcp/issues/152)) ([a6918ac](https://github.com/chrischall/ioffice-mcp/commit/a6918ac1607485ec146b49f5c612193177f3f2bb)), closes [#151](https://github.com/chrischall/ioffice-mcp/issues/151)
+* **mcp:** verify SDK v2 tool schema and style ([#150](https://github.com/chrischall/ioffice-mcp/issues/150)) ([786c6a4](https://github.com/chrischall/ioffice-mcp/commit/786c6a4a198c43efacd3822e5c20005f8e7701eb)), closes [#148](https://github.com/chrischall/ioffice-mcp/issues/148)
+
+
+### Documentation
+
+* describe the full test command ([#154](https://github.com/chrischall/ioffice-mcp/issues/154)) ([deb452a](https://github.com/chrischall/ioffice-mcp/commit/deb452aa1c76edc349b2a842f87a51c28a0da342)), closes [#153](https://github.com/chrischall/ioffice-mcp/issues/153)
+
 ## [2.3.2](https://github.com/chrischall/ioffice-mcp/compare/v2.3.1...v2.3.2) (2026-09-10)
 
 
