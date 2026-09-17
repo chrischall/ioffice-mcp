@@ -1,56 +1,32 @@
-import { z } from "zod";
-import type { McpServer } from "@modelcontextprotocol/server";
-import type { IOfficeClient } from "../client.js";
-import { buildQueryString, optionalBody } from "../client.js";
-import { minifiedResult } from "@chrischall/mcp-utils";
-import { viewArg, viewResponse } from "../view.js";
-import { previewUnlessConfirmed, schemaConfirm } from "./_confirm.js";
+import { z } from 'zod';
+import type { McpServer } from '@modelcontextprotocol/server';
+import type { IOfficeClient } from '../client.js';
+import { buildQueryString, optionalBody } from '../client.js';
+import { minifiedResult } from '@chrischall/mcp-utils';
+import { viewArg, viewResponse } from '../view.js';
+import { previewUnlessConfirmed, schemaConfirm } from './_confirm.js';
 
-export function registerMoveTools(
-  server: McpServer,
-  client: IOfficeClient,
-): void {
+export function registerMoveTools(server: McpServer, client: IOfficeClient): void {
   server.registerTool(
-    "io_list_moves",
+    'io_list_moves',
     {
       description:
-        "List iOffice move requests. Supports filtering by status, building, or assignee.",
+        'List iOffice move requests. Supports filtering by status, building, or assignee.',
       inputSchema: z.object({
         view: viewArg(),
-        search: z.string().describe("Filter by name or description").optional(),
+        search: z.string().describe('Filter by name or description').optional(),
         status: z
           .string()
-          .describe("Filter by status (e.g. pending, approved, completed)")
+          .describe('Filter by status (e.g. pending, approved, completed)')
           .optional(),
-        buildingId: z.number().describe("Filter by building ID").optional(),
-        requesterId: z
-          .number()
-          .describe("Filter by requester user ID")
-          .optional(),
-        startDate: z
-          .string()
-          .describe("Filter moves on or after this date (ISO 8601)")
-          .optional(),
-        endDate: z
-          .string()
-          .describe("Filter moves on or before this date (ISO 8601)")
-          .optional(),
-        limit: z
-          .number()
-          .describe("Max results (default 50, max 100)")
-          .optional(),
-        startAt: z
-          .number()
-          .describe("Pagination offset (default 0)")
-          .optional(),
-        orderBy: z
-          .string()
-          .describe("Property to sort by (default: id)")
-          .optional(),
-        orderByType: z
-          .enum(["asc", "desc"])
-          .describe("Sort direction (default: asc)")
-          .optional(),
+        buildingId: z.number().describe('Filter by building ID').optional(),
+        requesterId: z.number().describe('Filter by requester user ID').optional(),
+        startDate: z.string().describe('Filter moves on or after this date (ISO 8601)').optional(),
+        endDate: z.string().describe('Filter moves on or before this date (ISO 8601)').optional(),
+        limit: z.number().describe('Max results (default 50, max 100)').optional(),
+        startAt: z.number().describe('Pagination offset (default 0)').optional(),
+        orderBy: z.string().describe('Property to sort by (default: id)').optional(),
+        orderByType: z.enum(['asc', 'desc']).describe('Sort direction (default: asc)').optional(),
       }),
       annotations: { readOnlyHint: true },
     },
@@ -79,49 +55,40 @@ export function registerMoveTools(
         orderBy,
         orderByType,
       });
-      const data = await client.request("GET", `/moves${qs}`);
+      const data = await client.request('GET', `/moves${qs}`);
       return viewResponse(view, data);
     },
   );
 
   server.registerTool(
-    "io_get_move",
+    'io_get_move',
     {
-      description: "Get a single iOffice move request by ID.",
+      description: 'Get a single iOffice move request by ID.',
       inputSchema: z.object({
         view: viewArg(),
-        id: z.number().describe("Move request ID"),
+        id: z.number().describe('Move request ID'),
       }),
       annotations: { readOnlyHint: true },
     },
     async ({ id, view }) => {
-      const data = await client.request("GET", `/moves/${id}`);
+      const data = await client.request('GET', `/moves/${id}`);
       return viewResponse(view, data);
     },
   );
 
   server.registerTool(
-    "io_create_move",
+    'io_create_move',
     {
       description:
-        "Create a new iOffice move request. Without confirm:true this returns a dry-run preview and makes NO network call; with confirm:true it executes.",
+        'Create a new iOffice move request. Without confirm:true this returns a dry-run preview and makes NO network call; with confirm:true it executes.',
       inputSchema: z.object({
-        name: z.string().describe("Move request name/title"),
-        description: z.string().describe("Description of the move").optional(),
-        requesterId: z
-          .number()
-          .describe("User ID of the person requesting the move")
-          .optional(),
-        fromSpaceId: z.number().describe("Source space/room ID").optional(),
-        toSpaceId: z.number().describe("Destination space/room ID").optional(),
-        scheduledDate: z
-          .string()
-          .describe("Scheduled move date (ISO 8601)")
-          .optional(),
-        buildingId: z
-          .number()
-          .describe("Building ID where the move takes place")
-          .optional(),
+        name: z.string().describe('Move request name/title'),
+        description: z.string().describe('Description of the move').optional(),
+        requesterId: z.number().describe('User ID of the person requesting the move').optional(),
+        fromSpaceId: z.number().describe('Source space/room ID').optional(),
+        toSpaceId: z.number().describe('Destination space/room ID').optional(),
+        scheduledDate: z.string().describe('Scheduled move date (ISO 8601)').optional(),
+        buildingId: z.number().describe('Building ID where the move takes place').optional(),
         confirm: schemaConfirm,
       }),
       annotations: { readOnlyHint: false, destructiveHint: true },
@@ -129,32 +96,29 @@ export function registerMoveTools(
     async ({ confirm, ...args }) => {
       const gate = previewUnlessConfirmed(
         confirm,
-        "Create iOffice move request",
-        "POST",
-        "/moves",
+        'Create iOffice move request',
+        'POST',
+        '/moves',
         args,
       );
       if (gate) return gate;
-      const data = await client.request("POST", "/moves", args);
+      const data = await client.request('POST', '/moves', args);
       return minifiedResult(data);
     },
   );
 
   server.registerTool(
-    "io_update_move",
+    'io_update_move',
     {
       description:
-        "Update an existing iOffice move request. Only provide fields to change. Without confirm:true this returns a dry-run preview and makes NO network call; with confirm:true it executes.",
+        'Update an existing iOffice move request. Only provide fields to change. Without confirm:true this returns a dry-run preview and makes NO network call; with confirm:true it executes.',
       inputSchema: z.object({
-        id: z.number().describe("Move request ID"),
-        name: z.string().describe("Move request name/title").optional(),
-        description: z.string().describe("Description of the move").optional(),
-        scheduledDate: z
-          .string()
-          .describe("Scheduled move date (ISO 8601)")
-          .optional(),
-        fromSpaceId: z.number().describe("Source space/room ID").optional(),
-        toSpaceId: z.number().describe("Destination space/room ID").optional(),
+        id: z.number().describe('Move request ID'),
+        name: z.string().describe('Move request name/title').optional(),
+        description: z.string().describe('Description of the move').optional(),
+        scheduledDate: z.string().describe('Scheduled move date (ISO 8601)').optional(),
+        fromSpaceId: z.number().describe('Source space/room ID').optional(),
+        toSpaceId: z.number().describe('Destination space/room ID').optional(),
         confirm: schemaConfirm,
       }),
       annotations: { readOnlyHint: false, destructiveHint: true },
@@ -163,66 +127,66 @@ export function registerMoveTools(
       const gate = previewUnlessConfirmed(
         confirm,
         `Update iOffice move request ${id}`,
-        "PUT",
+        'PUT',
         `/moves/${id}`,
         body,
       );
       if (gate) return gate;
-      const data = await client.request("PUT", `/moves/${id}`, body);
+      const data = await client.request('PUT', `/moves/${id}`, body);
       return minifiedResult(data);
     },
   );
 
   server.registerTool(
-    "io_approve_move",
+    'io_approve_move',
     {
       description:
-        "Approve an iOffice move request. Without confirm:true this returns a dry-run preview and makes NO network call; with confirm:true it executes.",
+        'Approve an iOffice move request. Without confirm:true this returns a dry-run preview and makes NO network call; with confirm:true it executes.',
       inputSchema: z.object({
-        id: z.number().describe("Move request ID"),
-        notes: z.string().describe("Approval notes (optional)").optional(),
+        id: z.number().describe('Move request ID'),
+        notes: z.string().describe('Approval notes (optional)').optional(),
         confirm: schemaConfirm,
       }),
       annotations: { readOnlyHint: false, destructiveHint: true },
     },
     async ({ id, confirm, notes }) => {
-      const body = optionalBody({ notes }, ["notes"]);
+      const body = optionalBody({ notes }, ['notes']);
       const gate = previewUnlessConfirmed(
         confirm,
         `Approve iOffice move request ${id}`,
-        "POST",
+        'POST',
         `/moves/${id}/approve`,
         body,
       );
       if (gate) return gate;
-      const data = await client.request("POST", `/moves/${id}/approve`, body);
+      const data = await client.request('POST', `/moves/${id}/approve`, body);
       return minifiedResult(data);
     },
   );
 
   server.registerTool(
-    "io_cancel_move",
+    'io_cancel_move',
     {
       description:
-        "Cancel an iOffice move request. Without confirm:true this returns a dry-run preview and makes NO network call; with confirm:true it executes.",
+        'Cancel an iOffice move request. Without confirm:true this returns a dry-run preview and makes NO network call; with confirm:true it executes.',
       inputSchema: z.object({
-        id: z.number().describe("Move request ID"),
-        reason: z.string().describe("Cancellation reason").optional(),
+        id: z.number().describe('Move request ID'),
+        reason: z.string().describe('Cancellation reason').optional(),
         confirm: schemaConfirm,
       }),
       annotations: { readOnlyHint: false, destructiveHint: true },
     },
     async ({ id, confirm, reason }) => {
-      const body = optionalBody({ reason }, ["reason"]);
+      const body = optionalBody({ reason }, ['reason']);
       const gate = previewUnlessConfirmed(
         confirm,
         `Cancel iOffice move request ${id}`,
-        "POST",
+        'POST',
         `/moves/${id}/cancel`,
         body,
       );
       if (gate) return gate;
-      const data = await client.request("POST", `/moves/${id}/cancel`, body);
+      const data = await client.request('POST', `/moves/${id}/cancel`, body);
       return minifiedResult(data);
     },
   );

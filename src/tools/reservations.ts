@@ -1,56 +1,33 @@
-import { z } from "zod";
-import type { McpServer } from "@modelcontextprotocol/server";
-import type { IOfficeClient } from "../client.js";
-import { buildQueryString } from "../client.js";
-import { minifiedResult } from "@chrischall/mcp-utils";
-import { viewArg, viewResponse } from "../view.js";
-import { previewUnlessConfirmed, schemaConfirm } from "./_confirm.js";
+import { z } from 'zod';
+import type { McpServer } from '@modelcontextprotocol/server';
+import type { IOfficeClient } from '../client.js';
+import { buildQueryString } from '../client.js';
+import { minifiedResult } from '@chrischall/mcp-utils';
+import { viewArg, viewResponse } from '../view.js';
+import { previewUnlessConfirmed, schemaConfirm } from './_confirm.js';
 
-export function registerReservationTools(
-  server: McpServer,
-  client: IOfficeClient,
-): void {
+export function registerReservationTools(server: McpServer, client: IOfficeClient): void {
   server.registerTool(
-    "io_list_reservations",
+    'io_list_reservations',
     {
-      description:
-        "List iOffice reservations. Supports filtering by date range, space, or user.",
+      description: 'List iOffice reservations. Supports filtering by date range, space, or user.',
       inputSchema: z.object({
         view: viewArg(),
-        search: z
-          .string()
-          .describe("Filter by title or description")
-          .optional(),
+        search: z.string().describe('Filter by title or description').optional(),
         startDate: z
           .string()
-          .describe(
-            "Filter reservations starting on or after this date (ISO 8601)",
-          )
+          .describe('Filter reservations starting on or after this date (ISO 8601)')
           .optional(),
         endDate: z
           .string()
-          .describe(
-            "Filter reservations ending on or before this date (ISO 8601)",
-          )
+          .describe('Filter reservations ending on or before this date (ISO 8601)')
           .optional(),
-        spaceId: z.number().describe("Filter by space/room ID").optional(),
-        userId: z.number().describe("Filter by organizer user ID").optional(),
-        limit: z
-          .number()
-          .describe("Max results (default 50, max 100)")
-          .optional(),
-        startAt: z
-          .number()
-          .describe("Pagination offset (default 0)")
-          .optional(),
-        orderBy: z
-          .string()
-          .describe("Property to sort by (default: id)")
-          .optional(),
-        orderByType: z
-          .enum(["asc", "desc"])
-          .describe("Sort direction (default: asc)")
-          .optional(),
+        spaceId: z.number().describe('Filter by space/room ID').optional(),
+        userId: z.number().describe('Filter by organizer user ID').optional(),
+        limit: z.number().describe('Max results (default 50, max 100)').optional(),
+        startAt: z.number().describe('Pagination offset (default 0)').optional(),
+        orderBy: z.string().describe('Property to sort by (default: id)').optional(),
+        orderByType: z.enum(['asc', 'desc']).describe('Sort direction (default: asc)').optional(),
       }),
       annotations: { readOnlyHint: true },
     },
@@ -77,52 +54,42 @@ export function registerReservationTools(
         orderBy,
         orderByType,
       });
-      const data = await client.request("GET", `/reservations${qs}`);
+      const data = await client.request('GET', `/reservations${qs}`);
       return viewResponse(view, data);
     },
   );
 
   server.registerTool(
-    "io_get_reservation",
+    'io_get_reservation',
     {
-      description: "Get a single iOffice reservation by ID.",
+      description: 'Get a single iOffice reservation by ID.',
       inputSchema: z.object({
         view: viewArg(),
-        id: z.number().describe("Reservation ID"),
+        id: z.number().describe('Reservation ID'),
       }),
       annotations: { readOnlyHint: true },
     },
     async ({ id, view }) => {
-      const data = await client.request("GET", `/reservations/${id}`);
+      const data = await client.request('GET', `/reservations/${id}`);
       return viewResponse(view, data);
     },
   );
 
   server.registerTool(
-    "io_create_reservation",
+    'io_create_reservation',
     {
       description:
-        "Create a new iOffice room/space reservation. Without confirm:true this returns a dry-run preview and makes NO network call; with confirm:true it executes.",
+        'Create a new iOffice room/space reservation. Without confirm:true this returns a dry-run preview and makes NO network call; with confirm:true it executes.',
       inputSchema: z.object({
-        title: z.string().describe("Reservation title/name"),
-        spaceId: z.number().describe("Space/room ID to reserve"),
-        startDate: z
-          .string()
-          .describe("Start date/time (ISO 8601, e.g. 2026-03-20T09:00:00)"),
-        endDate: z
-          .string()
-          .describe("End date/time (ISO 8601, e.g. 2026-03-20T10:00:00)"),
-        description: z
-          .string()
-          .describe("Reservation notes or description")
-          .optional(),
-        attendeeCount: z
-          .number()
-          .describe("Expected number of attendees")
-          .optional(),
+        title: z.string().describe('Reservation title/name'),
+        spaceId: z.number().describe('Space/room ID to reserve'),
+        startDate: z.string().describe('Start date/time (ISO 8601, e.g. 2026-03-20T09:00:00)'),
+        endDate: z.string().describe('End date/time (ISO 8601, e.g. 2026-03-20T10:00:00)'),
+        description: z.string().describe('Reservation notes or description').optional(),
+        attendeeCount: z.number().describe('Expected number of attendees').optional(),
         userId: z
           .number()
-          .describe("Organizer user ID (defaults to authenticated user)")
+          .describe('Organizer user ID (defaults to authenticated user)')
           .optional(),
         confirm: schemaConfirm,
       }),
@@ -131,35 +98,29 @@ export function registerReservationTools(
     async ({ confirm, ...args }) => {
       const gate = previewUnlessConfirmed(
         confirm,
-        "Create iOffice reservation",
-        "POST",
-        "/reservations",
+        'Create iOffice reservation',
+        'POST',
+        '/reservations',
         args,
       );
       if (gate) return gate;
-      const data = await client.request("POST", "/reservations", args);
+      const data = await client.request('POST', '/reservations', args);
       return minifiedResult(data);
     },
   );
 
   server.registerTool(
-    "io_update_reservation",
+    'io_update_reservation',
     {
       description:
-        "Update an existing iOffice reservation. Only provide fields to change. Without confirm:true this returns a dry-run preview and makes NO network call; with confirm:true it executes.",
+        'Update an existing iOffice reservation. Only provide fields to change. Without confirm:true this returns a dry-run preview and makes NO network call; with confirm:true it executes.',
       inputSchema: z.object({
-        id: z.number().describe("Reservation ID"),
-        title: z.string().describe("Reservation title").optional(),
-        startDate: z
-          .string()
-          .describe("New start date/time (ISO 8601)")
-          .optional(),
-        endDate: z.string().describe("New end date/time (ISO 8601)").optional(),
-        description: z.string().describe("Notes or description").optional(),
-        attendeeCount: z
-          .number()
-          .describe("Expected number of attendees")
-          .optional(),
+        id: z.number().describe('Reservation ID'),
+        title: z.string().describe('Reservation title').optional(),
+        startDate: z.string().describe('New start date/time (ISO 8601)').optional(),
+        endDate: z.string().describe('New end date/time (ISO 8601)').optional(),
+        description: z.string().describe('Notes or description').optional(),
+        attendeeCount: z.number().describe('Expected number of attendees').optional(),
         confirm: schemaConfirm,
       }),
       annotations: { readOnlyHint: false, destructiveHint: true },
@@ -168,23 +129,23 @@ export function registerReservationTools(
       const gate = previewUnlessConfirmed(
         confirm,
         `Update iOffice reservation ${id}`,
-        "PUT",
+        'PUT',
         `/reservations/${id}`,
         body,
       );
       if (gate) return gate;
-      const data = await client.request("PUT", `/reservations/${id}`, body);
+      const data = await client.request('PUT', `/reservations/${id}`, body);
       return minifiedResult(data);
     },
   );
 
   server.registerTool(
-    "io_delete_reservation",
+    'io_delete_reservation',
     {
       description:
-        "Delete/cancel an iOffice reservation by ID. Without confirm:true this returns a dry-run preview and makes NO network call; with confirm:true it executes.",
+        'Delete/cancel an iOffice reservation by ID. Without confirm:true this returns a dry-run preview and makes NO network call; with confirm:true it executes.',
       inputSchema: z.object({
-        id: z.number().describe("Reservation ID"),
+        id: z.number().describe('Reservation ID'),
         confirm: schemaConfirm,
       }),
       annotations: { readOnlyHint: false, destructiveHint: true },
@@ -193,11 +154,11 @@ export function registerReservationTools(
       const gate = previewUnlessConfirmed(
         confirm,
         `Delete iOffice reservation ${id}`,
-        "DELETE",
+        'DELETE',
         `/reservations/${id}`,
       );
       if (gate) return gate;
-      const data = await client.request("DELETE", `/reservations/${id}`);
+      const data = await client.request('DELETE', `/reservations/${id}`);
       // iOffice DELETEs return 204 No Content; the client resolves that to
       // undefined, so synthesize a small success payload for the tool result.
       return minifiedResult(data ?? { success: true });
@@ -205,12 +166,12 @@ export function registerReservationTools(
   );
 
   server.registerTool(
-    "io_checkin_reservation",
+    'io_checkin_reservation',
     {
       description:
-        "Check in to an iOffice reservation, confirming room usage. Without confirm:true this returns a dry-run preview and makes NO network call; with confirm:true it executes.",
+        'Check in to an iOffice reservation, confirming room usage. Without confirm:true this returns a dry-run preview and makes NO network call; with confirm:true it executes.',
       inputSchema: z.object({
-        id: z.number().describe("Reservation ID"),
+        id: z.number().describe('Reservation ID'),
         confirm: schemaConfirm,
       }),
       annotations: { readOnlyHint: false, destructiveHint: true },
@@ -219,22 +180,22 @@ export function registerReservationTools(
       const gate = previewUnlessConfirmed(
         confirm,
         `Check in iOffice reservation ${id}`,
-        "POST",
+        'POST',
         `/reservations/${id}/checkIn`,
       );
       if (gate) return gate;
-      const data = await client.request("POST", `/reservations/${id}/checkIn`);
+      const data = await client.request('POST', `/reservations/${id}/checkIn`);
       return minifiedResult(data);
     },
   );
 
   server.registerTool(
-    "io_checkout_reservation",
+    'io_checkout_reservation',
     {
       description:
-        "Check out of an iOffice reservation, releasing the room early if needed. Without confirm:true this returns a dry-run preview and makes NO network call; with confirm:true it executes.",
+        'Check out of an iOffice reservation, releasing the room early if needed. Without confirm:true this returns a dry-run preview and makes NO network call; with confirm:true it executes.',
       inputSchema: z.object({
-        id: z.number().describe("Reservation ID"),
+        id: z.number().describe('Reservation ID'),
         confirm: schemaConfirm,
       }),
       annotations: { readOnlyHint: false, destructiveHint: true },
@@ -243,11 +204,11 @@ export function registerReservationTools(
       const gate = previewUnlessConfirmed(
         confirm,
         `Check out iOffice reservation ${id}`,
-        "POST",
+        'POST',
         `/reservations/${id}/checkOut`,
       );
       if (gate) return gate;
-      const data = await client.request("POST", `/reservations/${id}/checkOut`);
+      const data = await client.request('POST', `/reservations/${id}/checkOut`);
       return minifiedResult(data);
     },
   );

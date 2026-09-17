@@ -1,5 +1,5 @@
-import type { CallToolResult } from "@modelcontextprotocol/server";
-import { minifiedResult, schemaConfirm } from "@chrischall/mcp-utils";
+import type { CallToolResult } from '@modelcontextprotocol/server';
+import { minifiedResult, schemaConfirm } from '@chrischall/mcp-utils';
 
 export { schemaConfirm };
 
@@ -22,6 +22,6 @@ export function previewUnlessConfirmed(
     method,
     path,
     ...(body !== undefined ? { willSend: body } : {}),
-    note: "Re-run with confirm: true to execute.",
+    note: 'Re-run with confirm: true to execute.',
   });
 }

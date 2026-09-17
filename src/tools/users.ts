@@ -1,39 +1,23 @@
-import { z } from "zod";
-import type { McpServer } from "@modelcontextprotocol/server";
-import type { IOfficeClient } from "../client.js";
-import { buildQueryString } from "../client.js";
-import { minifiedResult } from "@chrischall/mcp-utils";
-import { viewArg, viewResponse } from "../view.js";
-import { previewUnlessConfirmed, schemaConfirm } from "./_confirm.js";
+import { z } from 'zod';
+import type { McpServer } from '@modelcontextprotocol/server';
+import type { IOfficeClient } from '../client.js';
+import { buildQueryString } from '../client.js';
+import { minifiedResult } from '@chrischall/mcp-utils';
+import { viewArg, viewResponse } from '../view.js';
+import { previewUnlessConfirmed, schemaConfirm } from './_confirm.js';
 
-export function registerUserTools(
-  server: McpServer,
-  client: IOfficeClient,
-): void {
+export function registerUserTools(server: McpServer, client: IOfficeClient): void {
   server.registerTool(
-    "io_list_users",
+    'io_list_users',
     {
-      description:
-        "List iOffice users. Supports search, pagination, and sorting.",
+      description: 'List iOffice users. Supports search, pagination, and sorting.',
       inputSchema: z.object({
         view: viewArg(),
-        search: z.string().describe("Filter by name or email").optional(),
-        limit: z
-          .number()
-          .describe("Max results (default 50, max 100)")
-          .optional(),
-        startAt: z
-          .number()
-          .describe("Pagination offset (default 0)")
-          .optional(),
-        orderBy: z
-          .string()
-          .describe("Property to sort by (default: id)")
-          .optional(),
-        orderByType: z
-          .enum(["asc", "desc"])
-          .describe("Sort direction (default: asc)")
-          .optional(),
+        search: z.string().describe('Filter by name or email').optional(),
+        limit: z.number().describe('Max results (default 50, max 100)').optional(),
+        startAt: z.number().describe('Pagination offset (default 0)').optional(),
+        orderBy: z.string().describe('Property to sort by (default: id)').optional(),
+        orderByType: z.enum(['asc', 'desc']).describe('Sort direction (default: asc)').optional(),
       }),
       annotations: { readOnlyHint: true },
     },
@@ -45,79 +29,67 @@ export function registerUserTools(
         orderBy,
         orderByType,
       });
-      const data = await client.request("GET", `/users${qs}`);
+      const data = await client.request('GET', `/users${qs}`);
       return viewResponse(view, data);
     },
   );
 
   server.registerTool(
-    "io_get_user",
+    'io_get_user',
     {
-      description: "Get a single iOffice user by ID.",
+      description: 'Get a single iOffice user by ID.',
       inputSchema: z.object({
         view: viewArg(),
-        id: z.number().describe("User ID"),
+        id: z.number().describe('User ID'),
       }),
       annotations: { readOnlyHint: true },
     },
     async ({ id, view }) => {
-      const data = await client.request("GET", `/users/${id}`);
+      const data = await client.request('GET', `/users/${id}`);
       return viewResponse(view, data);
     },
   );
 
   server.registerTool(
-    "io_create_user",
+    'io_create_user',
     {
       description:
-        "Create a new iOffice user. Without confirm:true this returns a dry-run preview and makes NO network call; with confirm:true it executes.",
+        'Create a new iOffice user. Without confirm:true this returns a dry-run preview and makes NO network call; with confirm:true it executes.',
       inputSchema: z.object({
-        firstName: z.string().describe("First name"),
-        lastName: z.string().describe("Last name"),
-        email: z.string().describe("Email address (used for login)"),
-        username: z.string().describe("Username").optional(),
-        phone: z.string().describe("Phone number").optional(),
-        title: z.string().describe("Job title").optional(),
-        centerId: z
-          .number()
-          .describe("Primary center/cost center ID")
-          .optional(),
-        buildingId: z.number().describe("Default building ID").optional(),
+        firstName: z.string().describe('First name'),
+        lastName: z.string().describe('Last name'),
+        email: z.string().describe('Email address (used for login)'),
+        username: z.string().describe('Username').optional(),
+        phone: z.string().describe('Phone number').optional(),
+        title: z.string().describe('Job title').optional(),
+        centerId: z.number().describe('Primary center/cost center ID').optional(),
+        buildingId: z.number().describe('Default building ID').optional(),
         confirm: schemaConfirm,
       }),
       annotations: { readOnlyHint: false, destructiveHint: true },
     },
     async ({ confirm, ...args }) => {
-      const gate = previewUnlessConfirmed(
-        confirm,
-        "Create iOffice user",
-        "POST",
-        "/users",
-        args,
-      );
+      const gate = previewUnlessConfirmed(confirm, 'Create iOffice user', 'POST', '/users', args);
       if (gate) return gate;
-      const data = await client.request("POST", "/users", args);
+      const data = await client.request('POST', '/users', args);
       return minifiedResult(data);
     },
   );
 
   server.registerTool(
-    "io_update_user",
+    'io_update_user',
     {
       description:
-        "Update an existing iOffice user. Only provide fields to change. Without confirm:true this returns a dry-run preview and makes NO network call; with confirm:true it executes.",
+        'Update an existing iOffice user. Only provide fields to change. Without confirm:true this returns a dry-run preview and makes NO network call; with confirm:true it executes.',
       inputSchema: z.object({
-        id: z.number().describe("User ID"),
-        firstName: z.string().describe("First name").optional(),
-        lastName: z.string().describe("Last name").optional(),
-        email: z.string().describe("Email address").optional(),
-        phone: z.string().describe("Phone number").optional(),
-        title: z.string().describe("Job title").optional(),
-        centerId: z
-          .number()
-          .describe("Primary center/cost center ID")
-          .optional(),
-        buildingId: z.number().describe("Default building ID").optional(),
+        id: z.number().describe('User ID'),
+        firstName: z.string().describe('First name').optional(),
+        lastName: z.string().describe('Last name').optional(),
+        email: z.string().describe('Email address').optional(),
+        phone: z.string().describe('Phone number').optional(),
+        title: z.string().describe('Job title').optional(),
+        centerId: z.number().describe('Primary center/cost center ID').optional(),
+        buildingId: z.number().describe('Default building ID').optional(),
         confirm: schemaConfirm,
       }),
       annotations: { readOnlyHint: false, destructiveHint: true },
@@ -126,23 +98,23 @@ export function registerUserTools(
       const gate = previewUnlessConfirmed(
         confirm,
         `Update iOffice user ${id}`,
-        "PUT",
+        'PUT',
         `/users/${id}`,
         body,
       );
       if (gate) return gate;
-      const data = await client.request("PUT", `/users/${id}`, body);
+      const data = await client.request('PUT', `/users/${id}`, body);
       return minifiedResult(data);
     },
   );
 
   server.registerTool(
-    "io_delete_user",
+    'io_delete_user',
     {
       description:
-        "Delete an iOffice user by ID. Without confirm:true this returns a dry-run preview and makes NO network call; with confirm:true it executes.",
+        'Delete an iOffice user by ID. Without confirm:true this returns a dry-run preview and makes NO network call; with confirm:true it executes.',
       inputSchema: z.object({
-        id: z.number().describe("User ID"),
+        id: z.number().describe('User ID'),
         confirm: schemaConfirm,
       }),
       annotations: { readOnlyHint: false, destructiveHint: true },
@@ -151,11 +123,11 @@ export function registerUserTools(
       const gate = previewUnlessConfirmed(
         confirm,
         `Delete iOffice user ${id}`,
-        "DELETE",
+        'DELETE',
         `/users/${id}`,
       );
       if (gate) return gate;
-      const data = await client.request("DELETE", `/users/${id}`);
+      const data = await client.request('DELETE', `/users/${id}`);
       // iOffice DELETEs return 204 No Content; the client resolves that to
       // undefined, so synthesize a small success payload for the tool result.
       return minifiedResult(data ?? { success: true });

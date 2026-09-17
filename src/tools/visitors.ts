@@ -1,53 +1,32 @@
-import { z } from "zod";
-import type { McpServer } from "@modelcontextprotocol/server";
-import type { IOfficeClient } from "../client.js";
-import { buildQueryString } from "../client.js";
-import { minifiedResult } from "@chrischall/mcp-utils";
-import { viewArg, viewResponse } from "../view.js";
-import { previewUnlessConfirmed, schemaConfirm } from "./_confirm.js";
+import { z } from 'zod';
+import type { McpServer } from '@modelcontextprotocol/server';
+import type { IOfficeClient } from '../client.js';
+import { buildQueryString } from '../client.js';
+import { minifiedResult } from '@chrischall/mcp-utils';
+import { viewArg, viewResponse } from '../view.js';
+import { previewUnlessConfirmed, schemaConfirm } from './_confirm.js';
 
-export function registerVisitorTools(
-  server: McpServer,
-  client: IOfficeClient,
-): void {
+export function registerVisitorTools(server: McpServer, client: IOfficeClient): void {
   server.registerTool(
-    "io_list_visitors",
+    'io_list_visitors',
     {
-      description:
-        "List iOffice visitors. Supports search, date filtering, and pagination.",
+      description: 'List iOffice visitors. Supports search, date filtering, and pagination.',
       inputSchema: z.object({
         view: viewArg(),
-        search: z
-          .string()
-          .describe("Filter by visitor name or email")
-          .optional(),
+        search: z.string().describe('Filter by visitor name or email').optional(),
         startDate: z
           .string()
-          .describe("Filter visitors expected on or after this date (ISO 8601)")
+          .describe('Filter visitors expected on or after this date (ISO 8601)')
           .optional(),
         endDate: z
           .string()
-          .describe(
-            "Filter visitors expected on or before this date (ISO 8601)",
-          )
+          .describe('Filter visitors expected on or before this date (ISO 8601)')
           .optional(),
-        buildingId: z.number().describe("Filter by building ID").optional(),
-        limit: z
-          .number()
-          .describe("Max results (default 50, max 100)")
-          .optional(),
-        startAt: z
-          .number()
-          .describe("Pagination offset (default 0)")
-          .optional(),
-        orderBy: z
-          .string()
-          .describe("Property to sort by (default: id)")
-          .optional(),
-        orderByType: z
-          .enum(["asc", "desc"])
-          .describe("Sort direction (default: asc)")
-          .optional(),
+        buildingId: z.number().describe('Filter by building ID').optional(),
+        limit: z.number().describe('Max results (default 50, max 100)').optional(),
+        startAt: z.number().describe('Pagination offset (default 0)').optional(),
+        orderBy: z.string().describe('Property to sort by (default: id)').optional(),
+        orderByType: z.enum(['asc', 'desc']).describe('Sort direction (default: asc)').optional(),
       }),
       annotations: { readOnlyHint: true },
     },
@@ -72,52 +51,46 @@ export function registerVisitorTools(
         orderBy,
         orderByType,
       });
-      const data = await client.request("GET", `/visitors${qs}`);
+      const data = await client.request('GET', `/visitors${qs}`);
       return viewResponse(view, data);
     },
   );
 
   server.registerTool(
-    "io_get_visitor",
+    'io_get_visitor',
     {
-      description: "Get a single iOffice visitor by ID.",
+      description: 'Get a single iOffice visitor by ID.',
       inputSchema: z.object({
         view: viewArg(),
-        id: z.number().describe("Visitor ID"),
+        id: z.number().describe('Visitor ID'),
       }),
       annotations: { readOnlyHint: true },
     },
     async ({ id, view }) => {
-      const data = await client.request("GET", `/visitors/${id}`);
+      const data = await client.request('GET', `/visitors/${id}`);
       return viewResponse(view, data);
     },
   );
 
   server.registerTool(
-    "io_create_visitor",
+    'io_create_visitor',
     {
       description:
-        "Pre-register a visitor in iOffice. Without confirm:true this returns a dry-run preview and makes NO network call; with confirm:true it executes.",
+        'Pre-register a visitor in iOffice. Without confirm:true this returns a dry-run preview and makes NO network call; with confirm:true it executes.',
       inputSchema: z.object({
-        firstName: z.string().describe("Visitor first name"),
-        lastName: z.string().describe("Visitor last name"),
-        email: z.string().describe("Visitor email address").optional(),
-        company: z.string().describe("Visitor company/organization").optional(),
-        phone: z.string().describe("Visitor phone number").optional(),
-        hostId: z
-          .number()
-          .describe("Host user ID (iOffice user they are visiting)")
-          .optional(),
-        buildingId: z.number().describe("Building ID for the visit").optional(),
-        expectedArrival: z
-          .string()
-          .describe("Expected arrival date/time (ISO 8601)")
-          .optional(),
+        firstName: z.string().describe('Visitor first name'),
+        lastName: z.string().describe('Visitor last name'),
+        email: z.string().describe('Visitor email address').optional(),
+        company: z.string().describe('Visitor company/organization').optional(),
+        phone: z.string().describe('Visitor phone number').optional(),
+        hostId: z.number().describe('Host user ID (iOffice user they are visiting)').optional(),
+        buildingId: z.number().describe('Building ID for the visit').optional(),
+        expectedArrival: z.string().describe('Expected arrival date/time (ISO 8601)').optional(),
         expectedDeparture: z
           .string()
-          .describe("Expected departure date/time (ISO 8601)")
+          .describe('Expected departure date/time (ISO 8601)')
           .optional(),
-        purpose: z.string().describe("Purpose of visit").optional(),
+        purpose: z.string().describe('Purpose of visit').optional(),
         confirm: schemaConfirm,
       }),
       annotations: { readOnlyHint: false, destructiveHint: true },
@@ -125,38 +98,35 @@ export function registerVisitorTools(
     async ({ confirm, ...args }) => {
       const gate = previewUnlessConfirmed(
         confirm,
-        "Create iOffice visitor",
-        "POST",
-        "/visitors",
+        'Create iOffice visitor',
+        'POST',
+        '/visitors',
         args,
       );
       if (gate) return gate;
-      const data = await client.request("POST", "/visitors", args);
+      const data = await client.request('POST', '/visitors', args);
       return minifiedResult(data);
     },
   );
 
   server.registerTool(
-    "io_update_visitor",
+    'io_update_visitor',
     {
       description:
-        "Update an existing iOffice visitor record. Only provide fields to change. Without confirm:true this returns a dry-run preview and makes NO network call; with confirm:true it executes.",
+        'Update an existing iOffice visitor record. Only provide fields to change. Without confirm:true this returns a dry-run preview and makes NO network call; with confirm:true it executes.',
       inputSchema: z.object({
-        id: z.number().describe("Visitor ID"),
-        firstName: z.string().describe("Visitor first name").optional(),
-        lastName: z.string().describe("Visitor last name").optional(),
-        email: z.string().describe("Visitor email address").optional(),
-        company: z.string().describe("Visitor company/organization").optional(),
-        phone: z.string().describe("Visitor phone number").optional(),
-        expectedArrival: z
-          .string()
-          .describe("Expected arrival date/time (ISO 8601)")
-          .optional(),
+        id: z.number().describe('Visitor ID'),
+        firstName: z.string().describe('Visitor first name').optional(),
+        lastName: z.string().describe('Visitor last name').optional(),
+        email: z.string().describe('Visitor email address').optional(),
+        company: z.string().describe('Visitor company/organization').optional(),
+        phone: z.string().describe('Visitor phone number').optional(),
+        expectedArrival: z.string().describe('Expected arrival date/time (ISO 8601)').optional(),
         expectedDeparture: z
           .string()
-          .describe("Expected departure date/time (ISO 8601)")
+          .describe('Expected departure date/time (ISO 8601)')
           .optional(),
-        purpose: z.string().describe("Purpose of visit").optional(),
+        purpose: z.string().describe('Purpose of visit').optional(),
         confirm: schemaConfirm,
       }),
       annotations: { readOnlyHint: false, destructiveHint: true },
@@ -165,23 +135,23 @@ export function registerVisitorTools(
       const gate = previewUnlessConfirmed(
         confirm,
         `Update iOffice visitor ${id}`,
-        "PUT",
+        'PUT',
         `/visitors/${id}`,
         body,
       );
       if (gate) return gate;
-      const data = await client.request("PUT", `/visitors/${id}`, body);
+      const data = await client.request('PUT', `/visitors/${id}`, body);
       return minifiedResult(data);
     },
   );
 
   server.registerTool(
-    "io_checkin_visitor",
+    'io_checkin_visitor',
     {
       description:
-        "Check in a visitor upon arrival at the building. Without confirm:true this returns a dry-run preview and makes NO network call; with confirm:true it executes.",
+        'Check in a visitor upon arrival at the building. Without confirm:true this returns a dry-run preview and makes NO network call; with confirm:true it executes.',
       inputSchema: z.object({
-        id: z.number().describe("Visitor ID"),
+        id: z.number().describe('Visitor ID'),
         confirm: schemaConfirm,
       }),
       annotations: { readOnlyHint: false, destructiveHint: true },
@@ -190,22 +160,22 @@ export function registerVisitorTools(
       const gate = previewUnlessConfirmed(
         confirm,
         `Check in iOffice visitor ${id}`,
-        "POST",
+        'POST',
         `/visitors/${id}/checkIn`,
       );
       if (gate) return gate;
-      const data = await client.request("POST", `/visitors/${id}/checkIn`);
+      const data = await client.request('POST', `/visitors/${id}/checkIn`);
       return minifiedResult(data);
     },
   );
 
   server.registerTool(
-    "io_checkout_visitor",
+    'io_checkout_visitor',
     {
       description:
-        "Check out a visitor upon departure from the building. Without confirm:true this returns a dry-run preview and makes NO network call; with confirm:true it executes.",
+        'Check out a visitor upon departure from the building. Without confirm:true this returns a dry-run preview and makes NO network call; with confirm:true it executes.',
       inputSchema: z.object({
-        id: z.number().describe("Visitor ID"),
+        id: z.number().describe('Visitor ID'),
         confirm: schemaConfirm,
       }),
       annotations: { readOnlyHint: false, destructiveHint: true },
@@ -214,11 +184,11 @@ export function registerVisitorTools(
       const gate = previewUnlessConfirmed(
         confirm,
         `Check out iOffice visitor ${id}`,
-        "POST",
+        'POST',
         `/visitors/${id}/checkOut`,
       );
       if (gate) return gate;
-      const data = await client.request("POST", `/visitors/${id}/checkOut`);
+      const data = await client.request('POST', `/visitors/${id}/checkOut`);
       return minifiedResult(data);
     },
   );
