@@ -6,7 +6,7 @@ MCP server exposing iOffice workspace/facility management APIs to Claude. Uses s
 
 ```bash
 npm run build            # tsc + esbuild bundle → dist/index.js + dist/bundle.js
-npm test                 # Run tests (vitest)
+npm test                 # Check formatting, typecheck, then run tests (vitest)
 npm run test:watch       # Watch mode
 npm run test:coverage    # Coverage report (100% thresholds enforced)
 npm run dev              # node --env-file=.env dist/index.js (requires built dist)
