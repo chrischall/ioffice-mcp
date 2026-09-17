@@ -1,39 +1,23 @@
-import { z } from "zod";
-import type { McpServer } from "@modelcontextprotocol/server";
-import type { IOfficeClient } from "../client.js";
-import { buildQueryString } from "../client.js";
-import { minifiedResult } from "@chrischall/mcp-utils";
-import { viewArg, viewResponse } from "../view.js";
-import { previewUnlessConfirmed, schemaConfirm } from "./_confirm.js";
+import { z } from 'zod';
+import type { McpServer } from '@modelcontextprotocol/server';
+import type { IOfficeClient } from '../client.js';
+import { buildQueryString } from '../client.js';
+import { minifiedResult } from '@chrischall/mcp-utils';
+import { viewArg, viewResponse } from '../view.js';
+import { previewUnlessConfirmed, schemaConfirm } from './_confirm.js';
 
-export function registerBuildingTools(
-  server: McpServer,
-  client: IOfficeClient,
-): void {
+export function registerBuildingTools(server: McpServer, client: IOfficeClient): void {
   server.registerTool(
-    "io_list_buildings",
+    'io_list_buildings',
     {
-      description:
-        "List iOffice buildings. Supports search, pagination, and sorting.",
+      description: 'List iOffice buildings. Supports search, pagination, and sorting.',
       inputSchema: z.object({
         view: viewArg(),
-        search: z.string().describe("Filter by name or description").optional(),
-        limit: z
-          .number()
-          .describe("Max results (default 50, max 100)")
-          .optional(),
-        startAt: z
-          .number()
-          .describe("Pagination offset (default 0)")
-          .optional(),
-        orderBy: z
-          .string()
-          .describe("Property to sort by (default: id)")
-          .optional(),
-        orderByType: z
-          .enum(["asc", "desc"])
-          .describe("Sort direction (default: asc)")
-          .optional(),
+        search: z.string().describe('Filter by name or description').optional(),
+        limit: z.number().describe('Max results (default 50, max 100)').optional(),
+        startAt: z.number().describe('Pagination offset (default 0)').optional(),
+        orderBy: z.string().describe('Property to sort by (default: id)').optional(),
+        orderByType: z.enum(['asc', 'desc']).describe('Sort direction (default: asc)').optional(),
       }),
       annotations: { readOnlyHint: true },
     },
@@ -45,46 +29,43 @@ export function registerBuildingTools(
         orderBy,
         orderByType,
       });
-      const data = await client.request("GET", `/buildings${qs}`);
+      const data = await client.request('GET', `/buildings${qs}`);
       return viewResponse(view, data);
     },
   );
 
   server.registerTool(
-    "io_get_building",
+    'io_get_building',
     {
-      description: "Get a single iOffice building by ID.",
+      description: 'Get a single iOffice building by ID.',
       inputSchema: z.object({
         view: viewArg(),
-        id: z.number().describe("Building ID"),
+        id: z.number().describe('Building ID'),
       }),
       annotations: { readOnlyHint: true },
     },
     async ({ id, view }) => {
-      const data = await client.request("GET", `/buildings/${id}`);
+      const data = await client.request('GET', `/buildings/${id}`);
       return viewResponse(view, data);
     },
   );
 
   server.registerTool(
-    "io_create_building",
+    'io_create_building',
     {
       description:
-        "Create a new iOffice building. Without confirm:true this returns a dry-run preview and makes NO network call; with confirm:true it executes.",
+        'Create a new iOffice building. Without confirm:true this returns a dry-run preview and makes NO network call; with confirm:true it executes.',
       inputSchema: z.object({
-        name: z.string().describe("Building name"),
-        description: z.string().describe("Building description").optional(),
-        address1: z.string().describe("Street address line 1").optional(),
-        address2: z.string().describe("Street address line 2").optional(),
-        city: z.string().describe("City").optional(),
-        state: z.string().describe("State or province").optional(),
-        postalCode: z.string().describe("Postal/ZIP code").optional(),
-        country: z.string().describe("Country code").optional(),
-        phone: z.string().describe("Building phone number").optional(),
-        totalSquareFootage: z
-          .number()
-          .describe("Total square footage")
-          .optional(),
+        name: z.string().describe('Building name'),
+        description: z.string().describe('Building description').optional(),
+        address1: z.string().describe('Street address line 1').optional(),
+        address2: z.string().describe('Street address line 2').optional(),
+        city: z.string().describe('City').optional(),
+        state: z.string().describe('State or province').optional(),
+        postalCode: z.string().describe('Postal/ZIP code').optional(),
+        country: z.string().describe('Country code').optional(),
+        phone: z.string().describe('Building phone number').optional(),
+        totalSquareFootage: z.number().describe('Total square footage').optional(),
         confirm: schemaConfirm,
       }),
       annotations: { readOnlyHint: false, destructiveHint: true },
@@ -92,37 +73,34 @@ export function registerBuildingTools(
     async ({ confirm, ...args }) => {
       const gate = previewUnlessConfirmed(
         confirm,
-        "Create iOffice building",
-        "POST",
-        "/buildings",
+        'Create iOffice building',
+        'POST',
+        '/buildings',
         args,
       );
       if (gate) return gate;
-      const data = await client.request("POST", "/buildings", args);
+      const data = await client.request('POST', '/buildings', args);
       return minifiedResult(data);
     },
   );
 
   server.registerTool(
-    "io_update_building",
+    'io_update_building',
     {
       description:
-        "Update an existing iOffice building. Only provide fields to change. Without confirm:true this returns a dry-run preview and makes NO network call; with confirm:true it executes.",
+        'Update an existing iOffice building. Only provide fields to change. Without confirm:true this returns a dry-run preview and makes NO network call; with confirm:true it executes.',
       inputSchema: z.object({
-        id: z.number().describe("Building ID"),
-        name: z.string().describe("Building name").optional(),
-        description: z.string().describe("Building description").optional(),
-        address1: z.string().describe("Street address line 1").optional(),
-        address2: z.string().describe("Street address line 2").optional(),
-        city: z.string().describe("City").optional(),
-        state: z.string().describe("State or province").optional(),
-        postalCode: z.string().describe("Postal/ZIP code").optional(),
-        country: z.string().describe("Country code").optional(),
-        phone: z.string().describe("Building phone number").optional(),
-        totalSquareFootage: z
-          .number()
-          .describe("Total square footage")
-          .optional(),
+        id: z.number().describe('Building ID'),
+        name: z.string().describe('Building name').optional(),
+        description: z.string().describe('Building description').optional(),
+        address1: z.string().describe('Street address line 1').optional(),
+        address2: z.string().describe('Street address line 2').optional(),
+        city: z.string().describe('City').optional(),
+        state: z.string().describe('State or province').optional(),
+        postalCode: z.string().describe('Postal/ZIP code').optional(),
+        country: z.string().describe('Country code').optional(),
+        phone: z.string().describe('Building phone number').optional(),
+        totalSquareFootage: z.number().describe('Total square footage').optional(),
         confirm: schemaConfirm,
       }),
       annotations: { readOnlyHint: false, destructiveHint: true },
@@ -131,23 +109,23 @@ export function registerBuildingTools(
       const gate = previewUnlessConfirmed(
         confirm,
         `Update iOffice building ${id}`,
-        "PUT",
+        'PUT',
         `/buildings/${id}`,
         body,
       );
       if (gate) return gate;
-      const data = await client.request("PUT", `/buildings/${id}`, body);
+      const data = await client.request('PUT', `/buildings/${id}`, body);
       return minifiedResult(data);
     },
   );
 
   server.registerTool(
-    "io_delete_building",
+    'io_delete_building',
     {
       description:
-        "Delete an iOffice building by ID. Without confirm:true this returns a dry-run preview and makes NO network call; with confirm:true it executes.",
+        'Delete an iOffice building by ID. Without confirm:true this returns a dry-run preview and makes NO network call; with confirm:true it executes.',
       inputSchema: z.object({
-        id: z.number().describe("Building ID"),
+        id: z.number().describe('Building ID'),
         confirm: schemaConfirm,
       }),
       annotations: { readOnlyHint: false, destructiveHint: true },
@@ -156,11 +134,11 @@ export function registerBuildingTools(
       const gate = previewUnlessConfirmed(
         confirm,
         `Delete iOffice building ${id}`,
-        "DELETE",
+        'DELETE',
         `/buildings/${id}`,
       );
       if (gate) return gate;
-      const data = await client.request("DELETE", `/buildings/${id}`);
+      const data = await client.request('DELETE', `/buildings/${id}`);
       // iOffice DELETEs return 204 No Content; the client resolves that to
       // undefined, so synthesize a small success payload for the tool result.
       return minifiedResult(data ?? { success: true });

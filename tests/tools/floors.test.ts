@@ -1,12 +1,12 @@
-import { describe, it, expect, vi, afterEach } from "vitest";
-import { McpServer } from "@modelcontextprotocol/server";
-import type { IOfficeClient } from "../../src/client.js";
-import { registerFloorTools } from "../../src/tools/floors.js";
+import { describe, it, expect, vi, afterEach } from 'vitest';
+import { McpServer } from '@modelcontextprotocol/server';
+import type { IOfficeClient } from '../../src/client.js';
+import { registerFloorTools } from '../../src/tools/floors.js';
 
 const mockClient = { request: vi.fn() } as unknown as IOfficeClient;
 
 function setup() {
-  const server = new McpServer({ name: "test", version: "0.0.0" });
+  const server = new McpServer({ name: 'test', version: '0.0.0' });
   registerFloorTools(server, mockClient);
   const call = (name: string, args: Record<string, unknown> = {}) =>
     (server as any)._registeredTools[name].handler(args, {});
@@ -15,125 +15,119 @@ function setup() {
 
 afterEach(() => vi.clearAllMocks());
 
-describe("registration", () => {
-  it("registers all 5 floor tools", () => {
+describe('registration', () => {
+  it('registers all 5 floor tools', () => {
     const { server } = setup();
     const names = Object.keys((server as any)._registeredTools);
-    expect(names).toContain("io_list_floors");
-    expect(names).toContain("io_get_floor");
-    expect(names).toContain("io_create_floor");
-    expect(names).toContain("io_update_floor");
-    expect(names).toContain("io_delete_floor");
+    expect(names).toContain('io_list_floors');
+    expect(names).toContain('io_get_floor');
+    expect(names).toContain('io_create_floor');
+    expect(names).toContain('io_update_floor');
+    expect(names).toContain('io_delete_floor');
   });
 });
 
-describe("io_list_floors", () => {
-  it("calls GET /floors when no buildingId", async () => {
+describe('io_list_floors', () => {
+  it('calls GET /floors when no buildingId', async () => {
     const { call } = setup();
     mockClient.request = vi.fn().mockResolvedValue({ results: [] });
-    await call("io_list_floors");
-    expect(mockClient.request).toHaveBeenCalledWith("GET", "/floors");
+    await call('io_list_floors');
+    expect(mockClient.request).toHaveBeenCalledWith('GET', '/floors');
   });
 
-  it("calls GET /buildings/{id}/floors when buildingId provided", async () => {
+  it('calls GET /buildings/{id}/floors when buildingId provided', async () => {
     const { call } = setup();
     mockClient.request = vi.fn().mockResolvedValue({ results: [] });
-    await call("io_list_floors", { buildingId: 5 });
-    expect(mockClient.request).toHaveBeenCalledWith(
-      "GET",
-      "/buildings/5/floors",
-    );
+    await call('io_list_floors', { buildingId: 5 });
+    expect(mockClient.request).toHaveBeenCalledWith('GET', '/buildings/5/floors');
   });
 
-  it("appends query params", async () => {
+  it('appends query params', async () => {
     const { call } = setup();
     mockClient.request = vi.fn().mockResolvedValue({ results: [] });
-    await call("io_list_floors", { buildingId: 5, limit: 20 });
-    expect(mockClient.request).toHaveBeenCalledWith(
-      "GET",
-      "/buildings/5/floors?limit=20",
-    );
+    await call('io_list_floors', { buildingId: 5, limit: 20 });
+    expect(mockClient.request).toHaveBeenCalledWith('GET', '/buildings/5/floors?limit=20');
   });
 });
 
-describe("io_get_floor", () => {
-  it("calls GET /floors/{id}", async () => {
+describe('io_get_floor', () => {
+  it('calls GET /floors/{id}', async () => {
     const { call } = setup();
     mockClient.request = vi.fn().mockResolvedValue({ id: 3 });
-    await call("io_get_floor", { id: 3 });
-    expect(mockClient.request).toHaveBeenCalledWith("GET", "/floors/3");
+    await call('io_get_floor', { id: 3 });
+    expect(mockClient.request).toHaveBeenCalledWith('GET', '/floors/3');
   });
 });
 
-describe("io_create_floor", () => {
-  it("calls POST /floors with full args", async () => {
+describe('io_create_floor', () => {
+  it('calls POST /floors with full args', async () => {
     const { call } = setup();
     mockClient.request = vi.fn().mockResolvedValue({ id: 4 });
-    await call("io_create_floor", {
-      name: "Level 1",
+    await call('io_create_floor', {
+      name: 'Level 1',
       buildingId: 2,
       confirm: true,
     });
-    expect(mockClient.request).toHaveBeenCalledWith("POST", "/floors", {
-      name: "Level 1",
+    expect(mockClient.request).toHaveBeenCalledWith('POST', '/floors', {
+      name: 'Level 1',
       buildingId: 2,
     });
   });
 });
 
-describe("io_update_floor", () => {
-  it("calls PUT /floors/{id} without id in body", async () => {
+describe('io_update_floor', () => {
+  it('calls PUT /floors/{id} without id in body', async () => {
     const { call } = setup();
     mockClient.request = vi.fn().mockResolvedValue({ id: 4 });
-    await call("io_update_floor", { id: 4, name: "Updated", confirm: true });
-    expect(mockClient.request).toHaveBeenCalledWith("PUT", "/floors/4", {
-      name: "Updated",
+    await call('io_update_floor', { id: 4, name: 'Updated', confirm: true });
+    expect(mockClient.request).toHaveBeenCalledWith('PUT', '/floors/4', {
+      name: 'Updated',
     });
   });
 });
 
-describe("io_delete_floor", () => {
-  it("calls DELETE /floors/{id}", async () => {
+describe('io_delete_floor', () => {
+  it('calls DELETE /floors/{id}', async () => {
     const { call } = setup();
     mockClient.request = vi.fn().mockResolvedValue({ success: true });
-    await call("io_delete_floor", { id: 4, confirm: true });
-    expect(mockClient.request).toHaveBeenCalledWith("DELETE", "/floors/4");
+    await call('io_delete_floor', { id: 4, confirm: true });
+    expect(mockClient.request).toHaveBeenCalledWith('DELETE', '/floors/4');
   });
 
-  it("returns a success result when the API responds 204 No Content", async () => {
+  it('returns a success result when the API responds 204 No Content', async () => {
     const { call } = setup();
     mockClient.request = vi.fn().mockResolvedValue(undefined);
-    const result = await call("io_delete_floor", { id: 4, confirm: true });
+    const result = await call('io_delete_floor', { id: 4, confirm: true });
     expect(JSON.parse(result.content[0].text)).toEqual({ success: true });
   });
 });
 
-describe("confirm-gate - floors", () => {
-  it("io_create_floor without confirm returns dry-run and makes NO request", async () => {
+describe('confirm-gate - floors', () => {
+  it('io_create_floor without confirm returns dry-run and makes NO request', async () => {
     const { call } = setup();
     mockClient.request = vi.fn();
-    const result = await call("io_create_floor", {
-      name: "Level 1",
+    const result = await call('io_create_floor', {
+      name: 'Level 1',
       buildingId: 2,
     });
     expect(mockClient.request).not.toHaveBeenCalled();
     const payload = JSON.parse(result.content[0].text as string);
     expect(payload.dryRun).toBe(true);
-    expect(payload.willSend).not.toHaveProperty("confirm");
+    expect(payload.willSend).not.toHaveProperty('confirm');
   });
 
-  it("io_update_floor without confirm returns dry-run and makes NO request", async () => {
+  it('io_update_floor without confirm returns dry-run and makes NO request', async () => {
     const { call } = setup();
     mockClient.request = vi.fn();
-    const result = await call("io_update_floor", { id: 4, name: "Updated" });
+    const result = await call('io_update_floor', { id: 4, name: 'Updated' });
     expect(mockClient.request).not.toHaveBeenCalled();
     expect(JSON.parse(result.content[0].text as string).dryRun).toBe(true);
   });
 
-  it("io_delete_floor without confirm returns dry-run and makes NO request", async () => {
+  it('io_delete_floor without confirm returns dry-run and makes NO request', async () => {
     const { call } = setup();
     mockClient.request = vi.fn();
-    const result = await call("io_delete_floor", { id: 4 });
+    const result = await call('io_delete_floor', { id: 4 });
     expect(mockClient.request).not.toHaveBeenCalled();
     expect(JSON.parse(result.content[0].text as string).dryRun).toBe(true);
   });
