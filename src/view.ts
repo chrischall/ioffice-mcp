@@ -1,4 +1,10 @@
-import { minifiedResult, resolveView, stripMediaUrls, viewParam, type View } from '@chrischall/mcp-utils';
+import {
+  minifiedResult,
+  resolveView,
+  stripMediaUrls,
+  viewParam,
+  type View,
+} from '@chrischall/mcp-utils';
 
 /**
  * The rungs this server honours (`@chrischall/mcp-utils`' `view` vocabulary;
@@ -38,7 +44,10 @@ export const viewArg = (): ReturnType<typeof viewParam> => viewParam(IO_VIEWS, {
  * Only ever called from a READ tool. A write's response is a receipt — an id,
  * a status — with nothing to strip and everything to keep.
  */
-export function viewResponse(view: string | undefined, data: unknown): ReturnType<typeof minifiedResult> {
+export function viewResponse(
+  view: string | undefined,
+  data: unknown,
+): ReturnType<typeof minifiedResult> {
   const rung: View = resolveView(view, IO_VIEWS);
   return minifiedResult(rung === 'compact' ? stripMediaUrls(data) : data);
 }

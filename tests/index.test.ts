@@ -37,17 +37,20 @@ describe('tool registry', () => {
 
   it('publishes create-building inputs through SDK v2 tools/list', async () => {
     const harness = await createTestHarness((server) => registerBuildingTools(server, mockClient));
-    const { tools } = await harness.client.listTools();
-    const tool = tools.find((candidate) => candidate.name === 'io_create_building');
-    expect(tool?.inputSchema).toMatchObject({
-      type: 'object',
-      properties: {
-        name: { type: 'string', description: 'Building name' },
-        confirm: { type: 'boolean' },
-      },
-      required: ['name'],
-    });
-    await harness.close();
+    try {
+      const { tools } = await harness.client.listTools();
+      const tool = tools.find((candidate) => candidate.name === 'io_create_building');
+      expect(tool?.inputSchema).toMatchObject({
+        type: 'object',
+        properties: {
+          name: { type: 'string', description: 'Building name' },
+          confirm: { type: 'boolean' },
+        },
+        required: ['name'],
+      });
+    } finally {
+      await harness.close();
+    }
   });
 
   it('includes all expected tool names', () => {

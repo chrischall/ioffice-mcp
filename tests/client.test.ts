@@ -19,7 +19,10 @@ describe('IOfficeClient', () => {
   // Constructor stays silent so the server can boot and respond to the host's
   // install-time smoke test before the user has filled in env vars. The same
   // error surfaces at request time instead.
-  async function expectDeferred(missing: 'host' | 'auth' | 'partial-auth', message: RegExp | string) {
+  async function expectDeferred(
+    missing: 'host' | 'auth' | 'partial-auth',
+    message: RegExp | string,
+  ) {
     const orig = {
       IOFFICE_HOST: process.env.IOFFICE_HOST,
       IOFFICE_TOKEN: process.env.IOFFICE_TOKEN,
@@ -73,7 +76,7 @@ describe('IOfficeClient', () => {
           'x-auth-username': 'testuser',
           'x-auth-password': 'testpass',
         }),
-      })
+      }),
     );
   });
 
@@ -93,13 +96,13 @@ describe('IOfficeClient', () => {
       expect.any(String),
       expect.objectContaining({
         headers: expect.objectContaining({ 'x-auth-token': 'my-api-token' }),
-      })
+      }),
     );
     expect(mockFetch).toHaveBeenCalledWith(
       expect.any(String),
       expect.objectContaining({
         headers: expect.not.objectContaining({ 'x-auth-username': expect.anything() }),
-      })
+      }),
     );
   });
 
@@ -119,27 +122,35 @@ describe('IOfficeClient', () => {
       expect.any(String),
       expect.objectContaining({
         headers: expect.objectContaining({ 'x-auth-token': 'token-takes-priority' }),
-      })
+      }),
     );
   });
 
   it('throws on 401', async () => {
-    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({
-      ok: false,
-      status: 401,
-      statusText: 'Unauthorized',
-    }));
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockResolvedValue({
+        ok: false,
+        status: 401,
+        statusText: 'Unauthorized',
+      }),
+    );
 
     const client = new IOfficeClient();
     await expect(client.request('GET', '/buildings')).rejects.toThrow(
-      'iOffice credentials are invalid'
+      'iOffice credentials are invalid',
     );
   });
 
   it('retries once on 429 then succeeds', async () => {
-    const mockFetch = vi.fn()
+    const mockFetch = vi
+      .fn()
       .mockResolvedValueOnce({ ok: false, status: 429, statusText: 'Too Many Requests' })
-      .mockResolvedValueOnce({ ok: true, status: 200, text: async () => JSON.stringify({ results: [] }) });
+      .mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        text: async () => JSON.stringify({ results: [] }),
+      });
     vi.stubGlobal('fetch', mockFetch);
     vi.useFakeTimers();
 
@@ -154,11 +165,14 @@ describe('IOfficeClient', () => {
   });
 
   it('throws after two 429 responses', async () => {
-    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({
-      ok: false,
-      status: 429,
-      statusText: 'Too Many Requests',
-    }));
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockResolvedValue({
+        ok: false,
+        status: 429,
+        statusText: 'Too Many Requests',
+      }),
+    );
     vi.useFakeTimers();
 
     const client = new IOfficeClient();
@@ -170,33 +184,39 @@ describe('IOfficeClient', () => {
   });
 
   it('throws on other non-2xx errors with the redacted formatApiError message', async () => {
-    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({
-      ok: false,
-      status: 500,
-      statusText: 'Internal Server Error',
-      text: async () => 'upstream exploded',
-    }));
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockResolvedValue({
+        ok: false,
+        status: 500,
+        statusText: 'Internal Server Error',
+        text: async () => 'upstream exploded',
+      }),
+    );
 
     const client = new IOfficeClient();
     // formatApiError (from @chrischall/mcp-utils) formats as
     // "{service} error {status} for {METHOD} {path}: {body}" with the
     // upstream body run through token-redaction + truncation first.
     await expect(client.request('GET', '/buildings')).rejects.toThrow(
-      'iOffice error 500 for GET /buildings: upstream exploded'
+      'iOffice error 500 for GET /buildings: upstream exploded',
     );
   });
 
   it('drops the body from the error when the upstream sends an empty body', async () => {
-    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({
-      ok: false,
-      status: 500,
-      statusText: 'Internal Server Error',
-      text: async () => '',
-    }));
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockResolvedValue({
+        ok: false,
+        status: 500,
+        statusText: 'Internal Server Error',
+        text: async () => '',
+      }),
+    );
 
     const client = new IOfficeClient();
     await expect(client.request('GET', '/buildings')).rejects.toThrow(
-      'iOffice error 500 for GET /buildings'
+      'iOffice error 500 for GET /buildings',
     );
   });
 
@@ -220,28 +240,34 @@ describe('IOfficeClient', () => {
   // The old hand-rolled client unconditionally called response.json(), so every
   // successful DELETE threw "SyntaxError: Unexpected end of JSON input".
   it('resolves undefined for a 204 No Content response (successful DELETE)', async () => {
-    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({
-      ok: true,
-      status: 204,
-      json: async () => {
-        throw new SyntaxError('Unexpected end of JSON input');
-      },
-      text: async () => '',
-    }));
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockResolvedValue({
+        ok: true,
+        status: 204,
+        json: async () => {
+          throw new SyntaxError('Unexpected end of JSON input');
+        },
+        text: async () => '',
+      }),
+    );
 
     const client = new IOfficeClient();
     await expect(client.request('DELETE', '/buildings/1')).resolves.toBeUndefined();
   });
 
   it('resolves undefined for a 200 response with an empty body', async () => {
-    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({
-      ok: true,
-      status: 200,
-      json: async () => {
-        throw new SyntaxError('Unexpected end of JSON input');
-      },
-      text: async () => '',
-    }));
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockResolvedValue({
+        ok: true,
+        status: 200,
+        json: async () => {
+          throw new SyntaxError('Unexpected end of JSON input');
+        },
+        text: async () => '',
+      }),
+    );
 
     const client = new IOfficeClient();
     await expect(client.request('DELETE', '/buildings/1')).resolves.toBeUndefined();
@@ -263,7 +289,7 @@ describe('IOfficeClient', () => {
       expect.objectContaining({
         method: 'POST',
         body: JSON.stringify({ name: 'HQ' }),
-      })
+      }),
     );
   });
 
@@ -280,7 +306,7 @@ describe('IOfficeClient', () => {
 
     expect(mockFetch).toHaveBeenCalledWith(
       expect.any(String),
-      expect.not.objectContaining({ body: expect.anything() })
+      expect.not.objectContaining({ body: expect.anything() }),
     );
   });
 });
