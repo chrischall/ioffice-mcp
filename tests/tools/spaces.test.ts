@@ -1,12 +1,12 @@
-import { describe, it, expect, vi, afterEach } from 'vitest';
-import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
-import type { IOfficeClient } from '../../src/client.js';
-import { registerSpaceTools } from '../../src/tools/spaces.js';
+import { describe, it, expect, vi, afterEach } from "vitest";
+import { McpServer } from "@modelcontextprotocol/server";
+import type { IOfficeClient } from "../../src/client.js";
+import { registerSpaceTools } from "../../src/tools/spaces.js";
 
 const mockClient = { request: vi.fn() } as unknown as IOfficeClient;
 
 function setup() {
-  const server = new McpServer({ name: 'test', version: '0.0.0' });
+  const server = new McpServer({ name: "test", version: "0.0.0" });
   registerSpaceTools(server, mockClient);
   const call = (name: string, args: Record<string, unknown> = {}) =>
     (server as any)._registeredTools[name].handler(args, {});
@@ -15,107 +15,124 @@ function setup() {
 
 afterEach(() => vi.clearAllMocks());
 
-describe('registration', () => {
-  it('registers all 5 space tools', () => {
+describe("registration", () => {
+  it("registers all 5 space tools", () => {
     const { server } = setup();
     const names = Object.keys((server as any)._registeredTools);
-    expect(names).toContain('io_list_spaces');
-    expect(names).toContain('io_get_space');
-    expect(names).toContain('io_create_space');
-    expect(names).toContain('io_update_space');
-    expect(names).toContain('io_delete_space');
+    expect(names).toContain("io_list_spaces");
+    expect(names).toContain("io_get_space");
+    expect(names).toContain("io_create_space");
+    expect(names).toContain("io_update_space");
+    expect(names).toContain("io_delete_space");
   });
 });
 
-describe('io_list_spaces', () => {
-  it('calls GET /spaces with no params', async () => {
+describe("io_list_spaces", () => {
+  it("calls GET /spaces with no params", async () => {
     const { call } = setup();
     mockClient.request = vi.fn().mockResolvedValue({ results: [] });
-    await call('io_list_spaces');
-    expect(mockClient.request).toHaveBeenCalledWith('GET', '/spaces');
+    await call("io_list_spaces");
+    expect(mockClient.request).toHaveBeenCalledWith("GET", "/spaces");
   });
 
-  it('calls GET /floors/{id}/spaces when floorId provided', async () => {
+  it("calls GET /floors/{id}/spaces when floorId provided", async () => {
     const { call } = setup();
     mockClient.request = vi.fn().mockResolvedValue({ results: [] });
-    await call('io_list_spaces', { floorId: 7 });
-    expect(mockClient.request).toHaveBeenCalledWith('GET', '/floors/7/spaces');
+    await call("io_list_spaces", { floorId: 7 });
+    expect(mockClient.request).toHaveBeenCalledWith("GET", "/floors/7/spaces");
   });
 
-  it('appends query params with floorId', async () => {
+  it("appends query params with floorId", async () => {
     const { call } = setup();
     mockClient.request = vi.fn().mockResolvedValue({ results: [] });
-    await call('io_list_spaces', { floorId: 7, search: 'conf' });
-    expect(mockClient.request).toHaveBeenCalledWith('GET', '/floors/7/spaces?search=conf');
+    await call("io_list_spaces", { floorId: 7, search: "conf" });
+    expect(mockClient.request).toHaveBeenCalledWith(
+      "GET",
+      "/floors/7/spaces?search=conf",
+    );
   });
 });
 
-describe('io_get_space', () => {
-  it('calls GET /spaces/{id}', async () => {
+describe("io_get_space", () => {
+  it("calls GET /spaces/{id}", async () => {
     const { call } = setup();
     mockClient.request = vi.fn().mockResolvedValue({ id: 10 });
-    await call('io_get_space', { id: 10 });
-    expect(mockClient.request).toHaveBeenCalledWith('GET', '/spaces/10');
+    await call("io_get_space", { id: 10 });
+    expect(mockClient.request).toHaveBeenCalledWith("GET", "/spaces/10");
   });
 });
 
-describe('io_create_space', () => {
-  it('calls POST /spaces with args', async () => {
+describe("io_create_space", () => {
+  it("calls POST /spaces with args", async () => {
     const { call } = setup();
     mockClient.request = vi.fn().mockResolvedValue({ id: 11 });
-    await call('io_create_space', { name: 'Conf A', floorId: 3, capacity: 10, confirm: true });
-    expect(mockClient.request).toHaveBeenCalledWith('POST', '/spaces', { name: 'Conf A', floorId: 3, capacity: 10 });
+    await call("io_create_space", {
+      name: "Conf A",
+      floorId: 3,
+      capacity: 10,
+      confirm: true,
+    });
+    expect(mockClient.request).toHaveBeenCalledWith("POST", "/spaces", {
+      name: "Conf A",
+      floorId: 3,
+      capacity: 10,
+    });
   });
 });
 
-describe('io_update_space', () => {
-  it('calls PUT /spaces/{id} without id in body', async () => {
+describe("io_update_space", () => {
+  it("calls PUT /spaces/{id} without id in body", async () => {
     const { call } = setup();
     mockClient.request = vi.fn().mockResolvedValue({ id: 11 });
-    await call('io_update_space', { id: 11, capacity: 20, confirm: true });
-    expect(mockClient.request).toHaveBeenCalledWith('PUT', '/spaces/11', { capacity: 20 });
+    await call("io_update_space", { id: 11, capacity: 20, confirm: true });
+    expect(mockClient.request).toHaveBeenCalledWith("PUT", "/spaces/11", {
+      capacity: 20,
+    });
   });
 });
 
-describe('io_delete_space', () => {
-  it('calls DELETE /spaces/{id}', async () => {
+describe("io_delete_space", () => {
+  it("calls DELETE /spaces/{id}", async () => {
     const { call } = setup();
     mockClient.request = vi.fn().mockResolvedValue({ success: true });
-    await call('io_delete_space', { id: 11, confirm: true });
-    expect(mockClient.request).toHaveBeenCalledWith('DELETE', '/spaces/11');
+    await call("io_delete_space", { id: 11, confirm: true });
+    expect(mockClient.request).toHaveBeenCalledWith("DELETE", "/spaces/11");
   });
 
-  it('returns a success result when the API responds 204 No Content', async () => {
+  it("returns a success result when the API responds 204 No Content", async () => {
     const { call } = setup();
     mockClient.request = vi.fn().mockResolvedValue(undefined);
-    const result = await call('io_delete_space', { id: 11, confirm: true });
+    const result = await call("io_delete_space", { id: 11, confirm: true });
     expect(JSON.parse(result.content[0].text)).toEqual({ success: true });
   });
 });
 
-describe('confirm-gate - spaces', () => {
-  it('io_create_space without confirm returns dry-run and makes NO request', async () => {
+describe("confirm-gate - spaces", () => {
+  it("io_create_space without confirm returns dry-run and makes NO request", async () => {
     const { call } = setup();
     mockClient.request = vi.fn();
-    const result = await call('io_create_space', { name: 'Conf A', floorId: 3 });
+    const result = await call("io_create_space", {
+      name: "Conf A",
+      floorId: 3,
+    });
     expect(mockClient.request).not.toHaveBeenCalled();
     const payload = JSON.parse(result.content[0].text as string);
     expect(payload.dryRun).toBe(true);
-    expect(payload.willSend).not.toHaveProperty('confirm');
+    expect(payload.willSend).not.toHaveProperty("confirm");
   });
 
-  it('io_update_space without confirm returns dry-run and makes NO request', async () => {
+  it("io_update_space without confirm returns dry-run and makes NO request", async () => {
     const { call } = setup();
     mockClient.request = vi.fn();
-    const result = await call('io_update_space', { id: 11, capacity: 20 });
+    const result = await call("io_update_space", { id: 11, capacity: 20 });
     expect(mockClient.request).not.toHaveBeenCalled();
     expect(JSON.parse(result.content[0].text as string).dryRun).toBe(true);
   });
 
-  it('io_delete_space without confirm returns dry-run and makes NO request', async () => {
+  it("io_delete_space without confirm returns dry-run and makes NO request", async () => {
     const { call } = setup();
     mockClient.request = vi.fn();
-    const result = await call('io_delete_space', { id: 11 });
+    const result = await call("io_delete_space", { id: 11 });
     expect(mockClient.request).not.toHaveBeenCalled();
     expect(JSON.parse(result.content[0].text as string).dryRun).toBe(true);
   });
