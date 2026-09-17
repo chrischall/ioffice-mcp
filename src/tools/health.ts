@@ -1,6 +1,6 @@
-import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
-import { registerCredentialHealthcheckTool } from '@chrischall/mcp-utils/healthcheck';
-import type { IOfficeClient } from '../client.js';
+import type { McpServer } from "@modelcontextprotocol/server";
+import { registerCredentialHealthcheckTool } from "@chrischall/mcp-utils/healthcheck";
+import type { IOfficeClient } from "../client.js";
 
 /**
  * `io_healthcheck` — the one call that answers "is this connector working?",
@@ -21,41 +21,46 @@ import type { IOfficeClient } from '../client.js';
  *    rotate a token that is fine.
  */
 
-const NO_HOST = 'IOFFICE_HOST environment variable is required';
+const NO_HOST = "IOFFICE_HOST environment variable is required";
 
-export function classifyIOfficeError(err: unknown): { kind: string; hint?: string } | undefined {
+export function classifyIOfficeError(
+  err: unknown,
+): { kind: string; hint?: string } | undefined {
   const msg = err instanceof Error ? err.message : String(err);
 
   if (msg.includes(NO_HOST)) {
     return {
-      kind: 'no_host',
+      kind: "no_host",
       hint:
-        'No iOffice host configured. Set IOFFICE_HOST to your tenant hostname (e.g. acme.iofficeconnect.com). ' +
-        'The credential is a separate setting — this says nothing about whether it is valid.',
+        "No iOffice host configured. Set IOFFICE_HOST to your tenant hostname (e.g. acme.iofficeconnect.com). " +
+        "The credential is a separate setting — this says nothing about whether it is valid.",
     };
   }
-  if (msg.includes('credentials are invalid')) {
+  if (msg.includes("credentials are invalid")) {
     return {
-      kind: 'credential_rejected',
-      hint: 'iOffice rejected the credential. Check IOFFICE_TOKEN, or IOFFICE_USERNAME and IOFFICE_PASSWORD.',
+      kind: "credential_rejected",
+      hint: "iOffice rejected the credential. Check IOFFICE_TOKEN, or IOFFICE_USERNAME and IOFFICE_PASSWORD.",
     };
   }
   // The far side working correctly and saying "not now".
-  if (msg.includes('Rate limited')) {
+  if (msg.includes("Rate limited")) {
     return {
-      kind: 'rate_limited',
-      hint: 'iOffice rate-limited the probe. The credential is fine — retry in a moment.',
+      kind: "rate_limited",
+      hint: "iOffice rate-limited the probe. The credential is fine — retry in a moment.",
     };
   }
   return undefined;
 }
 
-export function registerHealthcheckTools(server: McpServer, client: IOfficeClient): void {
+export function registerHealthcheckTools(
+  server: McpServer,
+  client: IOfficeClient,
+): void {
   registerCredentialHealthcheckTool({
     server,
-    prefix: 'io',
-    hostLabel: 'iOffice',
-    probePath: '/buildings',
+    prefix: "io",
+    hostLabel: "iOffice",
+    probePath: "/buildings",
     resolveCredential: async () => {
       // Delegated to the client rather than re-read from the env: it reports
       // the precedence it actually applied, so this cannot drift from it.
@@ -69,7 +74,7 @@ export function registerHealthcheckTools(server: McpServer, client: IOfficeClien
     },
     // The cheapest authenticated read in the API, capped to one row: it
     // proves auth without pulling a tenant's entire building list.
-    probeFn: () => client.request('GET', '/buildings?limit=1'),
+    probeFn: () => client.request("GET", "/buildings?limit=1"),
     classifyThrown: classifyIOfficeError,
   });
 }
