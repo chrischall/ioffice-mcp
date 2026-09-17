@@ -16,7 +16,9 @@ describe('the rungs', () => {
 
 describe('what compact does — and what it deliberately does not', () => {
   it('strips image and avatar URLs', () => {
-    const data = { users: [{ id: 7, name: 'A', avatar: 'https://cdn/a.png', photoUrl: 'https://cdn/b.jpg' }] };
+    const data = {
+      users: [{ id: 7, name: 'A', avatar: 'https://cdn/a.png', photoUrl: 'https://cdn/b.jpg' }],
+    };
     expect(parse(viewResponse('compact', data))).toEqual({ users: [{ id: 7, name: 'A' }] });
   });
 
@@ -26,8 +28,14 @@ describe('what compact does — and what it deliberately does not', () => {
     // caller needs, and the record would come back with holes in it looking
     // like a verified answer.
     const record = {
-      id: 5, name: 'Room 5', floorId: 2, capacity: 8, isBookable: true,
-      customFields: { deskType: 'sit-stand' }, notes: '', archivedAt: null,
+      id: 5,
+      name: 'Room 5',
+      floorId: 2,
+      capacity: 8,
+      isBookable: true,
+      customFields: { deskType: 'sit-stand' },
+      notes: '',
+      archivedAt: null,
       somethingNobodyAnticipated: 'kept',
     };
     expect(parse(viewResponse('compact', { data: [record] }))).toEqual({ data: [record] });

@@ -74,7 +74,11 @@ export class IOfficeClient {
     // `io_healthcheck` reports what this client actually did rather than
     // re-deriving it from the env and drifting when the order changes.
     this.credential = {
-      source: token ? 'IOFFICE_TOKEN' : username && password ? 'IOFFICE_USERNAME+IOFFICE_PASSWORD' : null,
+      source: token
+        ? 'IOFFICE_TOKEN'
+        : username && password
+          ? 'IOFFICE_USERNAME+IOFFICE_PASSWORD'
+          : null,
       host: host ?? null,
     };
 
