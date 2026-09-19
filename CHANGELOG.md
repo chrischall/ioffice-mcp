@@ -1,5 +1,17 @@
 # Changelog
 
+## [3.1.0](https://github.com/chrischall/ioffice-mcp/compare/v3.0.0...v3.1.0) (2026-09-19)
+
+
+### Features
+
+* **deps:** take mcp-utils 1.0.0, fixing server/discover ([#155](https://github.com/chrischall/ioffice-mcp/issues/155)) ([1e83f9b](https://github.com/chrischall/ioffice-mcp/commit/1e83f9b4c99f68f42bf554e7fe2e873a6f5b7fa6))
+
+
+### Bug Fixes
+
+* **deps:** raise the manifest node floor to match mcp-utils 1.0.0 ([#157](https://github.com/chrischall/ioffice-mcp/issues/157)) ([b9bb965](https://github.com/chrischall/ioffice-mcp/commit/b9bb9650ccf1cb19ba8d77ddafc1a31d43d8bb61))
+
 ## [3.0.0](https://github.com/chrischall/ioffice-mcp/compare/v2.3.2...v3.0.0) (2026-09-17)
 
 

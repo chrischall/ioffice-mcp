@@ -19,7 +19,7 @@ const client = new IOfficeClient();
 
 await runMcp({
   name: 'ioffice',
-  version: '3.0.0', // x-release-please-version
+  version: '3.1.0', // x-release-please-version
   deps: client,
   tools: [
     registerBuildingTools,
