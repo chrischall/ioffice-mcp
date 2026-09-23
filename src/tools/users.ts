@@ -4,7 +4,7 @@ import type { IOfficeClient } from '../client.js';
 import { buildQueryString } from '../client.js';
 import { minifiedResult } from '@chrischall/mcp-utils';
 import { viewArg, viewResponse } from '../view.js';
-import { previewUnlessConfirmed, schemaConfirm } from './_confirm.js';
+import { CONFIRM_RULE, previewUnlessConfirmed, schemaConfirm } from './_confirm.js';
 
 export function registerUserTools(server: McpServer, client: IOfficeClient): void {
   server.registerTool(
@@ -54,7 +54,8 @@ export function registerUserTools(server: McpServer, client: IOfficeClient): voi
     'io_create_user',
     {
       description:
-        'Create a new iOffice user. Without confirm:true this returns a dry-run preview and makes NO network call; with confirm:true it executes.',
+        'Create a new iOffice user. Without confirm:true this returns a dry-run preview and makes NO network call; with confirm:true it executes. ' +
+        CONFIRM_RULE,
       inputSchema: z.object({
         firstName: z.string().describe('First name'),
         lastName: z.string().describe('Last name'),
@@ -80,7 +81,8 @@ export function registerUserTools(server: McpServer, client: IOfficeClient): voi
     'io_update_user',
     {
       description:
-        'Update an existing iOffice user. Only provide fields to change. Without confirm:true this returns a dry-run preview and makes NO network call; with confirm:true it executes.',
+        'Update an existing iOffice user. Only provide fields to change. Without confirm:true this returns a dry-run preview and makes NO network call; with confirm:true it executes. ' +
+        CONFIRM_RULE,
       inputSchema: z.object({
         id: z.number().describe('User ID'),
         firstName: z.string().describe('First name').optional(),
@@ -112,7 +114,8 @@ export function registerUserTools(server: McpServer, client: IOfficeClient): voi
     'io_delete_user',
     {
       description:
-        'Delete an iOffice user by ID. Without confirm:true this returns a dry-run preview and makes NO network call; with confirm:true it executes.',
+        'Delete an iOffice user by ID. Without confirm:true this returns a dry-run preview and makes NO network call; with confirm:true it executes. ' +
+        CONFIRM_RULE,
       inputSchema: z.object({
         id: z.number().describe('User ID'),
         confirm: schemaConfirm,

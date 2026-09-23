@@ -4,7 +4,7 @@ import type { IOfficeClient } from '../client.js';
 import { buildQueryString, optionalBody } from '../client.js';
 import { minifiedResult } from '@chrischall/mcp-utils';
 import { viewArg, viewResponse } from '../view.js';
-import { previewUnlessConfirmed, schemaConfirm } from './_confirm.js';
+import { CONFIRM_RULE, previewUnlessConfirmed, schemaConfirm } from './_confirm.js';
 
 export function registerMoveTools(server: McpServer, client: IOfficeClient): void {
   server.registerTool(
@@ -80,7 +80,8 @@ export function registerMoveTools(server: McpServer, client: IOfficeClient): voi
     'io_create_move',
     {
       description:
-        'Create a new iOffice move request. Without confirm:true this returns a dry-run preview and makes NO network call; with confirm:true it executes.',
+        'Create a new iOffice move request. Without confirm:true this returns a dry-run preview and makes NO network call; with confirm:true it executes. ' +
+        CONFIRM_RULE,
       inputSchema: z.object({
         name: z.string().describe('Move request name/title'),
         description: z.string().describe('Description of the move').optional(),
@@ -111,7 +112,8 @@ export function registerMoveTools(server: McpServer, client: IOfficeClient): voi
     'io_update_move',
     {
       description:
-        'Update an existing iOffice move request. Only provide fields to change. Without confirm:true this returns a dry-run preview and makes NO network call; with confirm:true it executes.',
+        'Update an existing iOffice move request. Only provide fields to change. Without confirm:true this returns a dry-run preview and makes NO network call; with confirm:true it executes. ' +
+        CONFIRM_RULE,
       inputSchema: z.object({
         id: z.number().describe('Move request ID'),
         name: z.string().describe('Move request name/title').optional(),
@@ -141,7 +143,8 @@ export function registerMoveTools(server: McpServer, client: IOfficeClient): voi
     'io_approve_move',
     {
       description:
-        'Approve an iOffice move request. Without confirm:true this returns a dry-run preview and makes NO network call; with confirm:true it executes.',
+        'Approve an iOffice move request. Without confirm:true this returns a dry-run preview and makes NO network call; with confirm:true it executes. ' +
+        CONFIRM_RULE,
       inputSchema: z.object({
         id: z.number().describe('Move request ID'),
         notes: z.string().describe('Approval notes (optional)').optional(),
@@ -168,7 +171,8 @@ export function registerMoveTools(server: McpServer, client: IOfficeClient): voi
     'io_cancel_move',
     {
       description:
-        'Cancel an iOffice move request. Without confirm:true this returns a dry-run preview and makes NO network call; with confirm:true it executes.',
+        'Cancel an iOffice move request. Without confirm:true this returns a dry-run preview and makes NO network call; with confirm:true it executes. ' +
+        CONFIRM_RULE,
       inputSchema: z.object({
         id: z.number().describe('Move request ID'),
         reason: z.string().describe('Cancellation reason').optional(),

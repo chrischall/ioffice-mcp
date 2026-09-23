@@ -4,7 +4,7 @@ import type { IOfficeClient } from '../client.js';
 import { buildQueryString, optionalBody } from '../client.js';
 import { minifiedResult } from '@chrischall/mcp-utils';
 import { viewArg, viewResponse } from '../view.js';
-import { previewUnlessConfirmed, schemaConfirm } from './_confirm.js';
+import { CONFIRM_RULE, previewUnlessConfirmed, schemaConfirm } from './_confirm.js';
 
 export function registerMaintenanceTools(server: McpServer, client: IOfficeClient): void {
   server.registerTool(
@@ -77,7 +77,8 @@ export function registerMaintenanceTools(server: McpServer, client: IOfficeClien
     'io_create_maintenance_request',
     {
       description:
-        'Create a new iOffice maintenance request. Without confirm:true this returns a dry-run preview and makes NO network call; with confirm:true it executes.',
+        'Create a new iOffice maintenance request. Without confirm:true this returns a dry-run preview and makes NO network call; with confirm:true it executes. ' +
+        CONFIRM_RULE,
       inputSchema: z.object({
         title: z.string().describe('Request title/summary'),
         description: z.string().describe('Detailed description of the issue').optional(),
@@ -108,7 +109,8 @@ export function registerMaintenanceTools(server: McpServer, client: IOfficeClien
     'io_update_maintenance_request',
     {
       description:
-        'Update an existing iOffice maintenance request. Only provide fields to change. Without confirm:true this returns a dry-run preview and makes NO network call; with confirm:true it executes.',
+        'Update an existing iOffice maintenance request. Only provide fields to change. Without confirm:true this returns a dry-run preview and makes NO network call; with confirm:true it executes. ' +
+        CONFIRM_RULE,
       inputSchema: z.object({
         id: z.number().describe('Maintenance request ID'),
         title: z.string().describe('Request title/summary').optional(),
@@ -137,7 +139,8 @@ export function registerMaintenanceTools(server: McpServer, client: IOfficeClien
     'io_accept_maintenance_request',
     {
       description:
-        'Accept an iOffice maintenance request (transition from pending to accepted). Without confirm:true this returns a dry-run preview and makes NO network call; with confirm:true it executes.',
+        'Accept an iOffice maintenance request (transition from pending to accepted). Without confirm:true this returns a dry-run preview and makes NO network call; with confirm:true it executes. ' +
+        CONFIRM_RULE,
       inputSchema: z.object({
         id: z.number().describe('Maintenance request ID'),
         confirm: schemaConfirm,
@@ -161,7 +164,8 @@ export function registerMaintenanceTools(server: McpServer, client: IOfficeClien
     'io_start_maintenance_request',
     {
       description:
-        'Start work on an iOffice maintenance request (transition to started/in-progress). Without confirm:true this returns a dry-run preview and makes NO network call; with confirm:true it executes.',
+        'Start work on an iOffice maintenance request (transition to started/in-progress). Without confirm:true this returns a dry-run preview and makes NO network call; with confirm:true it executes. ' +
+        CONFIRM_RULE,
       inputSchema: z.object({
         id: z.number().describe('Maintenance request ID'),
         confirm: schemaConfirm,
@@ -185,7 +189,8 @@ export function registerMaintenanceTools(server: McpServer, client: IOfficeClien
     'io_complete_maintenance_request',
     {
       description:
-        'Mark an iOffice maintenance request as complete. Without confirm:true this returns a dry-run preview and makes NO network call; with confirm:true it executes.',
+        'Mark an iOffice maintenance request as complete. Without confirm:true this returns a dry-run preview and makes NO network call; with confirm:true it executes. ' +
+        CONFIRM_RULE,
       inputSchema: z.object({
         id: z.number().describe('Maintenance request ID'),
         resolution: z.string().describe('Resolution notes describing what was done').optional(),
@@ -212,7 +217,8 @@ export function registerMaintenanceTools(server: McpServer, client: IOfficeClien
     'io_archive_maintenance_request',
     {
       description:
-        'Archive a completed iOffice maintenance request. Without confirm:true this returns a dry-run preview and makes NO network call; with confirm:true it executes.',
+        'Archive a completed iOffice maintenance request. Without confirm:true this returns a dry-run preview and makes NO network call; with confirm:true it executes. ' +
+        CONFIRM_RULE,
       inputSchema: z.object({
         id: z.number().describe('Maintenance request ID'),
         confirm: schemaConfirm,

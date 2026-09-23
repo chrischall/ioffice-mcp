@@ -4,7 +4,7 @@ import type { IOfficeClient } from '../client.js';
 import { buildQueryString } from '../client.js';
 import { minifiedResult } from '@chrischall/mcp-utils';
 import { viewArg, viewResponse } from '../view.js';
-import { previewUnlessConfirmed, schemaConfirm } from './_confirm.js';
+import { CONFIRM_RULE, previewUnlessConfirmed, schemaConfirm } from './_confirm.js';
 
 export function registerReservationTools(server: McpServer, client: IOfficeClient): void {
   server.registerTool(
@@ -79,7 +79,8 @@ export function registerReservationTools(server: McpServer, client: IOfficeClien
     'io_create_reservation',
     {
       description:
-        'Create a new iOffice room/space reservation. Without confirm:true this returns a dry-run preview and makes NO network call; with confirm:true it executes.',
+        'Create a new iOffice room/space reservation. Without confirm:true this returns a dry-run preview and makes NO network call; with confirm:true it executes. ' +
+        CONFIRM_RULE,
       inputSchema: z.object({
         title: z.string().describe('Reservation title/name'),
         spaceId: z.number().describe('Space/room ID to reserve'),
@@ -113,7 +114,8 @@ export function registerReservationTools(server: McpServer, client: IOfficeClien
     'io_update_reservation',
     {
       description:
-        'Update an existing iOffice reservation. Only provide fields to change. Without confirm:true this returns a dry-run preview and makes NO network call; with confirm:true it executes.',
+        'Update an existing iOffice reservation. Only provide fields to change. Without confirm:true this returns a dry-run preview and makes NO network call; with confirm:true it executes. ' +
+        CONFIRM_RULE,
       inputSchema: z.object({
         id: z.number().describe('Reservation ID'),
         title: z.string().describe('Reservation title').optional(),
@@ -143,7 +145,8 @@ export function registerReservationTools(server: McpServer, client: IOfficeClien
     'io_delete_reservation',
     {
       description:
-        'Delete/cancel an iOffice reservation by ID. Without confirm:true this returns a dry-run preview and makes NO network call; with confirm:true it executes.',
+        'Delete/cancel an iOffice reservation by ID. Without confirm:true this returns a dry-run preview and makes NO network call; with confirm:true it executes. ' +
+        CONFIRM_RULE,
       inputSchema: z.object({
         id: z.number().describe('Reservation ID'),
         confirm: schemaConfirm,
@@ -169,7 +172,8 @@ export function registerReservationTools(server: McpServer, client: IOfficeClien
     'io_checkin_reservation',
     {
       description:
-        'Check in to an iOffice reservation, confirming room usage. Without confirm:true this returns a dry-run preview and makes NO network call; with confirm:true it executes.',
+        'Check in to an iOffice reservation, confirming room usage. Without confirm:true this returns a dry-run preview and makes NO network call; with confirm:true it executes. ' +
+        CONFIRM_RULE,
       inputSchema: z.object({
         id: z.number().describe('Reservation ID'),
         confirm: schemaConfirm,
@@ -193,7 +197,8 @@ export function registerReservationTools(server: McpServer, client: IOfficeClien
     'io_checkout_reservation',
     {
       description:
-        'Check out of an iOffice reservation, releasing the room early if needed. Without confirm:true this returns a dry-run preview and makes NO network call; with confirm:true it executes.',
+        'Check out of an iOffice reservation, releasing the room early if needed. Without confirm:true this returns a dry-run preview and makes NO network call; with confirm:true it executes. ' +
+        CONFIRM_RULE,
       inputSchema: z.object({
         id: z.number().describe('Reservation ID'),
         confirm: schemaConfirm,

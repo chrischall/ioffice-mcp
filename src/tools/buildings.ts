@@ -4,7 +4,7 @@ import type { IOfficeClient } from '../client.js';
 import { buildQueryString } from '../client.js';
 import { minifiedResult } from '@chrischall/mcp-utils';
 import { viewArg, viewResponse } from '../view.js';
-import { previewUnlessConfirmed, schemaConfirm } from './_confirm.js';
+import { CONFIRM_RULE, previewUnlessConfirmed, schemaConfirm } from './_confirm.js';
 
 export function registerBuildingTools(server: McpServer, client: IOfficeClient): void {
   server.registerTool(
@@ -54,7 +54,8 @@ export function registerBuildingTools(server: McpServer, client: IOfficeClient):
     'io_create_building',
     {
       description:
-        'Create a new iOffice building. Without confirm:true this returns a dry-run preview and makes NO network call; with confirm:true it executes.',
+        'Create a new iOffice building. Without confirm:true this returns a dry-run preview and makes NO network call; with confirm:true it executes. ' +
+        CONFIRM_RULE,
       inputSchema: z.object({
         name: z.string().describe('Building name'),
         description: z.string().describe('Building description').optional(),
@@ -88,7 +89,8 @@ export function registerBuildingTools(server: McpServer, client: IOfficeClient):
     'io_update_building',
     {
       description:
-        'Update an existing iOffice building. Only provide fields to change. Without confirm:true this returns a dry-run preview and makes NO network call; with confirm:true it executes.',
+        'Update an existing iOffice building. Only provide fields to change. Without confirm:true this returns a dry-run preview and makes NO network call; with confirm:true it executes. ' +
+        CONFIRM_RULE,
       inputSchema: z.object({
         id: z.number().describe('Building ID'),
         name: z.string().describe('Building name').optional(),
@@ -123,7 +125,8 @@ export function registerBuildingTools(server: McpServer, client: IOfficeClient):
     'io_delete_building',
     {
       description:
-        'Delete an iOffice building by ID. Without confirm:true this returns a dry-run preview and makes NO network call; with confirm:true it executes.',
+        'Delete an iOffice building by ID. Without confirm:true this returns a dry-run preview and makes NO network call; with confirm:true it executes. ' +
+        CONFIRM_RULE,
       inputSchema: z.object({
         id: z.number().describe('Building ID'),
         confirm: schemaConfirm,
