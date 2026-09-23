@@ -4,7 +4,7 @@ import type { IOfficeClient } from '../client.js';
 import { buildQueryString } from '../client.js';
 import { minifiedResult } from '@chrischall/mcp-utils';
 import { viewArg, viewResponse } from '../view.js';
-import { previewUnlessConfirmed, schemaConfirm } from './_confirm.js';
+import { CONFIRM_RULE, previewUnlessConfirmed, schemaConfirm } from './_confirm.js';
 
 export function registerSpaceTools(server: McpServer, client: IOfficeClient): void {
   server.registerTool(
@@ -56,7 +56,8 @@ export function registerSpaceTools(server: McpServer, client: IOfficeClient): vo
     'io_create_space',
     {
       description:
-        'Create a new iOffice space (room) on a floor. Without confirm:true this returns a dry-run preview and makes NO network call; with confirm:true it executes.',
+        'Create a new iOffice space (room) on a floor. Without confirm:true this returns a dry-run preview and makes NO network call; with confirm:true it executes. ' +
+        CONFIRM_RULE,
       inputSchema: z.object({
         name: z.string().describe('Space name'),
         floorId: z.number().describe('Floor ID this space belongs to'),
@@ -80,7 +81,8 @@ export function registerSpaceTools(server: McpServer, client: IOfficeClient): vo
     'io_update_space',
     {
       description:
-        'Update an existing iOffice space. Only provide fields to change. Without confirm:true this returns a dry-run preview and makes NO network call; with confirm:true it executes.',
+        'Update an existing iOffice space. Only provide fields to change. Without confirm:true this returns a dry-run preview and makes NO network call; with confirm:true it executes. ' +
+        CONFIRM_RULE,
       inputSchema: z.object({
         id: z.number().describe('Space ID'),
         name: z.string().describe('Space name').optional(),
@@ -110,7 +112,8 @@ export function registerSpaceTools(server: McpServer, client: IOfficeClient): vo
     'io_delete_space',
     {
       description:
-        'Delete an iOffice space by ID. Without confirm:true this returns a dry-run preview and makes NO network call; with confirm:true it executes.',
+        'Delete an iOffice space by ID. Without confirm:true this returns a dry-run preview and makes NO network call; with confirm:true it executes. ' +
+        CONFIRM_RULE,
       inputSchema: z.object({
         id: z.number().describe('Space ID'),
         confirm: schemaConfirm,

@@ -4,7 +4,7 @@ import type { IOfficeClient } from '../client.js';
 import { buildQueryString } from '../client.js';
 import { minifiedResult } from '@chrischall/mcp-utils';
 import { viewArg, viewResponse } from '../view.js';
-import { previewUnlessConfirmed, schemaConfirm } from './_confirm.js';
+import { CONFIRM_RULE, previewUnlessConfirmed, schemaConfirm } from './_confirm.js';
 
 export function registerVisitorTools(server: McpServer, client: IOfficeClient): void {
   server.registerTool(
@@ -76,7 +76,8 @@ export function registerVisitorTools(server: McpServer, client: IOfficeClient): 
     'io_create_visitor',
     {
       description:
-        'Pre-register a visitor in iOffice. Without confirm:true this returns a dry-run preview and makes NO network call; with confirm:true it executes.',
+        'Pre-register a visitor in iOffice. Without confirm:true this returns a dry-run preview and makes NO network call; with confirm:true it executes. ' +
+        CONFIRM_RULE,
       inputSchema: z.object({
         firstName: z.string().describe('Visitor first name'),
         lastName: z.string().describe('Visitor last name'),
@@ -113,7 +114,8 @@ export function registerVisitorTools(server: McpServer, client: IOfficeClient): 
     'io_update_visitor',
     {
       description:
-        'Update an existing iOffice visitor record. Only provide fields to change. Without confirm:true this returns a dry-run preview and makes NO network call; with confirm:true it executes.',
+        'Update an existing iOffice visitor record. Only provide fields to change. Without confirm:true this returns a dry-run preview and makes NO network call; with confirm:true it executes. ' +
+        CONFIRM_RULE,
       inputSchema: z.object({
         id: z.number().describe('Visitor ID'),
         firstName: z.string().describe('Visitor first name').optional(),
@@ -149,7 +151,8 @@ export function registerVisitorTools(server: McpServer, client: IOfficeClient): 
     'io_checkin_visitor',
     {
       description:
-        'Check in a visitor upon arrival at the building. Without confirm:true this returns a dry-run preview and makes NO network call; with confirm:true it executes.',
+        'Check in a visitor upon arrival at the building. Without confirm:true this returns a dry-run preview and makes NO network call; with confirm:true it executes. ' +
+        CONFIRM_RULE,
       inputSchema: z.object({
         id: z.number().describe('Visitor ID'),
         confirm: schemaConfirm,
@@ -173,7 +176,8 @@ export function registerVisitorTools(server: McpServer, client: IOfficeClient): 
     'io_checkout_visitor',
     {
       description:
-        'Check out a visitor upon departure from the building. Without confirm:true this returns a dry-run preview and makes NO network call; with confirm:true it executes.',
+        'Check out a visitor upon departure from the building. Without confirm:true this returns a dry-run preview and makes NO network call; with confirm:true it executes. ' +
+        CONFIRM_RULE,
       inputSchema: z.object({
         id: z.number().describe('Visitor ID'),
         confirm: schemaConfirm,

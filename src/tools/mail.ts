@@ -4,7 +4,7 @@ import type { IOfficeClient } from '../client.js';
 import { buildQueryString, optionalBody } from '../client.js';
 import { minifiedResult } from '@chrischall/mcp-utils';
 import { viewArg, viewResponse } from '../view.js';
-import { previewUnlessConfirmed, schemaConfirm } from './_confirm.js';
+import { CONFIRM_RULE, previewUnlessConfirmed, schemaConfirm } from './_confirm.js';
 
 export function registerMailTools(server: McpServer, client: IOfficeClient): void {
   server.registerTool(
@@ -89,7 +89,8 @@ export function registerMailTools(server: McpServer, client: IOfficeClient): voi
     'io_create_mail',
     {
       description:
-        'Log a new mail item (package or letter) received in iOffice. Without confirm:true this returns a dry-run preview and makes NO network call; with confirm:true it executes.',
+        'Log a new mail item (package or letter) received in iOffice. Without confirm:true this returns a dry-run preview and makes NO network call; with confirm:true it executes. ' +
+        CONFIRM_RULE,
       inputSchema: z.object({
         recipientId: z.number().describe('Recipient user ID'),
         buildingId: z.number().describe('Building where mail was received'),
@@ -123,7 +124,8 @@ export function registerMailTools(server: McpServer, client: IOfficeClient): voi
     'io_deliver_mail',
     {
       description:
-        'Mark an iOffice mail item as delivered to the recipient. Without confirm:true this returns a dry-run preview and makes NO network call; with confirm:true it executes.',
+        'Mark an iOffice mail item as delivered to the recipient. Without confirm:true this returns a dry-run preview and makes NO network call; with confirm:true it executes. ' +
+        CONFIRM_RULE,
       inputSchema: z.object({
         id: z.number().describe('Mail item ID'),
         deliveredDate: z
@@ -154,7 +156,8 @@ export function registerMailTools(server: McpServer, client: IOfficeClient): voi
     'io_return_mail',
     {
       description:
-        'Mark an iOffice mail item as returned to sender. Without confirm:true this returns a dry-run preview and makes NO network call; with confirm:true it executes.',
+        'Mark an iOffice mail item as returned to sender. Without confirm:true this returns a dry-run preview and makes NO network call; with confirm:true it executes. ' +
+        CONFIRM_RULE,
       inputSchema: z.object({
         id: z.number().describe('Mail item ID'),
         reason: z.string().describe('Reason for return').optional(),

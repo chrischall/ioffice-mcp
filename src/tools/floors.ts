@@ -4,7 +4,7 @@ import type { IOfficeClient } from '../client.js';
 import { buildQueryString } from '../client.js';
 import { minifiedResult } from '@chrischall/mcp-utils';
 import { viewArg, viewResponse } from '../view.js';
-import { previewUnlessConfirmed, schemaConfirm } from './_confirm.js';
+import { CONFIRM_RULE, previewUnlessConfirmed, schemaConfirm } from './_confirm.js';
 
 export function registerFloorTools(server: McpServer, client: IOfficeClient): void {
   server.registerTool(
@@ -56,7 +56,8 @@ export function registerFloorTools(server: McpServer, client: IOfficeClient): vo
     'io_create_floor',
     {
       description:
-        'Create a new iOffice floor within a building. Without confirm:true this returns a dry-run preview and makes NO network call; with confirm:true it executes.',
+        'Create a new iOffice floor within a building. Without confirm:true this returns a dry-run preview and makes NO network call; with confirm:true it executes. ' +
+        CONFIRM_RULE,
       inputSchema: z.object({
         name: z.string().describe('Floor name'),
         buildingId: z.number().describe('ID of the building this floor belongs to'),
@@ -79,7 +80,8 @@ export function registerFloorTools(server: McpServer, client: IOfficeClient): vo
     'io_update_floor',
     {
       description:
-        'Update an existing iOffice floor. Only provide fields to change. Without confirm:true this returns a dry-run preview and makes NO network call; with confirm:true it executes.',
+        'Update an existing iOffice floor. Only provide fields to change. Without confirm:true this returns a dry-run preview and makes NO network call; with confirm:true it executes. ' +
+        CONFIRM_RULE,
       inputSchema: z.object({
         id: z.number().describe('Floor ID'),
         name: z.string().describe('Floor name').optional(),
@@ -108,7 +110,8 @@ export function registerFloorTools(server: McpServer, client: IOfficeClient): vo
     'io_delete_floor',
     {
       description:
-        'Delete an iOffice floor by ID. Without confirm:true this returns a dry-run preview and makes NO network call; with confirm:true it executes.',
+        'Delete an iOffice floor by ID. Without confirm:true this returns a dry-run preview and makes NO network call; with confirm:true it executes. ' +
+        CONFIRM_RULE,
       inputSchema: z.object({
         id: z.number().describe('Floor ID'),
         confirm: schemaConfirm,
