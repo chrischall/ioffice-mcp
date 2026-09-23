@@ -1,5 +1,12 @@
 # Changelog
 
+## [3.1.2](https://github.com/chrischall/ioffice-mcp/compare/v3.1.1...v3.1.2) (2026-09-23)
+
+
+### Bug Fixes
+
+* **security:** flag third-party record text as data and require user approval before confirm:true ([#163](https://github.com/chrischall/ioffice-mcp/issues/163)) ([719091a](https://github.com/chrischall/ioffice-mcp/commit/719091a6db102f2e3d5c03c27631c4e2c16bee0f))
+
 ## [3.1.1](https://github.com/chrischall/ioffice-mcp/compare/v3.1.0...v3.1.1) (2026-09-23)
 
 
