@@ -1,5 +1,13 @@
 # Changelog
 
+## [3.1.1](https://github.com/chrischall/ioffice-mcp/compare/v3.1.0...v3.1.1) (2026-09-23)
+
+
+### Bug Fixes
+
+* **deps:** require zod ^4.6.5 to match @chrischall/mcp-utils 2.4.0 ([#162](https://github.com/chrischall/ioffice-mcp/issues/162)) ([4d61aa5](https://github.com/chrischall/ioffice-mcp/commit/4d61aa50af032afe792f53def3064597d65126af))
+* **deps:** upgrade @chrischall/mcp-utils to 2.4.0 and @fetchproxy/* to 3.2.0 ([#160](https://github.com/chrischall/ioffice-mcp/issues/160)) ([37c64fe](https://github.com/chrischall/ioffice-mcp/commit/37c64fe0c46c0765e9b583daf8d6ace9e2b28be7))
+
 ## [3.1.0](https://github.com/chrischall/ioffice-mcp/compare/v3.0.0...v3.1.0) (2026-09-19)
 
 
