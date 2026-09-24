@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, afterEach } from 'vitest';
 import { McpServer } from '@modelcontextprotocol/server';
 import type { IOfficeClient } from '../../src/client.js';
+import { toolCallers } from '../confirm-helpers.js';
 import { registerMaintenanceTools } from '../../src/tools/maintenance.js';
 
 const mockClient = { request: vi.fn() } as unknown as IOfficeClient;
@@ -8,9 +9,7 @@ const mockClient = { request: vi.fn() } as unknown as IOfficeClient;
 function setup() {
   const server = new McpServer({ name: 'test', version: '0.0.0' });
   registerMaintenanceTools(server, mockClient);
-  const call = (name: string, args: Record<string, unknown> = {}) =>
-    (server as any)._registeredTools[name].handler(args, {});
-  return { server, call };
+  return { server, ...toolCallers((s) => registerMaintenanceTools(s, mockClient)) };
 }
 
 afterEach(() => vi.clearAllMocks());
@@ -63,25 +62,24 @@ describe('io_get_maintenance_request', () => {
 
 describe('io_create_maintenance_request', () => {
   it('calls POST /maintenanceRequests with args', async () => {
-    const { call } = setup();
+    const { callConfirmed } = setup();
     mockClient.request = vi.fn().mockResolvedValue({ id: 301 });
     const args = {
       title: 'Broken light',
       description: 'Light is out in room 101',
     };
-    await call('io_create_maintenance_request', { ...args, confirm: true });
+    await callConfirmed('io_create_maintenance_request', { ...args });
     expect(mockClient.request).toHaveBeenCalledWith('POST', '/maintenanceRequests', args);
   });
 });
 
 describe('io_update_maintenance_request', () => {
   it('calls PUT /maintenanceRequests/{id} without id in body', async () => {
-    const { call } = setup();
+    const { callConfirmed } = setup();
     mockClient.request = vi.fn().mockResolvedValue({ id: 301 });
-    await call('io_update_maintenance_request', {
+    await callConfirmed('io_update_maintenance_request', {
       id: 301,
       priorityId: 2,
-      confirm: true,
     });
     expect(mockClient.request).toHaveBeenCalledWith('PUT', '/maintenanceRequests/301', {
       priorityId: 2,
@@ -91,27 +89,27 @@ describe('io_update_maintenance_request', () => {
 
 describe('io_accept_maintenance_request', () => {
   it('calls POST /maintenanceRequests/{id}/accept', async () => {
-    const { call } = setup();
+    const { callConfirmed } = setup();
     mockClient.request = vi.fn().mockResolvedValue({ status: 'accepted' });
-    await call('io_accept_maintenance_request', { id: 301, confirm: true });
+    await callConfirmed('io_accept_maintenance_request', { id: 301 });
     expect(mockClient.request).toHaveBeenCalledWith('POST', '/maintenanceRequests/301/accept');
   });
 });
 
 describe('io_start_maintenance_request', () => {
   it('calls POST /maintenanceRequests/{id}/start', async () => {
-    const { call } = setup();
+    const { callConfirmed } = setup();
     mockClient.request = vi.fn().mockResolvedValue({ status: 'started' });
-    await call('io_start_maintenance_request', { id: 301, confirm: true });
+    await callConfirmed('io_start_maintenance_request', { id: 301 });
     expect(mockClient.request).toHaveBeenCalledWith('POST', '/maintenanceRequests/301/start');
   });
 });
 
 describe('io_complete_maintenance_request', () => {
   it('calls POST /maintenanceRequests/{id}/complete without body when no resolution', async () => {
-    const { call } = setup();
+    const { callConfirmed } = setup();
     mockClient.request = vi.fn().mockResolvedValue({ status: 'completed' });
-    await call('io_complete_maintenance_request', { id: 301, confirm: true });
+    await callConfirmed('io_complete_maintenance_request', { id: 301 });
     expect(mockClient.request).toHaveBeenCalledWith(
       'POST',
       '/maintenanceRequests/301/complete',
@@ -120,12 +118,11 @@ describe('io_complete_maintenance_request', () => {
   });
 
   it('calls POST with resolution body when provided', async () => {
-    const { call } = setup();
+    const { callConfirmed } = setup();
     mockClient.request = vi.fn().mockResolvedValue({ status: 'completed' });
-    await call('io_complete_maintenance_request', {
+    await callConfirmed('io_complete_maintenance_request', {
       id: 301,
       resolution: 'Replaced bulb',
-      confirm: true,
     });
     expect(mockClient.request).toHaveBeenCalledWith('POST', '/maintenanceRequests/301/complete', {
       resolution: 'Replaced bulb',
@@ -135,15 +132,15 @@ describe('io_complete_maintenance_request', () => {
 
 describe('io_archive_maintenance_request', () => {
   it('calls POST /maintenanceRequests/{id}/archive', async () => {
-    const { call } = setup();
+    const { callConfirmed } = setup();
     mockClient.request = vi.fn().mockResolvedValue({ status: 'archived' });
-    await call('io_archive_maintenance_request', { id: 301, confirm: true });
+    await callConfirmed('io_archive_maintenance_request', { id: 301 });
     expect(mockClient.request).toHaveBeenCalledWith('POST', '/maintenanceRequests/301/archive');
   });
 });
 
-describe('confirm-gate - maintenance', () => {
-  it('io_create_maintenance_request without confirm returns dry-run and makes NO request', async () => {
+describe('confirm gate - maintenance', () => {
+  it('io_create_maintenance_request without confirmToken returns a preview and makes NO request', async () => {
     const { call } = setup();
     mockClient.request = vi.fn();
     const result = await call('io_create_maintenance_request', {
@@ -151,11 +148,11 @@ describe('confirm-gate - maintenance', () => {
     });
     expect(mockClient.request).not.toHaveBeenCalled();
     const payload = JSON.parse(result.content[0].text as string);
-    expect(payload.dryRun).toBe(true);
-    expect(payload.willSend).not.toHaveProperty('confirm');
+    expect(payload.status).toBe('confirmation-required');
+    expect(payload.preview.willSend).not.toHaveProperty('confirmToken');
   });
 
-  it('io_update_maintenance_request without confirm returns dry-run and makes NO request', async () => {
+  it('io_update_maintenance_request without confirmToken returns a preview and makes NO request', async () => {
     const { call } = setup();
     mockClient.request = vi.fn();
     const result = await call('io_update_maintenance_request', {
@@ -163,26 +160,26 @@ describe('confirm-gate - maintenance', () => {
       priorityId: 2,
     });
     expect(mockClient.request).not.toHaveBeenCalled();
-    expect(JSON.parse(result.content[0].text as string).dryRun).toBe(true);
+    expect(JSON.parse(result.content[0].text as string).status).toBe('confirmation-required');
   });
 
-  it('io_accept_maintenance_request without confirm returns dry-run and makes NO request', async () => {
+  it('io_accept_maintenance_request without confirmToken returns a preview and makes NO request', async () => {
     const { call } = setup();
     mockClient.request = vi.fn();
     const result = await call('io_accept_maintenance_request', { id: 301 });
     expect(mockClient.request).not.toHaveBeenCalled();
-    expect(JSON.parse(result.content[0].text as string).dryRun).toBe(true);
+    expect(JSON.parse(result.content[0].text as string).status).toBe('confirmation-required');
   });
 
-  it('io_start_maintenance_request without confirm returns dry-run and makes NO request', async () => {
+  it('io_start_maintenance_request without confirmToken returns a preview and makes NO request', async () => {
     const { call } = setup();
     mockClient.request = vi.fn();
     const result = await call('io_start_maintenance_request', { id: 301 });
     expect(mockClient.request).not.toHaveBeenCalled();
-    expect(JSON.parse(result.content[0].text as string).dryRun).toBe(true);
+    expect(JSON.parse(result.content[0].text as string).status).toBe('confirmation-required');
   });
 
-  it('io_complete_maintenance_request without confirm returns dry-run and makes NO request', async () => {
+  it('io_complete_maintenance_request without confirmToken returns a preview and makes NO request', async () => {
     const { call } = setup();
     mockClient.request = vi.fn();
     const result = await call('io_complete_maintenance_request', {
@@ -190,14 +187,14 @@ describe('confirm-gate - maintenance', () => {
       resolution: 'Replaced bulb',
     });
     expect(mockClient.request).not.toHaveBeenCalled();
-    expect(JSON.parse(result.content[0].text as string).dryRun).toBe(true);
+    expect(JSON.parse(result.content[0].text as string).status).toBe('confirmation-required');
   });
 
-  it('io_archive_maintenance_request without confirm returns dry-run and makes NO request', async () => {
+  it('io_archive_maintenance_request without confirmToken returns a preview and makes NO request', async () => {
     const { call } = setup();
     mockClient.request = vi.fn();
     const result = await call('io_archive_maintenance_request', { id: 301 });
     expect(mockClient.request).not.toHaveBeenCalled();
-    expect(JSON.parse(result.content[0].text as string).dryRun).toBe(true);
+    expect(JSON.parse(result.content[0].text as string).status).toBe('confirmation-required');
   });
 });

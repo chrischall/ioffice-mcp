@@ -4,7 +4,7 @@ import type { IOfficeClient } from '../client.js';
 import { buildQueryString, optionalBody } from '../client.js';
 import { minifiedResult } from '@chrischall/mcp-utils';
 import { viewArg, viewResponse } from '../view.js';
-import { CONFIRM_RULE, previewUnlessConfirmed, schemaConfirm } from './_confirm.js';
+import { CONFIRM_DESCRIPTION, confirmTokenParam, confirmWrite } from './_confirm.js';
 
 export function registerMoveTools(server: McpServer, client: IOfficeClient): void {
   server.registerTool(
@@ -79,9 +79,7 @@ export function registerMoveTools(server: McpServer, client: IOfficeClient): voi
   server.registerTool(
     'io_create_move',
     {
-      description:
-        'Create a new iOffice move request. Without confirm:true this returns a dry-run preview and makes NO network call; with confirm:true it executes. ' +
-        CONFIRM_RULE,
+      description: 'Create a new iOffice move request. ' + CONFIRM_DESCRIPTION,
       inputSchema: z.object({
         name: z.string().describe('Move request name/title'),
         description: z.string().describe('Description of the move').optional(),
@@ -90,18 +88,20 @@ export function registerMoveTools(server: McpServer, client: IOfficeClient): voi
         toSpaceId: z.number().describe('Destination space/room ID').optional(),
         scheduledDate: z.string().describe('Scheduled move date (ISO 8601)').optional(),
         buildingId: z.number().describe('Building ID where the move takes place').optional(),
-        confirm: schemaConfirm,
+        confirmToken: confirmTokenParam,
       }),
       annotations: { readOnlyHint: false, destructiveHint: true },
     },
-    async ({ confirm, ...args }) => {
-      const gate = previewUnlessConfirmed(
-        confirm,
-        'Create iOffice move request',
-        'POST',
-        '/moves',
-        args,
-      );
+    async ({ confirmToken, ...args }, ctx) => {
+      const gate = await confirmWrite(ctx, {
+        tool: 'io_create_move',
+        action: 'move.create',
+        summary: 'Create iOffice move request',
+        method: 'POST',
+        path: '/moves',
+        body: args,
+        confirmToken,
+      });
       if (gate) return gate;
       const data = await client.request('POST', '/moves', args);
       return minifiedResult(data);
@@ -112,8 +112,8 @@ export function registerMoveTools(server: McpServer, client: IOfficeClient): voi
     'io_update_move',
     {
       description:
-        'Update an existing iOffice move request. Only provide fields to change. Without confirm:true this returns a dry-run preview and makes NO network call; with confirm:true it executes. ' +
-        CONFIRM_RULE,
+        'Update an existing iOffice move request. Only provide fields to change. ' +
+        CONFIRM_DESCRIPTION,
       inputSchema: z.object({
         id: z.number().describe('Move request ID'),
         name: z.string().describe('Move request name/title').optional(),
@@ -121,18 +121,21 @@ export function registerMoveTools(server: McpServer, client: IOfficeClient): voi
         scheduledDate: z.string().describe('Scheduled move date (ISO 8601)').optional(),
         fromSpaceId: z.number().describe('Source space/room ID').optional(),
         toSpaceId: z.number().describe('Destination space/room ID').optional(),
-        confirm: schemaConfirm,
+        confirmToken: confirmTokenParam,
       }),
       annotations: { readOnlyHint: false, destructiveHint: true },
     },
-    async ({ id, confirm, ...body }) => {
-      const gate = previewUnlessConfirmed(
-        confirm,
-        `Update iOffice move request ${id}`,
-        'PUT',
-        `/moves/${id}`,
-        body,
-      );
+    async ({ id, confirmToken, ...body }, ctx) => {
+      const gate = await confirmWrite(ctx, {
+        tool: 'io_update_move',
+        action: 'move.update',
+        summary: `Update iOffice move request ${id}`,
+        method: 'PUT',
+        path: `/moves/${id}`,
+        body: body,
+        target: id,
+        confirmToken,
+      });
       if (gate) return gate;
       const data = await client.request('PUT', `/moves/${id}`, body);
       return minifiedResult(data);
@@ -142,25 +145,26 @@ export function registerMoveTools(server: McpServer, client: IOfficeClient): voi
   server.registerTool(
     'io_approve_move',
     {
-      description:
-        'Approve an iOffice move request. Without confirm:true this returns a dry-run preview and makes NO network call; with confirm:true it executes. ' +
-        CONFIRM_RULE,
+      description: 'Approve an iOffice move request. ' + CONFIRM_DESCRIPTION,
       inputSchema: z.object({
         id: z.number().describe('Move request ID'),
         notes: z.string().describe('Approval notes (optional)').optional(),
-        confirm: schemaConfirm,
+        confirmToken: confirmTokenParam,
       }),
       annotations: { readOnlyHint: false, destructiveHint: true },
     },
-    async ({ id, confirm, notes }) => {
+    async ({ id, confirmToken, notes }, ctx) => {
       const body = optionalBody({ notes }, ['notes']);
-      const gate = previewUnlessConfirmed(
-        confirm,
-        `Approve iOffice move request ${id}`,
-        'POST',
-        `/moves/${id}/approve`,
-        body,
-      );
+      const gate = await confirmWrite(ctx, {
+        tool: 'io_approve_move',
+        action: 'move.approve',
+        summary: `Approve iOffice move request ${id}`,
+        method: 'POST',
+        path: `/moves/${id}/approve`,
+        body: body,
+        target: id,
+        confirmToken,
+      });
       if (gate) return gate;
       const data = await client.request('POST', `/moves/${id}/approve`, body);
       return minifiedResult(data);
@@ -170,25 +174,26 @@ export function registerMoveTools(server: McpServer, client: IOfficeClient): voi
   server.registerTool(
     'io_cancel_move',
     {
-      description:
-        'Cancel an iOffice move request. Without confirm:true this returns a dry-run preview and makes NO network call; with confirm:true it executes. ' +
-        CONFIRM_RULE,
+      description: 'Cancel an iOffice move request. ' + CONFIRM_DESCRIPTION,
       inputSchema: z.object({
         id: z.number().describe('Move request ID'),
         reason: z.string().describe('Cancellation reason').optional(),
-        confirm: schemaConfirm,
+        confirmToken: confirmTokenParam,
       }),
       annotations: { readOnlyHint: false, destructiveHint: true },
     },
-    async ({ id, confirm, reason }) => {
+    async ({ id, confirmToken, reason }, ctx) => {
       const body = optionalBody({ reason }, ['reason']);
-      const gate = previewUnlessConfirmed(
-        confirm,
-        `Cancel iOffice move request ${id}`,
-        'POST',
-        `/moves/${id}/cancel`,
-        body,
-      );
+      const gate = await confirmWrite(ctx, {
+        tool: 'io_cancel_move',
+        action: 'move.cancel',
+        summary: `Cancel iOffice move request ${id}`,
+        method: 'POST',
+        path: `/moves/${id}/cancel`,
+        body: body,
+        target: id,
+        confirmToken,
+      });
       if (gate) return gate;
       const data = await client.request('POST', `/moves/${id}/cancel`, body);
       return minifiedResult(data);

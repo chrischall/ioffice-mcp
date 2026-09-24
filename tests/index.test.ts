@@ -44,7 +44,7 @@ describe('tool registry', () => {
         type: 'object',
         properties: {
           name: { type: 'string', description: 'Building name' },
-          confirm: { type: 'boolean' },
+          confirmToken: { type: 'string' },
         },
         required: ['name'],
       });

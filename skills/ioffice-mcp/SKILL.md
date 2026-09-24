@@ -208,9 +208,10 @@ The other 35 tools take no `view`, for two different reasons:
 
 - **The 34 write and action tools** — `io_create_*`, `io_update_*`,
   `io_delete_*`, and the state transitions (check in/out, accept/start/
-  complete/archive, approve/cancel, deliver/return) — answer with a receipt, or
-  with a dry-run preview when `confirm: true` is absent. There is nothing to
-  strip and every field is load-bearing.
+  complete/archive, approve/cancel, deliver/return) — answer with a receipt, or,
+  on a client that cannot show a confirmation prompt, with a preview and a
+  `confirmToken` on the first call (nothing is sent until the call is repeated
+  with that token). There is nothing to strip and every field is load-bearing.
 - **`io_healthcheck`** is read-only, but its output is its own verdict — which
   credential resolved, whether iOffice accepted it, what to fix — rather than an
   iOffice record.

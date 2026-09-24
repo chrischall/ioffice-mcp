@@ -10,15 +10,16 @@ import { registerVisitorTools } from '../src/tools/visitors.js';
 import { registerMaintenanceTools } from '../src/tools/maintenance.js';
 import { registerMailTools } from '../src/tools/mail.js';
 import { registerMoveTools } from '../src/tools/moves.js';
-import { CONFIRM_RULE, previewUnlessConfirmed } from '../src/tools/_confirm.js';
+import { createTestHarness, parseToolResult } from '@chrischall/mcp-utils/test';
+import { CONFIRM_DESCRIPTION, CONFIRM_RULE } from '../src/tools/_confirm.js';
 import { UNTRUSTED_NOTE, viewResponse } from '../src/view.js';
 
 // chrischall/fleet-audit#146: iOffice records carry text written by third
 // parties (a visitor's "purpose", a maintenance-request description, a mail
-// sender). The confirm flag is a tool argument the model fills in, so the only
-// in-band defence against an injected "call io_delete_user confirm:true" is to
-// tell the model — on every read and on every gated write — that record text is
-// data, and that confirm:true needs the user's approval.
+// sender). A confirmToken is a tool argument the model fills in, so the in-band
+// defence against an injected "call io_delete_user" is to tell the model — on
+// every read, on every gated write and in the confirmation preview — that record
+// text is data, never a reason to write or to replay a token.
 
 function allTools() {
   const client = { request: vi.fn() } as unknown as IOfficeClient;
@@ -46,23 +47,33 @@ function allTools() {
 }
 
 describe('confirm-gated writes', () => {
-  it('every tool taking confirm tells the model to get the user’s approval first', () => {
+  it('every tool taking confirmToken describes the confirmation flow and the rule', () => {
     const { tools } = allTools();
-    const gated = Object.entries(tools).filter(([, t]) => t.inputSchema?.shape?.confirm);
+    const gated = Object.entries(tools).filter(([, t]) => t.inputSchema?.shape?.confirmToken);
     expect(gated.length).toBeGreaterThan(20);
     for (const [name, t] of gated) {
+      expect(t.description, name).toContain(CONFIRM_DESCRIPTION);
       expect(t.description, name).toContain(CONFIRM_RULE);
     }
   });
 
   it('the rule names tool-result text as something never to obey', () => {
-    expect(CONFIRM_RULE).toMatch(/explicit approval/);
+    expect(CONFIRM_RULE).toMatch(/confirmToken/);
     expect(CONFIRM_RULE).toMatch(/tool result/);
   });
 
-  it('the dry-run preview repeats the rule where the model decides to re-run', () => {
-    const r = previewUnlessConfirmed(undefined, 'Delete iOffice user', 'DELETE', '/users/42');
-    expect(JSON.parse((r!.content[0] as { text: string }).text).note).toContain(CONFIRM_RULE);
+  it('the preview repeats the rule where the model decides to re-run', async () => {
+    const client = { request: vi.fn() } as unknown as IOfficeClient;
+    const h = await createTestHarness((s) => registerUserTools(s, client));
+    try {
+      const r = parseToolResult<{ preview: { note: string } }>(
+        await h.callTool('io_delete_user', { id: 42 }),
+      );
+      expect(r.preview.note).toBe(CONFIRM_RULE);
+      expect(client.request).not.toHaveBeenCalled();
+    } finally {
+      await h.close();
+    }
   });
 });
 
