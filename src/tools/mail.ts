@@ -4,7 +4,7 @@ import type { IOfficeClient } from '../client.js';
 import { buildQueryString, optionalBody } from '../client.js';
 import { minifiedResult } from '@chrischall/mcp-utils';
 import { viewArg, viewResponse } from '../view.js';
-import { CONFIRM_RULE, previewUnlessConfirmed, schemaConfirm } from './_confirm.js';
+import { CONFIRM_DESCRIPTION, confirmTokenParam, confirmWrite } from './_confirm.js';
 
 export function registerMailTools(server: McpServer, client: IOfficeClient): void {
   server.registerTool(
@@ -89,8 +89,7 @@ export function registerMailTools(server: McpServer, client: IOfficeClient): voi
     'io_create_mail',
     {
       description:
-        'Log a new mail item (package or letter) received in iOffice. Without confirm:true this returns a dry-run preview and makes NO network call; with confirm:true it executes. ' +
-        CONFIRM_RULE,
+        'Log a new mail item (package or letter) received in iOffice. ' + CONFIRM_DESCRIPTION,
       inputSchema: z.object({
         recipientId: z.number().describe('Recipient user ID'),
         buildingId: z.number().describe('Building where mail was received'),
@@ -102,18 +101,20 @@ export function registerMailTools(server: McpServer, client: IOfficeClient): voi
           .string()
           .describe('Date/time received (ISO 8601, defaults to now)')
           .optional(),
-        confirm: schemaConfirm,
+        confirmToken: confirmTokenParam,
       }),
       annotations: { readOnlyHint: false, destructiveHint: true },
     },
-    async ({ confirm, ...args }) => {
-      const gate = previewUnlessConfirmed(
-        confirm,
-        'Create iOffice mail item',
-        'POST',
-        '/mail',
-        args,
-      );
+    async ({ confirmToken, ...args }, ctx) => {
+      const gate = await confirmWrite(ctx, {
+        tool: 'io_create_mail',
+        action: 'mail.create',
+        summary: 'Create iOffice mail item',
+        method: 'POST',
+        path: '/mail',
+        body: args,
+        confirmToken,
+      });
       if (gate) return gate;
       const data = await client.request('POST', '/mail', args);
       return minifiedResult(data);
@@ -124,8 +125,7 @@ export function registerMailTools(server: McpServer, client: IOfficeClient): voi
     'io_deliver_mail',
     {
       description:
-        'Mark an iOffice mail item as delivered to the recipient. Without confirm:true this returns a dry-run preview and makes NO network call; with confirm:true it executes. ' +
-        CONFIRM_RULE,
+        'Mark an iOffice mail item as delivered to the recipient. ' + CONFIRM_DESCRIPTION,
       inputSchema: z.object({
         id: z.number().describe('Mail item ID'),
         deliveredDate: z
@@ -133,19 +133,22 @@ export function registerMailTools(server: McpServer, client: IOfficeClient): voi
           .describe('Delivery date/time (ISO 8601, defaults to now)')
           .optional(),
         signature: z.string().describe('Recipient signature or name confirmation').optional(),
-        confirm: schemaConfirm,
+        confirmToken: confirmTokenParam,
       }),
       annotations: { readOnlyHint: false, destructiveHint: true },
     },
-    async ({ id, confirm, deliveredDate, signature }) => {
+    async ({ id, confirmToken, deliveredDate, signature }, ctx) => {
       const body = optionalBody({ deliveredDate, signature }, ['deliveredDate', 'signature']);
-      const gate = previewUnlessConfirmed(
-        confirm,
-        `Deliver iOffice mail item ${id}`,
-        'POST',
-        `/mail/${id}/deliver`,
-        body,
-      );
+      const gate = await confirmWrite(ctx, {
+        tool: 'io_deliver_mail',
+        action: 'mail.deliver',
+        summary: `Deliver iOffice mail item ${id}`,
+        method: 'POST',
+        path: `/mail/${id}/deliver`,
+        body: body,
+        target: id,
+        confirmToken,
+      });
       if (gate) return gate;
       const data = await client.request('POST', `/mail/${id}/deliver`, body);
       return minifiedResult(data);
@@ -155,25 +158,26 @@ export function registerMailTools(server: McpServer, client: IOfficeClient): voi
   server.registerTool(
     'io_return_mail',
     {
-      description:
-        'Mark an iOffice mail item as returned to sender. Without confirm:true this returns a dry-run preview and makes NO network call; with confirm:true it executes. ' +
-        CONFIRM_RULE,
+      description: 'Mark an iOffice mail item as returned to sender. ' + CONFIRM_DESCRIPTION,
       inputSchema: z.object({
         id: z.number().describe('Mail item ID'),
         reason: z.string().describe('Reason for return').optional(),
-        confirm: schemaConfirm,
+        confirmToken: confirmTokenParam,
       }),
       annotations: { readOnlyHint: false, destructiveHint: true },
     },
-    async ({ id, confirm, reason }) => {
+    async ({ id, confirmToken, reason }, ctx) => {
       const body = optionalBody({ reason }, ['reason']);
-      const gate = previewUnlessConfirmed(
-        confirm,
-        `Return iOffice mail item ${id}`,
-        'POST',
-        `/mail/${id}/return`,
-        body,
-      );
+      const gate = await confirmWrite(ctx, {
+        tool: 'io_return_mail',
+        action: 'mail.return',
+        summary: `Return iOffice mail item ${id}`,
+        method: 'POST',
+        path: `/mail/${id}/return`,
+        body: body,
+        target: id,
+        confirmToken,
+      });
       if (gate) return gate;
       const data = await client.request('POST', `/mail/${id}/return`, body);
       return minifiedResult(data);

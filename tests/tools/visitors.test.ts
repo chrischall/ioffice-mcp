@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, afterEach } from 'vitest';
 import { McpServer } from '@modelcontextprotocol/server';
 import type { IOfficeClient } from '../../src/client.js';
+import { toolCallers } from '../confirm-helpers.js';
 import { registerVisitorTools } from '../../src/tools/visitors.js';
 
 const mockClient = { request: vi.fn() } as unknown as IOfficeClient;
@@ -8,9 +9,7 @@ const mockClient = { request: vi.fn() } as unknown as IOfficeClient;
 function setup() {
   const server = new McpServer({ name: 'test', version: '0.0.0' });
   registerVisitorTools(server, mockClient);
-  const call = (name: string, args: Record<string, unknown> = {}) =>
-    (server as any)._registeredTools[name].handler(args, {});
-  return { server, call };
+  return { server, ...toolCallers((s) => registerVisitorTools(s, mockClient)) };
 }
 
 afterEach(() => vi.clearAllMocks());
@@ -58,26 +57,25 @@ describe('io_get_visitor', () => {
 
 describe('io_create_visitor', () => {
   it('calls POST /visitors with args', async () => {
-    const { call } = setup();
+    const { callConfirmed } = setup();
     mockClient.request = vi.fn().mockResolvedValue({ id: 201 });
     const args = {
       firstName: 'Bob',
       lastName: 'Jones',
       email: 'bob@example.com',
     };
-    await call('io_create_visitor', { ...args, confirm: true });
+    await callConfirmed('io_create_visitor', { ...args });
     expect(mockClient.request).toHaveBeenCalledWith('POST', '/visitors', args);
   });
 });
 
 describe('io_update_visitor', () => {
   it('calls PUT /visitors/{id} without id in body', async () => {
-    const { call } = setup();
+    const { callConfirmed } = setup();
     mockClient.request = vi.fn().mockResolvedValue({ id: 201 });
-    await call('io_update_visitor', {
+    await callConfirmed('io_update_visitor', {
       id: 201,
       company: 'Acme',
-      confirm: true,
     });
     expect(mockClient.request).toHaveBeenCalledWith('PUT', '/visitors/201', {
       company: 'Acme',
@@ -87,24 +85,24 @@ describe('io_update_visitor', () => {
 
 describe('io_checkin_visitor', () => {
   it('calls POST /visitors/{id}/checkIn', async () => {
-    const { call } = setup();
+    const { callConfirmed } = setup();
     mockClient.request = vi.fn().mockResolvedValue({ status: 'checked_in' });
-    await call('io_checkin_visitor', { id: 201, confirm: true });
+    await callConfirmed('io_checkin_visitor', { id: 201 });
     expect(mockClient.request).toHaveBeenCalledWith('POST', '/visitors/201/checkIn');
   });
 });
 
 describe('io_checkout_visitor', () => {
   it('calls POST /visitors/{id}/checkOut', async () => {
-    const { call } = setup();
+    const { callConfirmed } = setup();
     mockClient.request = vi.fn().mockResolvedValue({ status: 'checked_out' });
-    await call('io_checkout_visitor', { id: 201, confirm: true });
+    await callConfirmed('io_checkout_visitor', { id: 201 });
     expect(mockClient.request).toHaveBeenCalledWith('POST', '/visitors/201/checkOut');
   });
 });
 
-describe('confirm-gate - visitors', () => {
-  it('io_create_visitor without confirm returns dry-run and makes NO request', async () => {
+describe('confirm gate - visitors', () => {
+  it('io_create_visitor without confirmToken returns a preview and makes NO request', async () => {
     const { call } = setup();
     mockClient.request = vi.fn();
     const result = await call('io_create_visitor', {
@@ -114,11 +112,11 @@ describe('confirm-gate - visitors', () => {
     });
     expect(mockClient.request).not.toHaveBeenCalled();
     const payload = JSON.parse(result.content[0].text as string);
-    expect(payload.dryRun).toBe(true);
-    expect(payload.willSend).not.toHaveProperty('confirm');
+    expect(payload.status).toBe('confirmation-required');
+    expect(payload.preview.willSend).not.toHaveProperty('confirmToken');
   });
 
-  it('io_update_visitor without confirm returns dry-run and makes NO request', async () => {
+  it('io_update_visitor without confirmToken returns a preview and makes NO request', async () => {
     const { call } = setup();
     mockClient.request = vi.fn();
     const result = await call('io_update_visitor', {
@@ -126,22 +124,22 @@ describe('confirm-gate - visitors', () => {
       company: 'Acme',
     });
     expect(mockClient.request).not.toHaveBeenCalled();
-    expect(JSON.parse(result.content[0].text as string).dryRun).toBe(true);
+    expect(JSON.parse(result.content[0].text as string).status).toBe('confirmation-required');
   });
 
-  it('io_checkin_visitor without confirm returns dry-run and makes NO request', async () => {
+  it('io_checkin_visitor without confirmToken returns a preview and makes NO request', async () => {
     const { call } = setup();
     mockClient.request = vi.fn();
     const result = await call('io_checkin_visitor', { id: 201 });
     expect(mockClient.request).not.toHaveBeenCalled();
-    expect(JSON.parse(result.content[0].text as string).dryRun).toBe(true);
+    expect(JSON.parse(result.content[0].text as string).status).toBe('confirmation-required');
   });
 
-  it('io_checkout_visitor without confirm returns dry-run and makes NO request', async () => {
+  it('io_checkout_visitor without confirmToken returns a preview and makes NO request', async () => {
     const { call } = setup();
     mockClient.request = vi.fn();
     const result = await call('io_checkout_visitor', { id: 201 });
     expect(mockClient.request).not.toHaveBeenCalled();
-    expect(JSON.parse(result.content[0].text as string).dryRun).toBe(true);
+    expect(JSON.parse(result.content[0].text as string).status).toBe('confirmation-required');
   });
 });

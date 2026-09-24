@@ -4,7 +4,7 @@ import type { IOfficeClient } from '../client.js';
 import { buildQueryString } from '../client.js';
 import { minifiedResult } from '@chrischall/mcp-utils';
 import { viewArg, viewResponse } from '../view.js';
-import { CONFIRM_RULE, previewUnlessConfirmed, schemaConfirm } from './_confirm.js';
+import { CONFIRM_DESCRIPTION, confirmTokenParam, confirmWrite } from './_confirm.js';
 
 export function registerUserTools(server: McpServer, client: IOfficeClient): void {
   server.registerTool(
@@ -53,9 +53,7 @@ export function registerUserTools(server: McpServer, client: IOfficeClient): voi
   server.registerTool(
     'io_create_user',
     {
-      description:
-        'Create a new iOffice user. Without confirm:true this returns a dry-run preview and makes NO network call; with confirm:true it executes. ' +
-        CONFIRM_RULE,
+      description: 'Create a new iOffice user. ' + CONFIRM_DESCRIPTION,
       inputSchema: z.object({
         firstName: z.string().describe('First name'),
         lastName: z.string().describe('Last name'),
@@ -65,12 +63,20 @@ export function registerUserTools(server: McpServer, client: IOfficeClient): voi
         title: z.string().describe('Job title').optional(),
         centerId: z.number().describe('Primary center/cost center ID').optional(),
         buildingId: z.number().describe('Default building ID').optional(),
-        confirm: schemaConfirm,
+        confirmToken: confirmTokenParam,
       }),
       annotations: { readOnlyHint: false, destructiveHint: true },
     },
-    async ({ confirm, ...args }) => {
-      const gate = previewUnlessConfirmed(confirm, 'Create iOffice user', 'POST', '/users', args);
+    async ({ confirmToken, ...args }, ctx) => {
+      const gate = await confirmWrite(ctx, {
+        tool: 'io_create_user',
+        action: 'user.create',
+        summary: 'Create iOffice user',
+        method: 'POST',
+        path: '/users',
+        body: args,
+        confirmToken,
+      });
       if (gate) return gate;
       const data = await client.request('POST', '/users', args);
       return minifiedResult(data);
@@ -81,8 +87,7 @@ export function registerUserTools(server: McpServer, client: IOfficeClient): voi
     'io_update_user',
     {
       description:
-        'Update an existing iOffice user. Only provide fields to change. Without confirm:true this returns a dry-run preview and makes NO network call; with confirm:true it executes. ' +
-        CONFIRM_RULE,
+        'Update an existing iOffice user. Only provide fields to change. ' + CONFIRM_DESCRIPTION,
       inputSchema: z.object({
         id: z.number().describe('User ID'),
         firstName: z.string().describe('First name').optional(),
@@ -92,18 +97,21 @@ export function registerUserTools(server: McpServer, client: IOfficeClient): voi
         title: z.string().describe('Job title').optional(),
         centerId: z.number().describe('Primary center/cost center ID').optional(),
         buildingId: z.number().describe('Default building ID').optional(),
-        confirm: schemaConfirm,
+        confirmToken: confirmTokenParam,
       }),
       annotations: { readOnlyHint: false, destructiveHint: true },
     },
-    async ({ id, confirm, ...body }) => {
-      const gate = previewUnlessConfirmed(
-        confirm,
-        `Update iOffice user ${id}`,
-        'PUT',
-        `/users/${id}`,
-        body,
-      );
+    async ({ id, confirmToken, ...body }, ctx) => {
+      const gate = await confirmWrite(ctx, {
+        tool: 'io_update_user',
+        action: 'user.update',
+        summary: `Update iOffice user ${id}`,
+        method: 'PUT',
+        path: `/users/${id}`,
+        body: body,
+        target: id,
+        confirmToken,
+      });
       if (gate) return gate;
       const data = await client.request('PUT', `/users/${id}`, body);
       return minifiedResult(data);
@@ -113,22 +121,23 @@ export function registerUserTools(server: McpServer, client: IOfficeClient): voi
   server.registerTool(
     'io_delete_user',
     {
-      description:
-        'Delete an iOffice user by ID. Without confirm:true this returns a dry-run preview and makes NO network call; with confirm:true it executes. ' +
-        CONFIRM_RULE,
+      description: 'Delete an iOffice user by ID. ' + CONFIRM_DESCRIPTION,
       inputSchema: z.object({
         id: z.number().describe('User ID'),
-        confirm: schemaConfirm,
+        confirmToken: confirmTokenParam,
       }),
       annotations: { readOnlyHint: false, destructiveHint: true },
     },
-    async ({ id, confirm }) => {
-      const gate = previewUnlessConfirmed(
-        confirm,
-        `Delete iOffice user ${id}`,
-        'DELETE',
-        `/users/${id}`,
-      );
+    async ({ id, confirmToken }, ctx) => {
+      const gate = await confirmWrite(ctx, {
+        tool: 'io_delete_user',
+        action: 'user.delete',
+        summary: `Delete iOffice user ${id}`,
+        method: 'DELETE',
+        path: `/users/${id}`,
+        target: id,
+        confirmToken,
+      });
       if (gate) return gate;
       const data = await client.request('DELETE', `/users/${id}`);
       // iOffice DELETEs return 204 No Content; the client resolves that to

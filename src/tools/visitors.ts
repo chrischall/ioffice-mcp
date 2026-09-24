@@ -4,7 +4,7 @@ import type { IOfficeClient } from '../client.js';
 import { buildQueryString } from '../client.js';
 import { minifiedResult } from '@chrischall/mcp-utils';
 import { viewArg, viewResponse } from '../view.js';
-import { CONFIRM_RULE, previewUnlessConfirmed, schemaConfirm } from './_confirm.js';
+import { CONFIRM_DESCRIPTION, confirmTokenParam, confirmWrite } from './_confirm.js';
 
 export function registerVisitorTools(server: McpServer, client: IOfficeClient): void {
   server.registerTool(
@@ -75,9 +75,7 @@ export function registerVisitorTools(server: McpServer, client: IOfficeClient): 
   server.registerTool(
     'io_create_visitor',
     {
-      description:
-        'Pre-register a visitor in iOffice. Without confirm:true this returns a dry-run preview and makes NO network call; with confirm:true it executes. ' +
-        CONFIRM_RULE,
+      description: 'Pre-register a visitor in iOffice. ' + CONFIRM_DESCRIPTION,
       inputSchema: z.object({
         firstName: z.string().describe('Visitor first name'),
         lastName: z.string().describe('Visitor last name'),
@@ -92,18 +90,20 @@ export function registerVisitorTools(server: McpServer, client: IOfficeClient): 
           .describe('Expected departure date/time (ISO 8601)')
           .optional(),
         purpose: z.string().describe('Purpose of visit').optional(),
-        confirm: schemaConfirm,
+        confirmToken: confirmTokenParam,
       }),
       annotations: { readOnlyHint: false, destructiveHint: true },
     },
-    async ({ confirm, ...args }) => {
-      const gate = previewUnlessConfirmed(
-        confirm,
-        'Create iOffice visitor',
-        'POST',
-        '/visitors',
-        args,
-      );
+    async ({ confirmToken, ...args }, ctx) => {
+      const gate = await confirmWrite(ctx, {
+        tool: 'io_create_visitor',
+        action: 'visitor.create',
+        summary: 'Create iOffice visitor',
+        method: 'POST',
+        path: '/visitors',
+        body: args,
+        confirmToken,
+      });
       if (gate) return gate;
       const data = await client.request('POST', '/visitors', args);
       return minifiedResult(data);
@@ -114,8 +114,8 @@ export function registerVisitorTools(server: McpServer, client: IOfficeClient): 
     'io_update_visitor',
     {
       description:
-        'Update an existing iOffice visitor record. Only provide fields to change. Without confirm:true this returns a dry-run preview and makes NO network call; with confirm:true it executes. ' +
-        CONFIRM_RULE,
+        'Update an existing iOffice visitor record. Only provide fields to change. ' +
+        CONFIRM_DESCRIPTION,
       inputSchema: z.object({
         id: z.number().describe('Visitor ID'),
         firstName: z.string().describe('Visitor first name').optional(),
@@ -129,18 +129,21 @@ export function registerVisitorTools(server: McpServer, client: IOfficeClient): 
           .describe('Expected departure date/time (ISO 8601)')
           .optional(),
         purpose: z.string().describe('Purpose of visit').optional(),
-        confirm: schemaConfirm,
+        confirmToken: confirmTokenParam,
       }),
       annotations: { readOnlyHint: false, destructiveHint: true },
     },
-    async ({ id, confirm, ...body }) => {
-      const gate = previewUnlessConfirmed(
-        confirm,
-        `Update iOffice visitor ${id}`,
-        'PUT',
-        `/visitors/${id}`,
-        body,
-      );
+    async ({ id, confirmToken, ...body }, ctx) => {
+      const gate = await confirmWrite(ctx, {
+        tool: 'io_update_visitor',
+        action: 'visitor.update',
+        summary: `Update iOffice visitor ${id}`,
+        method: 'PUT',
+        path: `/visitors/${id}`,
+        body: body,
+        target: id,
+        confirmToken,
+      });
       if (gate) return gate;
       const data = await client.request('PUT', `/visitors/${id}`, body);
       return minifiedResult(data);
@@ -150,22 +153,23 @@ export function registerVisitorTools(server: McpServer, client: IOfficeClient): 
   server.registerTool(
     'io_checkin_visitor',
     {
-      description:
-        'Check in a visitor upon arrival at the building. Without confirm:true this returns a dry-run preview and makes NO network call; with confirm:true it executes. ' +
-        CONFIRM_RULE,
+      description: 'Check in a visitor upon arrival at the building. ' + CONFIRM_DESCRIPTION,
       inputSchema: z.object({
         id: z.number().describe('Visitor ID'),
-        confirm: schemaConfirm,
+        confirmToken: confirmTokenParam,
       }),
       annotations: { readOnlyHint: false, destructiveHint: true },
     },
-    async ({ id, confirm }) => {
-      const gate = previewUnlessConfirmed(
-        confirm,
-        `Check in iOffice visitor ${id}`,
-        'POST',
-        `/visitors/${id}/checkIn`,
-      );
+    async ({ id, confirmToken }, ctx) => {
+      const gate = await confirmWrite(ctx, {
+        tool: 'io_checkin_visitor',
+        action: 'visitor.checkin',
+        summary: `Check in iOffice visitor ${id}`,
+        method: 'POST',
+        path: `/visitors/${id}/checkIn`,
+        target: id,
+        confirmToken,
+      });
       if (gate) return gate;
       const data = await client.request('POST', `/visitors/${id}/checkIn`);
       return minifiedResult(data);
@@ -175,22 +179,23 @@ export function registerVisitorTools(server: McpServer, client: IOfficeClient): 
   server.registerTool(
     'io_checkout_visitor',
     {
-      description:
-        'Check out a visitor upon departure from the building. Without confirm:true this returns a dry-run preview and makes NO network call; with confirm:true it executes. ' +
-        CONFIRM_RULE,
+      description: 'Check out a visitor upon departure from the building. ' + CONFIRM_DESCRIPTION,
       inputSchema: z.object({
         id: z.number().describe('Visitor ID'),
-        confirm: schemaConfirm,
+        confirmToken: confirmTokenParam,
       }),
       annotations: { readOnlyHint: false, destructiveHint: true },
     },
-    async ({ id, confirm }) => {
-      const gate = previewUnlessConfirmed(
-        confirm,
-        `Check out iOffice visitor ${id}`,
-        'POST',
-        `/visitors/${id}/checkOut`,
-      );
+    async ({ id, confirmToken }, ctx) => {
+      const gate = await confirmWrite(ctx, {
+        tool: 'io_checkout_visitor',
+        action: 'visitor.checkout',
+        summary: `Check out iOffice visitor ${id}`,
+        method: 'POST',
+        path: `/visitors/${id}/checkOut`,
+        target: id,
+        confirmToken,
+      });
       if (gate) return gate;
       const data = await client.request('POST', `/visitors/${id}/checkOut`);
       return minifiedResult(data);

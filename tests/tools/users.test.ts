@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, afterEach } from 'vitest';
 import { McpServer } from '@modelcontextprotocol/server';
 import type { IOfficeClient } from '../../src/client.js';
+import { toolCallers } from '../confirm-helpers.js';
 import { registerUserTools } from '../../src/tools/users.js';
 
 const mockClient = { request: vi.fn() } as unknown as IOfficeClient;
@@ -8,9 +9,7 @@ const mockClient = { request: vi.fn() } as unknown as IOfficeClient;
 function setup() {
   const server = new McpServer({ name: 'test', version: '0.0.0' });
   registerUserTools(server, mockClient);
-  const call = (name: string, args: Record<string, unknown> = {}) =>
-    (server as any)._registeredTools[name].handler(args, {});
-  return { server, call };
+  return { server, ...toolCallers((s) => registerUserTools(s, mockClient)) };
 }
 
 afterEach(() => vi.clearAllMocks());
@@ -54,13 +53,12 @@ describe('io_get_user', () => {
 
 describe('io_create_user', () => {
   it('calls POST /users with args', async () => {
-    const { call } = setup();
+    const { callConfirmed } = setup();
     mockClient.request = vi.fn().mockResolvedValue({ id: 43 });
-    await call('io_create_user', {
+    await callConfirmed('io_create_user', {
       firstName: 'Alice',
       lastName: 'Smith',
       email: 'alice@example.com',
-      confirm: true,
     });
     expect(mockClient.request).toHaveBeenCalledWith('POST', '/users', {
       firstName: 'Alice',
@@ -72,9 +70,9 @@ describe('io_create_user', () => {
 
 describe('io_update_user', () => {
   it('calls PUT /users/{id} without id in body', async () => {
-    const { call } = setup();
+    const { callConfirmed } = setup();
     mockClient.request = vi.fn().mockResolvedValue({ id: 43 });
-    await call('io_update_user', { id: 43, title: 'Engineer', confirm: true });
+    await callConfirmed('io_update_user', { id: 43, title: 'Engineer' });
     expect(mockClient.request).toHaveBeenCalledWith('PUT', '/users/43', {
       title: 'Engineer',
     });
@@ -83,22 +81,22 @@ describe('io_update_user', () => {
 
 describe('io_delete_user', () => {
   it('calls DELETE /users/{id}', async () => {
-    const { call } = setup();
+    const { callConfirmed } = setup();
     mockClient.request = vi.fn().mockResolvedValue({ success: true });
-    await call('io_delete_user', { id: 43, confirm: true });
+    await callConfirmed('io_delete_user', { id: 43 });
     expect(mockClient.request).toHaveBeenCalledWith('DELETE', '/users/43');
   });
 
   it('returns a success result when the API responds 204 No Content', async () => {
-    const { call } = setup();
+    const { callConfirmed } = setup();
     mockClient.request = vi.fn().mockResolvedValue(undefined);
-    const result = await call('io_delete_user', { id: 43, confirm: true });
+    const result = await callConfirmed('io_delete_user', { id: 43 });
     expect(JSON.parse(result.content[0].text)).toEqual({ success: true });
   });
 });
 
-describe('confirm-gate - users', () => {
-  it('io_create_user without confirm returns dry-run and makes NO request', async () => {
+describe('confirm gate - users', () => {
+  it('io_create_user without confirmToken returns a preview and makes NO request', async () => {
     const { call } = setup();
     mockClient.request = vi.fn();
     const result = await call('io_create_user', {
@@ -108,23 +106,23 @@ describe('confirm-gate - users', () => {
     });
     expect(mockClient.request).not.toHaveBeenCalled();
     const payload = JSON.parse(result.content[0].text as string);
-    expect(payload.dryRun).toBe(true);
-    expect(payload.willSend).not.toHaveProperty('confirm');
+    expect(payload.status).toBe('confirmation-required');
+    expect(payload.preview.willSend).not.toHaveProperty('confirmToken');
   });
 
-  it('io_update_user without confirm returns dry-run and makes NO request', async () => {
+  it('io_update_user without confirmToken returns a preview and makes NO request', async () => {
     const { call } = setup();
     mockClient.request = vi.fn();
     const result = await call('io_update_user', { id: 43, title: 'Engineer' });
     expect(mockClient.request).not.toHaveBeenCalled();
-    expect(JSON.parse(result.content[0].text as string).dryRun).toBe(true);
+    expect(JSON.parse(result.content[0].text as string).status).toBe('confirmation-required');
   });
 
-  it('io_delete_user without confirm returns dry-run and makes NO request', async () => {
+  it('io_delete_user without confirmToken returns a preview and makes NO request', async () => {
     const { call } = setup();
     mockClient.request = vi.fn();
     const result = await call('io_delete_user', { id: 43 });
     expect(mockClient.request).not.toHaveBeenCalled();
-    expect(JSON.parse(result.content[0].text as string).dryRun).toBe(true);
+    expect(JSON.parse(result.content[0].text as string).status).toBe('confirmation-required');
   });
 });
