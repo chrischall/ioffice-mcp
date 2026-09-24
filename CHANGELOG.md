@@ -1,5 +1,12 @@
 # Changelog
 
+## [3.2.0](https://github.com/chrischall/ioffice-mcp/compare/v3.1.2...v3.2.0) (2026-09-24)
+
+
+### Features
+
+* confirm writes with a preview token instead of confirm: true ([#165](https://github.com/chrischall/ioffice-mcp/issues/165)) ([f003e79](https://github.com/chrischall/ioffice-mcp/commit/f003e79d2ad794654cd69aa38740d0ed1bd33868))
+
 ## [3.1.2](https://github.com/chrischall/ioffice-mcp/compare/v3.1.1...v3.1.2) (2026-09-23)
 
 
