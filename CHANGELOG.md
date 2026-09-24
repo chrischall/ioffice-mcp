@@ -1,5 +1,12 @@
 # Changelog
 
+## [3.2.1](https://github.com/chrischall/ioffice-mcp/compare/v3.2.0...v3.2.1) (2026-09-24)
+
+
+### Bug Fixes
+
+* **deps:** bump dotenv from 17.4.2 to 18.0.2 in the production-majors group ([#169](https://github.com/chrischall/ioffice-mcp/issues/169)) ([6a99103](https://github.com/chrischall/ioffice-mcp/commit/6a9910325d58541f7dfcb827c682e36608fc64e8))
+
 ## [3.2.0](https://github.com/chrischall/ioffice-mcp/compare/v3.1.2...v3.2.0) (2026-09-24)
 
 
