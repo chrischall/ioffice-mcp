@@ -4,7 +4,12 @@ import type { IOfficeClient } from '../client.js';
 import { buildQueryString, optionalBody } from '../client.js';
 import { minifiedResult } from '@chrischall/mcp-utils';
 import { viewArg, viewResponse } from '../view.js';
-import { CONFIRM_DESCRIPTION, confirmTokenParam, confirmWrite } from './_confirm.js';
+import {
+  CONFIRM_DESCRIPTION,
+  CONFIRM_PREVIEW,
+  confirmTokenParam,
+  confirmWrite,
+} from './_confirm.js';
 
 export function registerMailTools(server: McpServer, client: IOfficeClient): void {
   server.registerTool(
@@ -110,9 +115,9 @@ export function registerMailTools(server: McpServer, client: IOfficeClient): voi
         tool: 'io_create_mail',
         action: 'mail.create',
         summary: 'Create iOffice mail item',
-        method: 'POST',
-        path: '/mail',
-        body: args,
+        account: undefined,
+        request: { method: 'POST', path: '/mail', body: args },
+        preview: CONFIRM_PREVIEW,
         confirmToken,
       });
       if (gate) return gate;
@@ -143,10 +148,10 @@ export function registerMailTools(server: McpServer, client: IOfficeClient): voi
         tool: 'io_deliver_mail',
         action: 'mail.deliver',
         summary: `Deliver iOffice mail item ${id}`,
-        method: 'POST',
-        path: `/mail/${id}/deliver`,
-        body: body,
+        account: undefined,
+        request: { method: 'POST', path: `/mail/${id}/deliver`, body },
         target: id,
+        preview: CONFIRM_PREVIEW,
         confirmToken,
       });
       if (gate) return gate;
@@ -172,10 +177,10 @@ export function registerMailTools(server: McpServer, client: IOfficeClient): voi
         tool: 'io_return_mail',
         action: 'mail.return',
         summary: `Return iOffice mail item ${id}`,
-        method: 'POST',
-        path: `/mail/${id}/return`,
-        body: body,
+        account: undefined,
+        request: { method: 'POST', path: `/mail/${id}/return`, body },
         target: id,
+        preview: CONFIRM_PREVIEW,
         confirmToken,
       });
       if (gate) return gate;

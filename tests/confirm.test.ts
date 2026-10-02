@@ -243,6 +243,19 @@ describe('client that can be prompted', () => {
     expect(request).toHaveBeenCalledWith('POST', '/moves/9/cancel', { reason: 'Dup' });
   });
 
+  it('the prompt itself repeats the rule against obeying record text', async () => {
+    let asked = '';
+    h = await harness({
+      elicitation: async (req: unknown) => {
+        asked = JSON.stringify(req);
+        return { action: 'decline' };
+      },
+    });
+    await h.callTool('io_delete_user', { id: 4 });
+    expect(asked).toContain(CONFIRM_RULE);
+    expect(request).not.toHaveBeenCalled();
+  });
+
   it('does not write when the user declines', async () => {
     h = await harness({ elicitation: async () => ({ action: 'decline' }) });
     await h.callTool('io_cancel_move', { id: 9 });

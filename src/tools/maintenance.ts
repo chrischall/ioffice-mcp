@@ -4,7 +4,12 @@ import type { IOfficeClient } from '../client.js';
 import { buildQueryString, optionalBody } from '../client.js';
 import { minifiedResult } from '@chrischall/mcp-utils';
 import { viewArg, viewResponse } from '../view.js';
-import { CONFIRM_DESCRIPTION, confirmTokenParam, confirmWrite } from './_confirm.js';
+import {
+  CONFIRM_DESCRIPTION,
+  CONFIRM_PREVIEW,
+  confirmTokenParam,
+  confirmWrite,
+} from './_confirm.js';
 
 export function registerMaintenanceTools(server: McpServer, client: IOfficeClient): void {
   server.registerTool(
@@ -94,9 +99,9 @@ export function registerMaintenanceTools(server: McpServer, client: IOfficeClien
         tool: 'io_create_maintenance_request',
         action: 'maintenance_request.create',
         summary: 'Create iOffice maintenance request',
-        method: 'POST',
-        path: '/maintenanceRequests',
-        body: args,
+        account: undefined,
+        request: { method: 'POST', path: '/maintenanceRequests', body: args },
+        preview: CONFIRM_PREVIEW,
         confirmToken,
       });
       if (gate) return gate;
@@ -126,10 +131,10 @@ export function registerMaintenanceTools(server: McpServer, client: IOfficeClien
         tool: 'io_update_maintenance_request',
         action: 'maintenance_request.update',
         summary: `Update iOffice maintenance request ${id}`,
-        method: 'PUT',
-        path: `/maintenanceRequests/${id}`,
-        body: body,
+        account: undefined,
+        request: { method: 'PUT', path: `/maintenanceRequests/${id}`, body },
         target: id,
+        preview: CONFIRM_PREVIEW,
         confirmToken,
       });
       if (gate) return gate;
@@ -155,9 +160,10 @@ export function registerMaintenanceTools(server: McpServer, client: IOfficeClien
         tool: 'io_accept_maintenance_request',
         action: 'maintenance_request.accept',
         summary: `Accept iOffice maintenance request ${id}`,
-        method: 'POST',
-        path: `/maintenanceRequests/${id}/accept`,
+        account: undefined,
+        request: { method: 'POST', path: `/maintenanceRequests/${id}/accept` },
         target: id,
+        preview: CONFIRM_PREVIEW,
         confirmToken,
       });
       if (gate) return gate;
@@ -183,9 +189,10 @@ export function registerMaintenanceTools(server: McpServer, client: IOfficeClien
         tool: 'io_start_maintenance_request',
         action: 'maintenance_request.start',
         summary: `Start iOffice maintenance request ${id}`,
-        method: 'POST',
-        path: `/maintenanceRequests/${id}/start`,
+        account: undefined,
+        request: { method: 'POST', path: `/maintenanceRequests/${id}/start` },
         target: id,
+        preview: CONFIRM_PREVIEW,
         confirmToken,
       });
       if (gate) return gate;
@@ -211,10 +218,10 @@ export function registerMaintenanceTools(server: McpServer, client: IOfficeClien
         tool: 'io_complete_maintenance_request',
         action: 'maintenance_request.complete',
         summary: `Complete iOffice maintenance request ${id}`,
-        method: 'POST',
-        path: `/maintenanceRequests/${id}/complete`,
-        body: body,
+        account: undefined,
+        request: { method: 'POST', path: `/maintenanceRequests/${id}/complete`, body },
         target: id,
+        preview: CONFIRM_PREVIEW,
         confirmToken,
       });
       if (gate) return gate;
@@ -238,9 +245,10 @@ export function registerMaintenanceTools(server: McpServer, client: IOfficeClien
         tool: 'io_archive_maintenance_request',
         action: 'maintenance_request.archive',
         summary: `Archive iOffice maintenance request ${id}`,
-        method: 'POST',
-        path: `/maintenanceRequests/${id}/archive`,
+        account: undefined,
+        request: { method: 'POST', path: `/maintenanceRequests/${id}/archive` },
         target: id,
+        preview: CONFIRM_PREVIEW,
         confirmToken,
       });
       if (gate) return gate;
