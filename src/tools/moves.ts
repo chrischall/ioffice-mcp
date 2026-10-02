@@ -4,7 +4,12 @@ import type { IOfficeClient } from '../client.js';
 import { buildQueryString, optionalBody } from '../client.js';
 import { minifiedResult } from '@chrischall/mcp-utils';
 import { viewArg, viewResponse } from '../view.js';
-import { CONFIRM_DESCRIPTION, confirmTokenParam, confirmWrite } from './_confirm.js';
+import {
+  CONFIRM_DESCRIPTION,
+  CONFIRM_PREVIEW,
+  confirmTokenParam,
+  confirmWrite,
+} from './_confirm.js';
 
 export function registerMoveTools(server: McpServer, client: IOfficeClient): void {
   server.registerTool(
@@ -97,9 +102,9 @@ export function registerMoveTools(server: McpServer, client: IOfficeClient): voi
         tool: 'io_create_move',
         action: 'move.create',
         summary: 'Create iOffice move request',
-        method: 'POST',
-        path: '/moves',
-        body: args,
+        account: undefined,
+        request: { method: 'POST', path: '/moves', body: args },
+        preview: CONFIRM_PREVIEW,
         confirmToken,
       });
       if (gate) return gate;
@@ -130,10 +135,10 @@ export function registerMoveTools(server: McpServer, client: IOfficeClient): voi
         tool: 'io_update_move',
         action: 'move.update',
         summary: `Update iOffice move request ${id}`,
-        method: 'PUT',
-        path: `/moves/${id}`,
-        body: body,
+        account: undefined,
+        request: { method: 'PUT', path: `/moves/${id}`, body },
         target: id,
+        preview: CONFIRM_PREVIEW,
         confirmToken,
       });
       if (gate) return gate;
@@ -159,10 +164,10 @@ export function registerMoveTools(server: McpServer, client: IOfficeClient): voi
         tool: 'io_approve_move',
         action: 'move.approve',
         summary: `Approve iOffice move request ${id}`,
-        method: 'POST',
-        path: `/moves/${id}/approve`,
-        body: body,
+        account: undefined,
+        request: { method: 'POST', path: `/moves/${id}/approve`, body },
         target: id,
+        preview: CONFIRM_PREVIEW,
         confirmToken,
       });
       if (gate) return gate;
@@ -188,10 +193,10 @@ export function registerMoveTools(server: McpServer, client: IOfficeClient): voi
         tool: 'io_cancel_move',
         action: 'move.cancel',
         summary: `Cancel iOffice move request ${id}`,
-        method: 'POST',
-        path: `/moves/${id}/cancel`,
-        body: body,
+        account: undefined,
+        request: { method: 'POST', path: `/moves/${id}/cancel`, body },
         target: id,
+        preview: CONFIRM_PREVIEW,
         confirmToken,
       });
       if (gate) return gate;

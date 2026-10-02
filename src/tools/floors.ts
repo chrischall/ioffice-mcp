@@ -4,7 +4,12 @@ import type { IOfficeClient } from '../client.js';
 import { buildQueryString } from '../client.js';
 import { minifiedResult } from '@chrischall/mcp-utils';
 import { viewArg, viewResponse } from '../view.js';
-import { CONFIRM_DESCRIPTION, confirmTokenParam, confirmWrite } from './_confirm.js';
+import {
+  CONFIRM_DESCRIPTION,
+  CONFIRM_PREVIEW,
+  confirmTokenParam,
+  confirmWrite,
+} from './_confirm.js';
 
 export function registerFloorTools(server: McpServer, client: IOfficeClient): void {
   server.registerTool(
@@ -71,9 +76,9 @@ export function registerFloorTools(server: McpServer, client: IOfficeClient): vo
         tool: 'io_create_floor',
         action: 'floor.create',
         summary: 'Create iOffice floor',
-        method: 'POST',
-        path: '/floors',
-        body: args,
+        account: undefined,
+        request: { method: 'POST', path: '/floors', body: args },
+        preview: CONFIRM_PREVIEW,
         confirmToken,
       });
       if (gate) return gate;
@@ -102,10 +107,10 @@ export function registerFloorTools(server: McpServer, client: IOfficeClient): vo
         tool: 'io_update_floor',
         action: 'floor.update',
         summary: `Update iOffice floor ${id}`,
-        method: 'PUT',
-        path: `/floors/${id}`,
-        body: body,
+        account: undefined,
+        request: { method: 'PUT', path: `/floors/${id}`, body },
         target: id,
+        preview: CONFIRM_PREVIEW,
         confirmToken,
       });
       if (gate) return gate;
@@ -129,9 +134,10 @@ export function registerFloorTools(server: McpServer, client: IOfficeClient): vo
         tool: 'io_delete_floor',
         action: 'floor.delete',
         summary: `Delete iOffice floor ${id}`,
-        method: 'DELETE',
-        path: `/floors/${id}`,
+        account: undefined,
+        request: { method: 'DELETE', path: `/floors/${id}` },
         target: id,
+        preview: CONFIRM_PREVIEW,
         confirmToken,
       });
       if (gate) return gate;

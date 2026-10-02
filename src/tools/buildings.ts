@@ -4,7 +4,12 @@ import type { IOfficeClient } from '../client.js';
 import { buildQueryString } from '../client.js';
 import { minifiedResult } from '@chrischall/mcp-utils';
 import { viewArg, viewResponse } from '../view.js';
-import { CONFIRM_DESCRIPTION, confirmTokenParam, confirmWrite } from './_confirm.js';
+import {
+  CONFIRM_DESCRIPTION,
+  CONFIRM_PREVIEW,
+  confirmTokenParam,
+  confirmWrite,
+} from './_confirm.js';
 
 export function registerBuildingTools(server: McpServer, client: IOfficeClient): void {
   server.registerTool(
@@ -74,9 +79,9 @@ export function registerBuildingTools(server: McpServer, client: IOfficeClient):
         tool: 'io_create_building',
         action: 'building.create',
         summary: 'Create iOffice building',
-        method: 'POST',
-        path: '/buildings',
-        body: args,
+        account: undefined,
+        request: { method: 'POST', path: '/buildings', body: args },
+        preview: CONFIRM_PREVIEW,
         confirmToken,
       });
       if (gate) return gate;
@@ -112,10 +117,10 @@ export function registerBuildingTools(server: McpServer, client: IOfficeClient):
         tool: 'io_update_building',
         action: 'building.update',
         summary: `Update iOffice building ${id}`,
-        method: 'PUT',
-        path: `/buildings/${id}`,
-        body: body,
+        account: undefined,
+        request: { method: 'PUT', path: `/buildings/${id}`, body },
         target: id,
+        preview: CONFIRM_PREVIEW,
         confirmToken,
       });
       if (gate) return gate;
@@ -139,9 +144,10 @@ export function registerBuildingTools(server: McpServer, client: IOfficeClient):
         tool: 'io_delete_building',
         action: 'building.delete',
         summary: `Delete iOffice building ${id}`,
-        method: 'DELETE',
-        path: `/buildings/${id}`,
+        account: undefined,
+        request: { method: 'DELETE', path: `/buildings/${id}` },
         target: id,
+        preview: CONFIRM_PREVIEW,
         confirmToken,
       });
       if (gate) return gate;

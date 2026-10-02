@@ -4,7 +4,12 @@ import type { IOfficeClient } from '../client.js';
 import { buildQueryString } from '../client.js';
 import { minifiedResult } from '@chrischall/mcp-utils';
 import { viewArg, viewResponse } from '../view.js';
-import { CONFIRM_DESCRIPTION, confirmTokenParam, confirmWrite } from './_confirm.js';
+import {
+  CONFIRM_DESCRIPTION,
+  CONFIRM_PREVIEW,
+  confirmTokenParam,
+  confirmWrite,
+} from './_confirm.js';
 
 export function registerReservationTools(server: McpServer, client: IOfficeClient): void {
   server.registerTool(
@@ -99,9 +104,9 @@ export function registerReservationTools(server: McpServer, client: IOfficeClien
         tool: 'io_create_reservation',
         action: 'reservation.create',
         summary: 'Create iOffice reservation',
-        method: 'POST',
-        path: '/reservations',
-        body: args,
+        account: undefined,
+        request: { method: 'POST', path: '/reservations', body: args },
+        preview: CONFIRM_PREVIEW,
         confirmToken,
       });
       if (gate) return gate;
@@ -132,10 +137,10 @@ export function registerReservationTools(server: McpServer, client: IOfficeClien
         tool: 'io_update_reservation',
         action: 'reservation.update',
         summary: `Update iOffice reservation ${id}`,
-        method: 'PUT',
-        path: `/reservations/${id}`,
-        body: body,
+        account: undefined,
+        request: { method: 'PUT', path: `/reservations/${id}`, body },
         target: id,
+        preview: CONFIRM_PREVIEW,
         confirmToken,
       });
       if (gate) return gate;
@@ -159,9 +164,10 @@ export function registerReservationTools(server: McpServer, client: IOfficeClien
         tool: 'io_delete_reservation',
         action: 'reservation.delete',
         summary: `Delete iOffice reservation ${id}`,
-        method: 'DELETE',
-        path: `/reservations/${id}`,
+        account: undefined,
+        request: { method: 'DELETE', path: `/reservations/${id}` },
         target: id,
+        preview: CONFIRM_PREVIEW,
         confirmToken,
       });
       if (gate) return gate;
@@ -188,9 +194,10 @@ export function registerReservationTools(server: McpServer, client: IOfficeClien
         tool: 'io_checkin_reservation',
         action: 'reservation.checkin',
         summary: `Check in iOffice reservation ${id}`,
-        method: 'POST',
-        path: `/reservations/${id}/checkIn`,
+        account: undefined,
+        request: { method: 'POST', path: `/reservations/${id}/checkIn` },
         target: id,
+        preview: CONFIRM_PREVIEW,
         confirmToken,
       });
       if (gate) return gate;
@@ -216,9 +223,10 @@ export function registerReservationTools(server: McpServer, client: IOfficeClien
         tool: 'io_checkout_reservation',
         action: 'reservation.checkout',
         summary: `Check out iOffice reservation ${id}`,
-        method: 'POST',
-        path: `/reservations/${id}/checkOut`,
+        account: undefined,
+        request: { method: 'POST', path: `/reservations/${id}/checkOut` },
         target: id,
+        preview: CONFIRM_PREVIEW,
         confirmToken,
       });
       if (gate) return gate;

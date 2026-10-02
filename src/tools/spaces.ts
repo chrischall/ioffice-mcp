@@ -4,7 +4,12 @@ import type { IOfficeClient } from '../client.js';
 import { buildQueryString } from '../client.js';
 import { minifiedResult } from '@chrischall/mcp-utils';
 import { viewArg, viewResponse } from '../view.js';
-import { CONFIRM_DESCRIPTION, confirmTokenParam, confirmWrite } from './_confirm.js';
+import {
+  CONFIRM_DESCRIPTION,
+  CONFIRM_PREVIEW,
+  confirmTokenParam,
+  confirmWrite,
+} from './_confirm.js';
 
 export function registerSpaceTools(server: McpServer, client: IOfficeClient): void {
   server.registerTool(
@@ -72,9 +77,9 @@ export function registerSpaceTools(server: McpServer, client: IOfficeClient): vo
         tool: 'io_create_space',
         action: 'space.create',
         summary: 'Create iOffice space',
-        method: 'POST',
-        path: '/spaces',
-        body: args,
+        account: undefined,
+        request: { method: 'POST', path: '/spaces', body: args },
+        preview: CONFIRM_PREVIEW,
         confirmToken,
       });
       if (gate) return gate;
@@ -104,10 +109,10 @@ export function registerSpaceTools(server: McpServer, client: IOfficeClient): vo
         tool: 'io_update_space',
         action: 'space.update',
         summary: `Update iOffice space ${id}`,
-        method: 'PUT',
-        path: `/spaces/${id}`,
-        body: body,
+        account: undefined,
+        request: { method: 'PUT', path: `/spaces/${id}`, body },
         target: id,
+        preview: CONFIRM_PREVIEW,
         confirmToken,
       });
       if (gate) return gate;
@@ -131,9 +136,10 @@ export function registerSpaceTools(server: McpServer, client: IOfficeClient): vo
         tool: 'io_delete_space',
         action: 'space.delete',
         summary: `Delete iOffice space ${id}`,
-        method: 'DELETE',
-        path: `/spaces/${id}`,
+        account: undefined,
+        request: { method: 'DELETE', path: `/spaces/${id}` },
         target: id,
+        preview: CONFIRM_PREVIEW,
         confirmToken,
       });
       if (gate) return gate;

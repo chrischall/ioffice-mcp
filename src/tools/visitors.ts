@@ -4,7 +4,12 @@ import type { IOfficeClient } from '../client.js';
 import { buildQueryString } from '../client.js';
 import { minifiedResult } from '@chrischall/mcp-utils';
 import { viewArg, viewResponse } from '../view.js';
-import { CONFIRM_DESCRIPTION, confirmTokenParam, confirmWrite } from './_confirm.js';
+import {
+  CONFIRM_DESCRIPTION,
+  CONFIRM_PREVIEW,
+  confirmTokenParam,
+  confirmWrite,
+} from './_confirm.js';
 
 export function registerVisitorTools(server: McpServer, client: IOfficeClient): void {
   server.registerTool(
@@ -99,9 +104,9 @@ export function registerVisitorTools(server: McpServer, client: IOfficeClient): 
         tool: 'io_create_visitor',
         action: 'visitor.create',
         summary: 'Create iOffice visitor',
-        method: 'POST',
-        path: '/visitors',
-        body: args,
+        account: undefined,
+        request: { method: 'POST', path: '/visitors', body: args },
+        preview: CONFIRM_PREVIEW,
         confirmToken,
       });
       if (gate) return gate;
@@ -138,10 +143,10 @@ export function registerVisitorTools(server: McpServer, client: IOfficeClient): 
         tool: 'io_update_visitor',
         action: 'visitor.update',
         summary: `Update iOffice visitor ${id}`,
-        method: 'PUT',
-        path: `/visitors/${id}`,
-        body: body,
+        account: undefined,
+        request: { method: 'PUT', path: `/visitors/${id}`, body },
         target: id,
+        preview: CONFIRM_PREVIEW,
         confirmToken,
       });
       if (gate) return gate;
@@ -165,9 +170,10 @@ export function registerVisitorTools(server: McpServer, client: IOfficeClient): 
         tool: 'io_checkin_visitor',
         action: 'visitor.checkin',
         summary: `Check in iOffice visitor ${id}`,
-        method: 'POST',
-        path: `/visitors/${id}/checkIn`,
+        account: undefined,
+        request: { method: 'POST', path: `/visitors/${id}/checkIn` },
         target: id,
+        preview: CONFIRM_PREVIEW,
         confirmToken,
       });
       if (gate) return gate;
@@ -191,9 +197,10 @@ export function registerVisitorTools(server: McpServer, client: IOfficeClient): 
         tool: 'io_checkout_visitor',
         action: 'visitor.checkout',
         summary: `Check out iOffice visitor ${id}`,
-        method: 'POST',
-        path: `/visitors/${id}/checkOut`,
+        account: undefined,
+        request: { method: 'POST', path: `/visitors/${id}/checkOut` },
         target: id,
+        preview: CONFIRM_PREVIEW,
         confirmToken,
       });
       if (gate) return gate;

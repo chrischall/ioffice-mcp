@@ -4,7 +4,12 @@ import type { IOfficeClient } from '../client.js';
 import { buildQueryString } from '../client.js';
 import { minifiedResult } from '@chrischall/mcp-utils';
 import { viewArg, viewResponse } from '../view.js';
-import { CONFIRM_DESCRIPTION, confirmTokenParam, confirmWrite } from './_confirm.js';
+import {
+  CONFIRM_DESCRIPTION,
+  CONFIRM_PREVIEW,
+  confirmTokenParam,
+  confirmWrite,
+} from './_confirm.js';
 
 export function registerUserTools(server: McpServer, client: IOfficeClient): void {
   server.registerTool(
@@ -72,9 +77,9 @@ export function registerUserTools(server: McpServer, client: IOfficeClient): voi
         tool: 'io_create_user',
         action: 'user.create',
         summary: 'Create iOffice user',
-        method: 'POST',
-        path: '/users',
-        body: args,
+        account: undefined,
+        request: { method: 'POST', path: '/users', body: args },
+        preview: CONFIRM_PREVIEW,
         confirmToken,
       });
       if (gate) return gate;
@@ -106,10 +111,10 @@ export function registerUserTools(server: McpServer, client: IOfficeClient): voi
         tool: 'io_update_user',
         action: 'user.update',
         summary: `Update iOffice user ${id}`,
-        method: 'PUT',
-        path: `/users/${id}`,
-        body: body,
+        account: undefined,
+        request: { method: 'PUT', path: `/users/${id}`, body },
         target: id,
+        preview: CONFIRM_PREVIEW,
         confirmToken,
       });
       if (gate) return gate;
@@ -133,9 +138,10 @@ export function registerUserTools(server: McpServer, client: IOfficeClient): voi
         tool: 'io_delete_user',
         action: 'user.delete',
         summary: `Delete iOffice user ${id}`,
-        method: 'DELETE',
-        path: `/users/${id}`,
+        account: undefined,
+        request: { method: 'DELETE', path: `/users/${id}` },
         target: id,
+        preview: CONFIRM_PREVIEW,
         confirmToken,
       });
       if (gate) return gate;
