@@ -129,11 +129,9 @@ describe('IOfficeClient', () => {
   it('throws on 401', async () => {
     vi.stubGlobal(
       'fetch',
-      vi.fn().mockResolvedValue({
-        ok: false,
-        status: 401,
-        statusText: 'Unauthorized',
-      }),
+      // A real Response: mcp-utils 2.10 reads a 401's headers/body to tell a
+      // CDN/WAF refusal page from iOffice's own rejection.
+      vi.fn().mockResolvedValue(new Response('', { status: 401, statusText: 'Unauthorized' })),
     );
 
     const client = new IOfficeClient();
