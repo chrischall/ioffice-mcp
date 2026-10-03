@@ -1,5 +1,22 @@
 # Changelog
 
+## [3.2.2](https://github.com/chrischall/ioffice-mcp/compare/v3.2.1...v3.2.2) (2026-10-03)
+
+
+### Bug Fixes
+
+* **deps:** adopt @chrischall/mcp-utils 2.12.0 confirmWrite ([#178](https://github.com/chrischall/ioffice-mcp/issues/178)) ([36cca64](https://github.com/chrischall/ioffice-mcp/commit/36cca648ef94b09f119d66f0ec7bb71366e2b597))
+* **deps:** bump @chrischall/mcp-utils to 2.13.0 ([#180](https://github.com/chrischall/ioffice-mcp/issues/180)) ([38f8647](https://github.com/chrischall/ioffice-mcp/commit/38f8647323e57cd286ae7c25cf5a2dcff4f2cff0))
+* **deps:** bump the production-dependencies group with 2 updates ([#172](https://github.com/chrischall/ioffice-mcp/issues/172)) ([84b1f42](https://github.com/chrischall/ioffice-mcp/commit/84b1f427ded576acf337a1a74ca4cf93da4c51ae))
+* keep credentials and report edge_blocked on CDN/WAF blocks (mcp-utils 2.10.0) ([#176](https://github.com/chrischall/ioffice-mcp/issues/176)) ([5b4e080](https://github.com/chrischall/ioffice-mcp/commit/5b4e0809809af654527667014b4b71f900027bbc))
+* keep write approvals valid across a hosted restart (mcp-utils 2.11.0) ([#177](https://github.com/chrischall/ioffice-mcp/issues/177)) ([2d22f74](https://github.com/chrischall/ioffice-mcp/commit/2d22f745c8f5dfbdde7abf9673caf7976e992390))
+* report CDN/WAF blocks as edge_blocked, not a rejected credential (mcp-utils 2.9.0) ([#174](https://github.com/chrischall/ioffice-mcp/issues/174)) ([39ed4b2](https://github.com/chrischall/ioffice-mcp/commit/39ed4b2239402323db431ad280525e3df047f156))
+
+
+### Documentation
+
+* stop telling agents to arm the release PR ([#179](https://github.com/chrischall/ioffice-mcp/issues/179)) ([e3f1517](https://github.com/chrischall/ioffice-mcp/commit/e3f15176b566ebabcc637b0278a117ed9118f6b7))
+
 ## [3.2.1](https://github.com/chrischall/ioffice-mcp/compare/v3.2.0...v3.2.1) (2026-09-24)
 
 
