@@ -169,6 +169,7 @@ describe('IOfficeClient', () => {
         ok: false,
         status: 429,
         statusText: 'Too Many Requests',
+        headers: new Headers(),
       }),
     );
     vi.useFakeTimers();
