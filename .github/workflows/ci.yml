@@ -21,7 +21,7 @@ jobs:
   ci:
     uses: chrischall/workflows/.github/workflows/reusable-mcp-ci.yml@main
     with:
-      node-version: "22"
+      node-version: "26"
       build-command: npm run build
       test-command: npm test
       gate-mode: status
