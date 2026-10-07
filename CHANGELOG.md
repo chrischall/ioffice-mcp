@@ -1,5 +1,17 @@
 # Changelog
 
+## [3.2.4](https://github.com/chrischall/ioffice-mcp/compare/v3.2.3...v3.2.4) (2026-10-07)
+
+
+### Bug Fixes
+
+* **deps:** bump @chrischall/mcp-utils to 2.15.0 so confirmations can be turned off for clients that never show the prompt ([#186](https://github.com/chrischall/ioffice-mcp/issues/186)) ([4a84c7a](https://github.com/chrischall/ioffice-mcp/commit/4a84c7a436e890271efa23a88c2aae0327206d2b))
+
+
+### Documentation
+
+* document MCP_CONFIRM_ELICITATION ([#189](https://github.com/chrischall/ioffice-mcp/issues/189)) ([870989e](https://github.com/chrischall/ioffice-mcp/commit/870989eb2c3c9295172932a41cb422398a080873))
+
 ## [3.2.3](https://github.com/chrischall/ioffice-mcp/compare/v3.2.2...v3.2.3) (2026-10-05)
 
 
