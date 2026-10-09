@@ -24,7 +24,9 @@
       ],
       "env": {
         "IOFFICE_HOST": "${IOFFICE_HOST}",
-        "IOFFICE_TOKEN": "${IOFFICE_TOKEN}"
+        "IOFFICE_TOKEN": "${IOFFICE_TOKEN}",
+        "IOFFICE_USERNAME": "${IOFFICE_USERNAME}",
+        "IOFFICE_PASSWORD": "${IOFFICE_PASSWORD}"
       }
     }
   }
