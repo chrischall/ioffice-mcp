@@ -9,6 +9,8 @@ import {
   CONFIRM_PREVIEW,
   confirmTokenParam,
   confirmWrite,
+  readWriteSubject,
+  subjectSummary,
 } from './_confirm.js';
 import { CREATE, DELETE, READ, UPDATE } from './_annotations.js';
 import { requireUpdateFields } from './_inputs.js';
@@ -122,14 +124,16 @@ export function registerBuildingTools(server: McpServer, client: IOfficeClient):
     },
     async ({ id, confirmToken, ...body }, ctx) => {
       requireUpdateFields(body);
+      const subject = await readWriteSubject(client, `/buildings/${id}`);
       const gate = await confirmWrite(ctx, {
         tool: 'io_update_building',
         action: 'building.update',
-        summary: `Update iOffice building ${id}`,
+        summary: subjectSummary('Update iOffice building', id, subject),
         account: undefined,
         request: { method: 'PUT', path: `/buildings/${id}`, body },
         target: id,
-        preview: CONFIRM_PREVIEW,
+        revision: subject.revision,
+        preview: { ...CONFIRM_PREVIEW, current: subject.current },
         confirmToken,
       });
       if (gate) return gate;
@@ -149,14 +153,16 @@ export function registerBuildingTools(server: McpServer, client: IOfficeClient):
       annotations: DELETE,
     },
     async ({ id, confirmToken }, ctx) => {
+      const subject = await readWriteSubject(client, `/buildings/${id}`);
       const gate = await confirmWrite(ctx, {
         tool: 'io_delete_building',
         action: 'building.delete',
-        summary: `Delete iOffice building ${id}`,
+        summary: subjectSummary('Delete iOffice building', id, subject),
         account: undefined,
         request: { method: 'DELETE', path: `/buildings/${id}` },
         target: id,
-        preview: CONFIRM_PREVIEW,
+        revision: subject.revision,
+        preview: { ...CONFIRM_PREVIEW, current: subject.current },
         confirmToken,
       });
       if (gate) return gate;

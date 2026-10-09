@@ -9,6 +9,8 @@ import {
   CONFIRM_PREVIEW,
   confirmTokenParam,
   confirmWrite,
+  readWriteSubject,
+  subjectSummary,
 } from './_confirm.js';
 import { ADVANCE, CREATE, READ, TERMINATE } from './_annotations.js';
 
@@ -180,14 +182,16 @@ export function registerMailTools(server: McpServer, client: IOfficeClient): voi
     },
     async ({ id, confirmToken, reason }, ctx) => {
       const body = optionalBody({ reason }, ['reason']);
+      const subject = await readWriteSubject(client, `/mail/${id}`);
       const gate = await confirmWrite(ctx, {
         tool: 'io_return_mail',
         action: 'mail.return',
-        summary: `Return iOffice mail item ${id}`,
+        summary: subjectSummary('Return iOffice mail item', id, subject),
         account: undefined,
         request: { method: 'POST', path: `/mail/${id}/return`, body },
         target: id,
-        preview: CONFIRM_PREVIEW,
+        revision: subject.revision,
+        preview: { ...CONFIRM_PREVIEW, current: subject.current },
         confirmToken,
       });
       if (gate) return gate;

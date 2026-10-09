@@ -9,6 +9,8 @@ import {
   CONFIRM_PREVIEW,
   confirmTokenParam,
   confirmWrite,
+  readWriteSubject,
+  subjectSummary,
 } from './_confirm.js';
 import { ADVANCE, CREATE, READ, UPDATE } from './_annotations.js';
 import { requireUpdateFields } from './_inputs.js';
@@ -153,14 +155,16 @@ export function registerVisitorTools(server: McpServer, client: IOfficeClient): 
     },
     async ({ id, confirmToken, ...body }, ctx) => {
       requireUpdateFields(body);
+      const subject = await readWriteSubject(client, `/visitors/${id}`);
       const gate = await confirmWrite(ctx, {
         tool: 'io_update_visitor',
         action: 'visitor.update',
-        summary: `Update iOffice visitor ${id}`,
+        summary: subjectSummary('Update iOffice visitor', id, subject),
         account: undefined,
         request: { method: 'PUT', path: `/visitors/${id}`, body },
         target: id,
-        preview: CONFIRM_PREVIEW,
+        revision: subject.revision,
+        preview: { ...CONFIRM_PREVIEW, current: subject.current },
         confirmToken,
       });
       if (gate) return gate;

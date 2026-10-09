@@ -129,11 +129,11 @@ describe('confirm gate - mail', () => {
     expect(JSON.parse(result.content[0].text as string).status).toBe('confirmation-required');
   });
 
-  it('io_return_mail without confirmToken returns a preview and makes NO request', async () => {
+  it('io_return_mail without confirmToken returns a preview and makes NO write (only reads its target)', async () => {
     const { call } = setup();
     mockClient.request = vi.fn();
     const result = await call('io_return_mail', { id: 401 });
-    expect(mockClient.request).not.toHaveBeenCalled();
+    expect(vi.mocked(mockClient.request).mock.calls.map(([method]) => method)).toEqual(['GET']);
     expect(JSON.parse(result.content[0].text as string).status).toBe('confirmation-required');
   });
 });

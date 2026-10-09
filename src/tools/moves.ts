@@ -9,6 +9,8 @@ import {
   CONFIRM_PREVIEW,
   confirmTokenParam,
   confirmWrite,
+  readWriteSubject,
+  subjectSummary,
 } from './_confirm.js';
 import { ADVANCE, CREATE, READ, TERMINATE, UPDATE } from './_annotations.js';
 import { requireUpdateFields } from './_inputs.js';
@@ -150,14 +152,16 @@ export function registerMoveTools(server: McpServer, client: IOfficeClient): voi
     },
     async ({ id, confirmToken, ...body }, ctx) => {
       requireUpdateFields(body);
+      const subject = await readWriteSubject(client, `/moves/${id}`);
       const gate = await confirmWrite(ctx, {
         tool: 'io_update_move',
         action: 'move.update',
-        summary: `Update iOffice move request ${id}`,
+        summary: subjectSummary('Update iOffice move request', id, subject),
         account: undefined,
         request: { method: 'PUT', path: `/moves/${id}`, body },
         target: id,
-        preview: CONFIRM_PREVIEW,
+        revision: subject.revision,
+        preview: { ...CONFIRM_PREVIEW, current: subject.current },
         confirmToken,
       });
       if (gate) return gate;
@@ -208,14 +212,16 @@ export function registerMoveTools(server: McpServer, client: IOfficeClient): voi
     },
     async ({ id, confirmToken, reason }, ctx) => {
       const body = optionalBody({ reason }, ['reason']);
+      const subject = await readWriteSubject(client, `/moves/${id}`);
       const gate = await confirmWrite(ctx, {
         tool: 'io_cancel_move',
         action: 'move.cancel',
-        summary: `Cancel iOffice move request ${id}`,
+        summary: subjectSummary('Cancel iOffice move request', id, subject),
         account: undefined,
         request: { method: 'POST', path: `/moves/${id}/cancel`, body },
         target: id,
-        preview: CONFIRM_PREVIEW,
+        revision: subject.revision,
+        preview: { ...CONFIRM_PREVIEW, current: subject.current },
         confirmToken,
       });
       if (gate) return gate;

@@ -9,6 +9,8 @@ import {
   CONFIRM_PREVIEW,
   confirmTokenParam,
   confirmWrite,
+  readWriteSubject,
+  subjectSummary,
 } from './_confirm.js';
 import { CREATE, DELETE, READ, UPDATE } from './_annotations.js';
 import { requireUpdateFields } from './_inputs.js';
@@ -114,14 +116,16 @@ export function registerSpaceTools(server: McpServer, client: IOfficeClient): vo
     },
     async ({ id, confirmToken, ...body }, ctx) => {
       requireUpdateFields(body);
+      const subject = await readWriteSubject(client, `/spaces/${id}`);
       const gate = await confirmWrite(ctx, {
         tool: 'io_update_space',
         action: 'space.update',
-        summary: `Update iOffice space ${id}`,
+        summary: subjectSummary('Update iOffice space', id, subject),
         account: undefined,
         request: { method: 'PUT', path: `/spaces/${id}`, body },
         target: id,
-        preview: CONFIRM_PREVIEW,
+        revision: subject.revision,
+        preview: { ...CONFIRM_PREVIEW, current: subject.current },
         confirmToken,
       });
       if (gate) return gate;
@@ -141,14 +145,16 @@ export function registerSpaceTools(server: McpServer, client: IOfficeClient): vo
       annotations: DELETE,
     },
     async ({ id, confirmToken }, ctx) => {
+      const subject = await readWriteSubject(client, `/spaces/${id}`);
       const gate = await confirmWrite(ctx, {
         tool: 'io_delete_space',
         action: 'space.delete',
-        summary: `Delete iOffice space ${id}`,
+        summary: subjectSummary('Delete iOffice space', id, subject),
         account: undefined,
         request: { method: 'DELETE', path: `/spaces/${id}` },
         target: id,
-        preview: CONFIRM_PREVIEW,
+        revision: subject.revision,
+        preview: { ...CONFIRM_PREVIEW, current: subject.current },
         confirmToken,
       });
       if (gate) return gate;

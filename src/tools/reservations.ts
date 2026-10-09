@@ -9,6 +9,8 @@ import {
   CONFIRM_PREVIEW,
   confirmTokenParam,
   confirmWrite,
+  readWriteSubject,
+  subjectSummary,
 } from './_confirm.js';
 import { ADVANCE, CREATE, DELETE, READ, UPDATE } from './_annotations.js';
 import { requireUpdateFields } from './_inputs.js';
@@ -144,14 +146,16 @@ export function registerReservationTools(server: McpServer, client: IOfficeClien
     },
     async ({ id, confirmToken, ...body }, ctx) => {
       requireUpdateFields(body);
+      const subject = await readWriteSubject(client, `/reservations/${id}`);
       const gate = await confirmWrite(ctx, {
         tool: 'io_update_reservation',
         action: 'reservation.update',
-        summary: `Update iOffice reservation ${id}`,
+        summary: subjectSummary('Update iOffice reservation', id, subject),
         account: undefined,
         request: { method: 'PUT', path: `/reservations/${id}`, body },
         target: id,
-        preview: CONFIRM_PREVIEW,
+        revision: subject.revision,
+        preview: { ...CONFIRM_PREVIEW, current: subject.current },
         confirmToken,
       });
       if (gate) return gate;
@@ -171,14 +175,16 @@ export function registerReservationTools(server: McpServer, client: IOfficeClien
       annotations: DELETE,
     },
     async ({ id, confirmToken }, ctx) => {
+      const subject = await readWriteSubject(client, `/reservations/${id}`);
       const gate = await confirmWrite(ctx, {
         tool: 'io_delete_reservation',
         action: 'reservation.delete',
-        summary: `Delete iOffice reservation ${id}`,
+        summary: subjectSummary('Delete iOffice reservation', id, subject),
         account: undefined,
         request: { method: 'DELETE', path: `/reservations/${id}` },
         target: id,
-        preview: CONFIRM_PREVIEW,
+        revision: subject.revision,
+        preview: { ...CONFIRM_PREVIEW, current: subject.current },
         confirmToken,
       });
       if (gate) return gate;

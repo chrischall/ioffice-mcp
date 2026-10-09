@@ -111,22 +111,22 @@ describe('confirm gate - buildings', () => {
     expect(payload.preview.willSend).not.toHaveProperty('confirmToken');
   });
 
-  it('io_update_building without confirmToken returns a preview and makes NO request', async () => {
+  it('io_update_building without confirmToken returns a preview and makes NO write (only reads its target)', async () => {
     const { call } = setup();
     mockClient.request = vi.fn();
     const result = await call('io_update_building', {
       id: 1,
       name: 'New Name',
     });
-    expect(mockClient.request).not.toHaveBeenCalled();
+    expect(vi.mocked(mockClient.request).mock.calls.map(([method]) => method)).toEqual(['GET']);
     expect(JSON.parse(result.content[0].text as string).status).toBe('confirmation-required');
   });
 
-  it('io_delete_building without confirmToken returns a preview and makes NO request', async () => {
+  it('io_delete_building without confirmToken returns a preview and makes NO write (only reads its target)', async () => {
     const { call } = setup();
     mockClient.request = vi.fn();
     const result = await call('io_delete_building', { id: 1 });
-    expect(mockClient.request).not.toHaveBeenCalled();
+    expect(vi.mocked(mockClient.request).mock.calls.map(([method]) => method)).toEqual(['GET']);
     expect(JSON.parse(result.content[0].text as string).status).toBe('confirmation-required');
   });
 });
