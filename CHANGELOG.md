@@ -1,5 +1,15 @@
 # Changelog
 
+## [3.2.5](https://github.com/chrischall/ioffice-mcp/compare/v3.2.4...v3.2.5) (2026-10-09)
+
+
+### Bug Fixes
+
+* annotate tools truthfully and sync manifests with the served tools ([#194](https://github.com/chrischall/ioffice-mcp/issues/194)) ([69a13f0](https://github.com/chrischall/ioffice-mcp/commit/69a13f0a32a2ae5f16f2f191dcbf6567f567e660))
+* **deps:** bump source-map-js from 1.2.1 to 1.2.2 in the security group across 1 directory ([#192](https://github.com/chrischall/ioffice-mcp/issues/192)) ([695b9f4](https://github.com/chrischall/ioffice-mcp/commit/695b9f49d577f61d3738e1f8e338b5f91fc9846f))
+* **deps:** update @chrischall/mcp-utils to 3.0.0 ([#193](https://github.com/chrischall/ioffice-mcp/issues/193)) ([d4185d7](https://github.com/chrischall/ioffice-mcp/commit/d4185d7618e2988894f1e0283bbecdeb7475dabf))
+* resolve low-severity audit findings ([#190](https://github.com/chrischall/ioffice-mcp/issues/190)) ([056e239](https://github.com/chrischall/ioffice-mcp/commit/056e239d60fd5b5ae63fcffebc2b4339e7204742))
+
 ## [3.2.4](https://github.com/chrischall/ioffice-mcp/compare/v3.2.3...v3.2.4) (2026-10-07)
 
 
