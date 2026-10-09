@@ -10,6 +10,7 @@ import {
   confirmTokenParam,
   confirmWrite,
 } from './_confirm.js';
+import { CREATE, DELETE, READ, UPDATE } from './_annotations.js';
 import { requireUpdateFields } from './_inputs.js';
 
 export function registerSpaceTools(server: McpServer, client: IOfficeClient): void {
@@ -32,7 +33,7 @@ export function registerSpaceTools(server: McpServer, client: IOfficeClient): vo
         orderBy: z.string().describe('Property to sort by (default: id)').optional(),
         orderByType: z.enum(['asc', 'desc']).describe('Sort direction (default: asc)').optional(),
       }),
-      annotations: { readOnlyHint: true },
+      annotations: READ,
     },
     async ({ floorId, search, limit, startAt, orderBy, orderByType, view }) => {
       const qs = buildQueryString({
@@ -56,7 +57,7 @@ export function registerSpaceTools(server: McpServer, client: IOfficeClient): vo
         view: viewArg(),
         id: z.number().int().positive().describe('Space ID'),
       }),
-      annotations: { readOnlyHint: true },
+      annotations: READ,
     },
     async ({ id, view }) => {
       const data = await client.request('GET', `/spaces/${id}`);
@@ -77,7 +78,7 @@ export function registerSpaceTools(server: McpServer, client: IOfficeClient): vo
         typeId: z.number().int().positive().describe('Space type ID').optional(),
         confirmToken: confirmTokenParam,
       }),
-      annotations: { readOnlyHint: false, destructiveHint: true },
+      annotations: CREATE,
     },
     async ({ confirmToken, ...args }, ctx) => {
       const gate = await confirmWrite(ctx, {
@@ -109,7 +110,7 @@ export function registerSpaceTools(server: McpServer, client: IOfficeClient): vo
         typeId: z.number().int().positive().describe('Space type ID').optional(),
         confirmToken: confirmTokenParam,
       }),
-      annotations: { readOnlyHint: false, destructiveHint: true },
+      annotations: UPDATE,
     },
     async ({ id, confirmToken, ...body }, ctx) => {
       requireUpdateFields(body);
@@ -137,7 +138,7 @@ export function registerSpaceTools(server: McpServer, client: IOfficeClient): vo
         id: z.number().int().positive().describe('Space ID'),
         confirmToken: confirmTokenParam,
       }),
-      annotations: { readOnlyHint: false, destructiveHint: true },
+      annotations: DELETE,
     },
     async ({ id, confirmToken }, ctx) => {
       const gate = await confirmWrite(ctx, {

@@ -10,6 +10,7 @@ import {
   confirmTokenParam,
   confirmWrite,
 } from './_confirm.js';
+import { CREATE, DELETE, READ, UPDATE } from './_annotations.js';
 import { requireUpdateFields } from './_inputs.js';
 
 export function registerUserTools(server: McpServer, client: IOfficeClient): void {
@@ -31,7 +32,7 @@ export function registerUserTools(server: McpServer, client: IOfficeClient): voi
         orderBy: z.string().describe('Property to sort by (default: id)').optional(),
         orderByType: z.enum(['asc', 'desc']).describe('Sort direction (default: asc)').optional(),
       }),
-      annotations: { readOnlyHint: true },
+      annotations: READ,
     },
     async ({ search, limit, startAt, orderBy, orderByType, view }) => {
       const qs = buildQueryString({
@@ -54,7 +55,7 @@ export function registerUserTools(server: McpServer, client: IOfficeClient): voi
         view: viewArg(),
         id: z.number().int().positive().describe('User ID'),
       }),
-      annotations: { readOnlyHint: true },
+      annotations: READ,
     },
     async ({ id, view }) => {
       const data = await client.request('GET', `/users/${id}`);
@@ -77,7 +78,7 @@ export function registerUserTools(server: McpServer, client: IOfficeClient): voi
         buildingId: z.number().int().positive().describe('Default building ID').optional(),
         confirmToken: confirmTokenParam,
       }),
-      annotations: { readOnlyHint: false, destructiveHint: true },
+      annotations: CREATE,
     },
     async ({ confirmToken, ...args }, ctx) => {
       const gate = await confirmWrite(ctx, {
@@ -111,7 +112,7 @@ export function registerUserTools(server: McpServer, client: IOfficeClient): voi
         buildingId: z.number().int().positive().describe('Default building ID').optional(),
         confirmToken: confirmTokenParam,
       }),
-      annotations: { readOnlyHint: false, destructiveHint: true },
+      annotations: UPDATE,
     },
     async ({ id, confirmToken, ...body }, ctx) => {
       requireUpdateFields(body);
@@ -139,7 +140,7 @@ export function registerUserTools(server: McpServer, client: IOfficeClient): voi
         id: z.number().int().positive().describe('User ID'),
         confirmToken: confirmTokenParam,
       }),
-      annotations: { readOnlyHint: false, destructiveHint: true },
+      annotations: DELETE,
     },
     async ({ id, confirmToken }, ctx) => {
       const gate = await confirmWrite(ctx, {

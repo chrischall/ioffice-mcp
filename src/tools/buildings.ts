@@ -10,6 +10,7 @@ import {
   confirmTokenParam,
   confirmWrite,
 } from './_confirm.js';
+import { CREATE, DELETE, READ, UPDATE } from './_annotations.js';
 import { requireUpdateFields } from './_inputs.js';
 
 export function registerBuildingTools(server: McpServer, client: IOfficeClient): void {
@@ -31,7 +32,7 @@ export function registerBuildingTools(server: McpServer, client: IOfficeClient):
         orderBy: z.string().describe('Property to sort by (default: id)').optional(),
         orderByType: z.enum(['asc', 'desc']).describe('Sort direction (default: asc)').optional(),
       }),
-      annotations: { readOnlyHint: true },
+      annotations: READ,
     },
     async ({ search, limit, startAt, orderBy, orderByType, view }) => {
       const qs = buildQueryString({
@@ -54,7 +55,7 @@ export function registerBuildingTools(server: McpServer, client: IOfficeClient):
         view: viewArg(),
         id: z.number().int().positive().describe('Building ID'),
       }),
-      annotations: { readOnlyHint: true },
+      annotations: READ,
     },
     async ({ id, view }) => {
       const data = await client.request('GET', `/buildings/${id}`);
@@ -79,7 +80,7 @@ export function registerBuildingTools(server: McpServer, client: IOfficeClient):
         totalSquareFootage: z.number().describe('Total square footage').optional(),
         confirmToken: confirmTokenParam,
       }),
-      annotations: { readOnlyHint: false, destructiveHint: true },
+      annotations: CREATE,
     },
     async ({ confirmToken, ...args }, ctx) => {
       const gate = await confirmWrite(ctx, {
@@ -117,7 +118,7 @@ export function registerBuildingTools(server: McpServer, client: IOfficeClient):
         totalSquareFootage: z.number().describe('Total square footage').optional(),
         confirmToken: confirmTokenParam,
       }),
-      annotations: { readOnlyHint: false, destructiveHint: true },
+      annotations: UPDATE,
     },
     async ({ id, confirmToken, ...body }, ctx) => {
       requireUpdateFields(body);
@@ -145,7 +146,7 @@ export function registerBuildingTools(server: McpServer, client: IOfficeClient):
         id: z.number().int().positive().describe('Building ID'),
         confirmToken: confirmTokenParam,
       }),
-      annotations: { readOnlyHint: false, destructiveHint: true },
+      annotations: DELETE,
     },
     async ({ id, confirmToken }, ctx) => {
       const gate = await confirmWrite(ctx, {

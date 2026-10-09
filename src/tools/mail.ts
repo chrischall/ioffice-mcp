@@ -10,6 +10,7 @@ import {
   confirmTokenParam,
   confirmWrite,
 } from './_confirm.js';
+import { ADVANCE, CREATE, READ, TERMINATE } from './_annotations.js';
 
 export function registerMailTools(server: McpServer, client: IOfficeClient): void {
   server.registerTool(
@@ -48,7 +49,7 @@ export function registerMailTools(server: McpServer, client: IOfficeClient): voi
         orderBy: z.string().describe('Property to sort by (default: id)').optional(),
         orderByType: z.enum(['asc', 'desc']).describe('Sort direction (default: asc)').optional(),
       }),
-      annotations: { readOnlyHint: true },
+      annotations: READ,
     },
     async ({
       search,
@@ -88,7 +89,7 @@ export function registerMailTools(server: McpServer, client: IOfficeClient): voi
         view: viewArg(),
         id: z.number().int().positive().describe('Mail item ID'),
       }),
-      annotations: { readOnlyHint: true },
+      annotations: READ,
     },
     async ({ id, view }) => {
       const data = await client.request('GET', `/mail/${id}`);
@@ -114,7 +115,7 @@ export function registerMailTools(server: McpServer, client: IOfficeClient): voi
           .optional(),
         confirmToken: confirmTokenParam,
       }),
-      annotations: { readOnlyHint: false, destructiveHint: true },
+      annotations: CREATE,
     },
     async ({ confirmToken, ...args }, ctx) => {
       const gate = await confirmWrite(ctx, {
@@ -146,7 +147,7 @@ export function registerMailTools(server: McpServer, client: IOfficeClient): voi
         signature: z.string().describe('Recipient signature or name confirmation').optional(),
         confirmToken: confirmTokenParam,
       }),
-      annotations: { readOnlyHint: false, destructiveHint: true },
+      annotations: ADVANCE,
     },
     async ({ id, confirmToken, deliveredDate, signature }, ctx) => {
       const body = optionalBody({ deliveredDate, signature }, ['deliveredDate', 'signature']);
@@ -175,7 +176,7 @@ export function registerMailTools(server: McpServer, client: IOfficeClient): voi
         reason: z.string().describe('Reason for return').optional(),
         confirmToken: confirmTokenParam,
       }),
-      annotations: { readOnlyHint: false, destructiveHint: true },
+      annotations: TERMINATE,
     },
     async ({ id, confirmToken, reason }, ctx) => {
       const body = optionalBody({ reason }, ['reason']);

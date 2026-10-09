@@ -10,6 +10,7 @@ import {
   confirmTokenParam,
   confirmWrite,
 } from './_confirm.js';
+import { ADVANCE, CREATE, DELETE, READ, UPDATE } from './_annotations.js';
 import { requireUpdateFields } from './_inputs.js';
 
 export function registerReservationTools(server: McpServer, client: IOfficeClient): void {
@@ -41,7 +42,7 @@ export function registerReservationTools(server: McpServer, client: IOfficeClien
         orderBy: z.string().describe('Property to sort by (default: id)').optional(),
         orderByType: z.enum(['asc', 'desc']).describe('Sort direction (default: asc)').optional(),
       }),
-      annotations: { readOnlyHint: true },
+      annotations: READ,
     },
     async ({
       search,
@@ -79,7 +80,7 @@ export function registerReservationTools(server: McpServer, client: IOfficeClien
         view: viewArg(),
         id: z.number().int().positive().describe('Reservation ID'),
       }),
-      annotations: { readOnlyHint: true },
+      annotations: READ,
     },
     async ({ id, view }) => {
       const data = await client.request('GET', `/reservations/${id}`);
@@ -106,7 +107,7 @@ export function registerReservationTools(server: McpServer, client: IOfficeClien
           .optional(),
         confirmToken: confirmTokenParam,
       }),
-      annotations: { readOnlyHint: false, destructiveHint: true },
+      annotations: CREATE,
     },
     async ({ confirmToken, ...args }, ctx) => {
       const gate = await confirmWrite(ctx, {
@@ -139,7 +140,7 @@ export function registerReservationTools(server: McpServer, client: IOfficeClien
         attendeeCount: z.number().describe('Expected number of attendees').optional(),
         confirmToken: confirmTokenParam,
       }),
-      annotations: { readOnlyHint: false, destructiveHint: true },
+      annotations: UPDATE,
     },
     async ({ id, confirmToken, ...body }, ctx) => {
       requireUpdateFields(body);
@@ -167,7 +168,7 @@ export function registerReservationTools(server: McpServer, client: IOfficeClien
         id: z.number().int().positive().describe('Reservation ID'),
         confirmToken: confirmTokenParam,
       }),
-      annotations: { readOnlyHint: false, destructiveHint: true },
+      annotations: DELETE,
     },
     async ({ id, confirmToken }, ctx) => {
       const gate = await confirmWrite(ctx, {
@@ -197,7 +198,7 @@ export function registerReservationTools(server: McpServer, client: IOfficeClien
         id: z.number().int().positive().describe('Reservation ID'),
         confirmToken: confirmTokenParam,
       }),
-      annotations: { readOnlyHint: false, destructiveHint: true },
+      annotations: ADVANCE,
     },
     async ({ id, confirmToken }, ctx) => {
       const gate = await confirmWrite(ctx, {
@@ -226,7 +227,7 @@ export function registerReservationTools(server: McpServer, client: IOfficeClien
         id: z.number().int().positive().describe('Reservation ID'),
         confirmToken: confirmTokenParam,
       }),
-      annotations: { readOnlyHint: false, destructiveHint: true },
+      annotations: ADVANCE,
     },
     async ({ id, confirmToken }, ctx) => {
       const gate = await confirmWrite(ctx, {
