@@ -72,7 +72,7 @@ Tests live in `tests/` (one file per tool module under `tests/tools/` + `client.
   marketplace.json  # Claude Code marketplace catalog entry
 manifest.json       # MCPB (Anthropic desktop bundle) manifest — declares tools[], user_config, entry_point
 server.json         # MCP Registry submission (io.github.chrischall/ioffice-mcp)
-.mcp.json           # Local MCP client config
+.mcp.json           # MCP client config (npx -y ioffice-mcp — ships in the tarball, so no cwd-relative path)
 skills/ioffice-mcp/
   SKILL.md          # Claude Code skill — teaches Claude when/how to use the tools
 ```
