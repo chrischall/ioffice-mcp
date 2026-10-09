@@ -12,7 +12,7 @@ import {
   readWriteSubject,
   subjectSummary,
 } from './_confirm.js';
-import { ADVANCE, CREATE, READ, TERMINATE } from './_annotations.js';
+import { ADVANCE, CREATE_PERMANENT, READ, TERMINATE } from './_annotations.js';
 
 export function registerMailTools(server: McpServer, client: IOfficeClient): void {
   server.registerTool(
@@ -117,7 +117,7 @@ export function registerMailTools(server: McpServer, client: IOfficeClient): voi
           .optional(),
         confirmToken: confirmTokenParam,
       }),
-      annotations: CREATE,
+      annotations: CREATE_PERMANENT,
     },
     async ({ confirmToken, ...args }, ctx) => {
       const gate = await confirmWrite(ctx, {

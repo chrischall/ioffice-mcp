@@ -36,13 +36,15 @@ function registerAll(server: McpServer): void {
 }
 
 const READ = { readOnlyHint: true, openWorldHint: true };
-/** Adds a record; nothing existing changes. */
+/** Adds a record that a delete/cancel tool in this set can take back. */
 const CREATE = {
   readOnlyHint: false,
   destructiveHint: false,
   idempotentHint: false,
   openWorldHint: true,
 };
+/** Adds a record that no tool in this set can remove (no inverse). */
+const CREATE_PERMANENT = { ...CREATE, destructiveHint: true };
 /** Overwrites fields of an existing record; repeating it changes nothing more. */
 const UPDATE = {
   readOnlyHint: false,
@@ -57,10 +59,10 @@ const DELETE = {
   idempotentHint: true,
   openWorldHint: true,
 };
-/** Moves a record forward in its workflow without losing data. */
+/** Moves a record forward in its workflow; no tool in this set moves it back. */
 const ADVANCE = {
   readOnlyHint: false,
-  destructiveHint: false,
+  destructiveHint: true,
   idempotentHint: false,
   openWorldHint: true,
 };
@@ -92,14 +94,14 @@ Object.assign(EXPECTED, {
 
   io_list_visitors: READ,
   io_get_visitor: READ,
-  io_create_visitor: CREATE,
+  io_create_visitor: CREATE_PERMANENT,
   io_update_visitor: UPDATE,
   io_checkin_visitor: ADVANCE,
   io_checkout_visitor: ADVANCE,
 
   io_list_maintenance_requests: READ,
   io_get_maintenance_request: READ,
-  io_create_maintenance_request: CREATE,
+  io_create_maintenance_request: CREATE_PERMANENT,
   io_update_maintenance_request: UPDATE,
   io_accept_maintenance_request: ADVANCE,
   io_start_maintenance_request: ADVANCE,
@@ -108,7 +110,7 @@ Object.assign(EXPECTED, {
 
   io_list_mail: READ,
   io_get_mail: READ,
-  io_create_mail: CREATE,
+  io_create_mail: CREATE_PERMANENT,
   io_deliver_mail: ADVANCE,
   io_return_mail: TERMINATE,
 

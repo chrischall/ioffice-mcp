@@ -12,7 +12,7 @@ import {
   readWriteSubject,
   subjectSummary,
 } from './_confirm.js';
-import { ADVANCE, CREATE, READ, UPDATE } from './_annotations.js';
+import { ADVANCE, CREATE_PERMANENT, READ, UPDATE } from './_annotations.js';
 import { requireUpdateFields } from './_inputs.js';
 
 export function registerVisitorTools(server: McpServer, client: IOfficeClient): void {
@@ -112,7 +112,7 @@ export function registerVisitorTools(server: McpServer, client: IOfficeClient): 
         purpose: z.string().describe('Purpose of visit').optional(),
         confirmToken: confirmTokenParam,
       }),
-      annotations: CREATE,
+      annotations: CREATE_PERMANENT,
     },
     async ({ confirmToken, ...args }, ctx) => {
       const gate = await confirmWrite(ctx, {

@@ -47,7 +47,7 @@ describe('IOfficeClient', () => {
   }
 
   it('defers the missing-host error until request time', async () => {
-    await expectDeferred('host', 'IOFFICE_HOST environment variable is required');
+    await expectDeferred('host', 'Missing required environment variable IOFFICE_HOST');
   });
 
   it('defers "no auth configured" until request time', async () => {
