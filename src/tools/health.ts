@@ -22,6 +22,7 @@ import type { IOfficeClient } from '../client.js';
  */
 
 const NO_HOST = 'IOFFICE_HOST environment variable is required';
+const BAD_HOST = 'IOFFICE_HOST is not a valid iOffice hostname';
 
 export function classifyIOfficeError(err: unknown): { kind: string; hint?: string } | undefined {
   const msg = err instanceof Error ? err.message : String(err);
@@ -32,6 +33,14 @@ export function classifyIOfficeError(err: unknown): { kind: string; hint?: strin
       hint:
         'No iOffice host configured. Set IOFFICE_HOST to your tenant hostname (e.g. acme.iofficeconnect.com). ' +
         'The credential is a separate setting — this says nothing about whether it is valid.',
+    };
+  }
+  if (msg.includes(BAD_HOST)) {
+    return {
+      kind: 'bad_host',
+      hint:
+        'IOFFICE_HOST is not a hostname. Set it to your tenant hostname only (e.g. acme.iofficeconnect.com) — ' +
+        'a pasted https:// URL is accepted, but not another scheme or a value with spaces.',
     };
   }
   if (msg.includes('credentials are invalid')) {
