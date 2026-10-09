@@ -4,6 +4,7 @@ import {
   createApiClient,
   loadDotenvSafely,
   readEnvVar,
+  requireEnvVar,
   type ApiClient,
 } from '@chrischall/mcp-utils';
 
@@ -70,15 +71,26 @@ export class IOfficeClient {
    * re-raise the error at request time.
    */
   constructor() {
-    const rawHost = readEnvVar('IOFFICE_HOST');
+    // IOFFICE_HOST is required — no tool call can work without it — but the
+    // error is deferred to request time (see above), so catch requireEnvVar's
+    // throw instead of letting it abort construction.
+    let rawHost: string | undefined;
+    let hostError: Error | null = null;
+    try {
+      rawHost = requireEnvVar('IOFFICE_HOST', {
+        hint: 'Set it to your iOffice tenant hostname (e.g. acme.iofficeconnect.com).',
+      });
+    } catch (err) {
+      hostError = err as Error;
+    }
     const host = rawHost ? normalizeHost(rawHost) : undefined;
     const token = readEnvVar('IOFFICE_TOKEN');
     const username = readEnvVar('IOFFICE_USERNAME');
     const password = readEnvVar('IOFFICE_PASSWORD');
 
     let authHeaders: Record<string, string> | null = null;
-    if (!rawHost) {
-      this.configError = new Error('IOFFICE_HOST environment variable is required');
+    if (hostError) {
+      this.configError = hostError;
     } else if (!host) {
       this.configError = new Error(
         `IOFFICE_HOST is not a valid iOffice hostname: ${JSON.stringify(rawHost)} ` +

@@ -21,7 +21,7 @@ import type { IOfficeClient } from '../client.js';
  *    rotate a token that is fine.
  */
 
-const NO_HOST = 'IOFFICE_HOST environment variable is required';
+const NO_HOST = 'Missing required environment variable IOFFICE_HOST';
 const BAD_HOST = 'IOFFICE_HOST is not a valid iOffice hostname';
 
 export function classifyIOfficeError(err: unknown): { kind: string; hint?: string } | undefined {
