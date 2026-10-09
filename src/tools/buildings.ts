@@ -10,6 +10,7 @@ import {
   confirmTokenParam,
   confirmWrite,
 } from './_confirm.js';
+import { requireUpdateFields } from './_inputs.js';
 
 export function registerBuildingTools(server: McpServer, client: IOfficeClient): void {
   server.registerTool(
@@ -19,8 +20,14 @@ export function registerBuildingTools(server: McpServer, client: IOfficeClient):
       inputSchema: z.object({
         view: viewArg(),
         search: z.string().describe('Filter by name or description').optional(),
-        limit: z.number().describe('Max results (default 50, max 100)').optional(),
-        startAt: z.number().describe('Pagination offset (default 0)').optional(),
+        limit: z
+          .number()
+          .int()
+          .min(1)
+          .max(100)
+          .describe('Max results (default 50, max 100)')
+          .optional(),
+        startAt: z.number().int().min(0).describe('Pagination offset (default 0)').optional(),
         orderBy: z.string().describe('Property to sort by (default: id)').optional(),
         orderByType: z.enum(['asc', 'desc']).describe('Sort direction (default: asc)').optional(),
       }),
@@ -45,7 +52,7 @@ export function registerBuildingTools(server: McpServer, client: IOfficeClient):
       description: 'Get a single iOffice building by ID.',
       inputSchema: z.object({
         view: viewArg(),
-        id: z.number().describe('Building ID'),
+        id: z.number().int().positive().describe('Building ID'),
       }),
       annotations: { readOnlyHint: true },
     },
@@ -97,7 +104,7 @@ export function registerBuildingTools(server: McpServer, client: IOfficeClient):
         'Update an existing iOffice building. Only provide fields to change. ' +
         CONFIRM_DESCRIPTION,
       inputSchema: z.object({
-        id: z.number().describe('Building ID'),
+        id: z.number().int().positive().describe('Building ID'),
         name: z.string().describe('Building name').optional(),
         description: z.string().describe('Building description').optional(),
         address1: z.string().describe('Street address line 1').optional(),
@@ -113,6 +120,7 @@ export function registerBuildingTools(server: McpServer, client: IOfficeClient):
       annotations: { readOnlyHint: false, destructiveHint: true },
     },
     async ({ id, confirmToken, ...body }, ctx) => {
+      requireUpdateFields(body);
       const gate = await confirmWrite(ctx, {
         tool: 'io_update_building',
         action: 'building.update',
@@ -134,7 +142,7 @@ export function registerBuildingTools(server: McpServer, client: IOfficeClient):
     {
       description: 'Delete an iOffice building by ID. ' + CONFIRM_DESCRIPTION,
       inputSchema: z.object({
-        id: z.number().describe('Building ID'),
+        id: z.number().int().positive().describe('Building ID'),
         confirmToken: confirmTokenParam,
       }),
       annotations: { readOnlyHint: false, destructiveHint: true },

@@ -10,6 +10,7 @@ import {
   confirmTokenParam,
   confirmWrite,
 } from './_confirm.js';
+import { requireUpdateFields } from './_inputs.js';
 
 export function registerReservationTools(server: McpServer, client: IOfficeClient): void {
   server.registerTool(
@@ -27,10 +28,16 @@ export function registerReservationTools(server: McpServer, client: IOfficeClien
           .string()
           .describe('Filter reservations ending on or before this date (ISO 8601)')
           .optional(),
-        spaceId: z.number().describe('Filter by space/room ID').optional(),
-        userId: z.number().describe('Filter by organizer user ID').optional(),
-        limit: z.number().describe('Max results (default 50, max 100)').optional(),
-        startAt: z.number().describe('Pagination offset (default 0)').optional(),
+        spaceId: z.number().int().positive().describe('Filter by space/room ID').optional(),
+        userId: z.number().int().positive().describe('Filter by organizer user ID').optional(),
+        limit: z
+          .number()
+          .int()
+          .min(1)
+          .max(100)
+          .describe('Max results (default 50, max 100)')
+          .optional(),
+        startAt: z.number().int().min(0).describe('Pagination offset (default 0)').optional(),
         orderBy: z.string().describe('Property to sort by (default: id)').optional(),
         orderByType: z.enum(['asc', 'desc']).describe('Sort direction (default: asc)').optional(),
       }),
@@ -70,7 +77,7 @@ export function registerReservationTools(server: McpServer, client: IOfficeClien
       description: 'Get a single iOffice reservation by ID.',
       inputSchema: z.object({
         view: viewArg(),
-        id: z.number().describe('Reservation ID'),
+        id: z.number().int().positive().describe('Reservation ID'),
       }),
       annotations: { readOnlyHint: true },
     },
@@ -86,13 +93,15 @@ export function registerReservationTools(server: McpServer, client: IOfficeClien
       description: 'Create a new iOffice room/space reservation. ' + CONFIRM_DESCRIPTION,
       inputSchema: z.object({
         title: z.string().describe('Reservation title/name'),
-        spaceId: z.number().describe('Space/room ID to reserve'),
+        spaceId: z.number().int().positive().describe('Space/room ID to reserve'),
         startDate: z.string().describe('Start date/time (ISO 8601, e.g. 2026-03-20T09:00:00)'),
         endDate: z.string().describe('End date/time (ISO 8601, e.g. 2026-03-20T10:00:00)'),
         description: z.string().describe('Reservation notes or description').optional(),
         attendeeCount: z.number().describe('Expected number of attendees').optional(),
         userId: z
           .number()
+          .int()
+          .positive()
           .describe('Organizer user ID (defaults to authenticated user)')
           .optional(),
         confirmToken: confirmTokenParam,
@@ -122,7 +131,7 @@ export function registerReservationTools(server: McpServer, client: IOfficeClien
         'Update an existing iOffice reservation. Only provide fields to change. ' +
         CONFIRM_DESCRIPTION,
       inputSchema: z.object({
-        id: z.number().describe('Reservation ID'),
+        id: z.number().int().positive().describe('Reservation ID'),
         title: z.string().describe('Reservation title').optional(),
         startDate: z.string().describe('New start date/time (ISO 8601)').optional(),
         endDate: z.string().describe('New end date/time (ISO 8601)').optional(),
@@ -133,6 +142,7 @@ export function registerReservationTools(server: McpServer, client: IOfficeClien
       annotations: { readOnlyHint: false, destructiveHint: true },
     },
     async ({ id, confirmToken, ...body }, ctx) => {
+      requireUpdateFields(body);
       const gate = await confirmWrite(ctx, {
         tool: 'io_update_reservation',
         action: 'reservation.update',
@@ -154,7 +164,7 @@ export function registerReservationTools(server: McpServer, client: IOfficeClien
     {
       description: 'Delete/cancel an iOffice reservation by ID. ' + CONFIRM_DESCRIPTION,
       inputSchema: z.object({
-        id: z.number().describe('Reservation ID'),
+        id: z.number().int().positive().describe('Reservation ID'),
         confirmToken: confirmTokenParam,
       }),
       annotations: { readOnlyHint: false, destructiveHint: true },
@@ -184,7 +194,7 @@ export function registerReservationTools(server: McpServer, client: IOfficeClien
       description:
         'Check in to an iOffice reservation, confirming room usage. ' + CONFIRM_DESCRIPTION,
       inputSchema: z.object({
-        id: z.number().describe('Reservation ID'),
+        id: z.number().int().positive().describe('Reservation ID'),
         confirmToken: confirmTokenParam,
       }),
       annotations: { readOnlyHint: false, destructiveHint: true },
@@ -213,7 +223,7 @@ export function registerReservationTools(server: McpServer, client: IOfficeClien
         'Check out of an iOffice reservation, releasing the room early if needed. ' +
         CONFIRM_DESCRIPTION,
       inputSchema: z.object({
-        id: z.number().describe('Reservation ID'),
+        id: z.number().int().positive().describe('Reservation ID'),
         confirmToken: confirmTokenParam,
       }),
       annotations: { readOnlyHint: false, destructiveHint: true },
