@@ -9,7 +9,11 @@ import {
   CONFIRM_PREVIEW,
   confirmTokenParam,
   confirmWrite,
+  readWriteSubject,
+  subjectSummary,
 } from './_confirm.js';
+import { ADVANCE, CREATE, READ, UPDATE } from './_annotations.js';
+import { requireUpdateFields } from './_inputs.js';
 
 export function registerVisitorTools(server: McpServer, client: IOfficeClient): void {
   server.registerTool(
@@ -27,13 +31,19 @@ export function registerVisitorTools(server: McpServer, client: IOfficeClient): 
           .string()
           .describe('Filter visitors expected on or before this date (ISO 8601)')
           .optional(),
-        buildingId: z.number().describe('Filter by building ID').optional(),
-        limit: z.number().describe('Max results (default 50, max 100)').optional(),
-        startAt: z.number().describe('Pagination offset (default 0)').optional(),
+        buildingId: z.number().int().positive().describe('Filter by building ID').optional(),
+        limit: z
+          .number()
+          .int()
+          .min(1)
+          .max(100)
+          .describe('Max results (default 50, max 100)')
+          .optional(),
+        startAt: z.number().int().min(0).describe('Pagination offset (default 0)').optional(),
         orderBy: z.string().describe('Property to sort by (default: id)').optional(),
         orderByType: z.enum(['asc', 'desc']).describe('Sort direction (default: asc)').optional(),
       }),
-      annotations: { readOnlyHint: true },
+      annotations: READ,
     },
     async ({
       search,
@@ -67,9 +77,9 @@ export function registerVisitorTools(server: McpServer, client: IOfficeClient): 
       description: 'Get a single iOffice visitor by ID.',
       inputSchema: z.object({
         view: viewArg(),
-        id: z.number().describe('Visitor ID'),
+        id: z.number().int().positive().describe('Visitor ID'),
       }),
-      annotations: { readOnlyHint: true },
+      annotations: READ,
     },
     async ({ id, view }) => {
       const data = await client.request('GET', `/visitors/${id}`);
@@ -87,8 +97,13 @@ export function registerVisitorTools(server: McpServer, client: IOfficeClient): 
         email: z.string().describe('Visitor email address').optional(),
         company: z.string().describe('Visitor company/organization').optional(),
         phone: z.string().describe('Visitor phone number').optional(),
-        hostId: z.number().describe('Host user ID (iOffice user they are visiting)').optional(),
-        buildingId: z.number().describe('Building ID for the visit').optional(),
+        hostId: z
+          .number()
+          .int()
+          .positive()
+          .describe('Host user ID (iOffice user they are visiting)')
+          .optional(),
+        buildingId: z.number().int().positive().describe('Building ID for the visit').optional(),
         expectedArrival: z.string().describe('Expected arrival date/time (ISO 8601)').optional(),
         expectedDeparture: z
           .string()
@@ -97,7 +112,7 @@ export function registerVisitorTools(server: McpServer, client: IOfficeClient): 
         purpose: z.string().describe('Purpose of visit').optional(),
         confirmToken: confirmTokenParam,
       }),
-      annotations: { readOnlyHint: false, destructiveHint: true },
+      annotations: CREATE,
     },
     async ({ confirmToken, ...args }, ctx) => {
       const gate = await confirmWrite(ctx, {
@@ -122,7 +137,7 @@ export function registerVisitorTools(server: McpServer, client: IOfficeClient): 
         'Update an existing iOffice visitor record. Only provide fields to change. ' +
         CONFIRM_DESCRIPTION,
       inputSchema: z.object({
-        id: z.number().describe('Visitor ID'),
+        id: z.number().int().positive().describe('Visitor ID'),
         firstName: z.string().describe('Visitor first name').optional(),
         lastName: z.string().describe('Visitor last name').optional(),
         email: z.string().describe('Visitor email address').optional(),
@@ -136,17 +151,20 @@ export function registerVisitorTools(server: McpServer, client: IOfficeClient): 
         purpose: z.string().describe('Purpose of visit').optional(),
         confirmToken: confirmTokenParam,
       }),
-      annotations: { readOnlyHint: false, destructiveHint: true },
+      annotations: UPDATE,
     },
     async ({ id, confirmToken, ...body }, ctx) => {
+      requireUpdateFields(body);
+      const subject = await readWriteSubject(client, `/visitors/${id}`);
       const gate = await confirmWrite(ctx, {
         tool: 'io_update_visitor',
         action: 'visitor.update',
-        summary: `Update iOffice visitor ${id}`,
+        summary: subjectSummary('Update iOffice visitor', id, subject),
         account: undefined,
         request: { method: 'PUT', path: `/visitors/${id}`, body },
         target: id,
-        preview: CONFIRM_PREVIEW,
+        revision: subject.revision,
+        preview: { ...CONFIRM_PREVIEW, current: subject.current },
         confirmToken,
       });
       if (gate) return gate;
@@ -160,10 +178,10 @@ export function registerVisitorTools(server: McpServer, client: IOfficeClient): 
     {
       description: 'Check in a visitor upon arrival at the building. ' + CONFIRM_DESCRIPTION,
       inputSchema: z.object({
-        id: z.number().describe('Visitor ID'),
+        id: z.number().int().positive().describe('Visitor ID'),
         confirmToken: confirmTokenParam,
       }),
-      annotations: { readOnlyHint: false, destructiveHint: true },
+      annotations: ADVANCE,
     },
     async ({ id, confirmToken }, ctx) => {
       const gate = await confirmWrite(ctx, {
@@ -187,10 +205,10 @@ export function registerVisitorTools(server: McpServer, client: IOfficeClient): 
     {
       description: 'Check out a visitor upon departure from the building. ' + CONFIRM_DESCRIPTION,
       inputSchema: z.object({
-        id: z.number().describe('Visitor ID'),
+        id: z.number().int().positive().describe('Visitor ID'),
         confirmToken: confirmTokenParam,
       }),
-      annotations: { readOnlyHint: false, destructiveHint: true },
+      annotations: ADVANCE,
     },
     async ({ id, confirmToken }, ctx) => {
       const gate = await confirmWrite(ctx, {

@@ -6,7 +6,7 @@ MCP server exposing iOffice workspace/facility management APIs to Claude. Uses s
 
 ```bash
 npm run build            # tsc + esbuild bundle → dist/index.js + dist/bundle.js
-npm test                 # Check formatting, typecheck, then run tests (vitest)
+npm test                 # Check formatting, typecheck, then run tests with coverage (CI runs this; 100% thresholds enforced)
 npm run test:watch       # Watch mode
 npm run test:coverage    # Coverage report (100% thresholds enforced)
 npm run dev              # node --env-file=.env dist/index.js (requires built dist)
@@ -72,7 +72,7 @@ Tests live in `tests/` (one file per tool module under `tests/tools/` + `client.
   marketplace.json  # Claude Code marketplace catalog entry
 manifest.json       # MCPB (Anthropic desktop bundle) manifest — declares tools[], user_config, entry_point
 server.json         # MCP Registry submission (io.github.chrischall/ioffice-mcp)
-.mcp.json           # Local MCP client config
+.mcp.json           # MCP client config (npx -y ioffice-mcp — ships in the tarball, so no cwd-relative path)
 skills/ioffice-mcp/
   SKILL.md          # Claude Code skill — teaches Claude when/how to use the tools
 ```

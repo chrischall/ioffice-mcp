@@ -9,7 +9,11 @@ import {
   CONFIRM_PREVIEW,
   confirmTokenParam,
   confirmWrite,
+  readWriteSubject,
+  subjectSummary,
 } from './_confirm.js';
+import { ADVANCE, CREATE, READ, TERMINATE, UPDATE } from './_annotations.js';
+import { requireUpdateFields } from './_inputs.js';
 
 export function registerMoveTools(server: McpServer, client: IOfficeClient): void {
   server.registerTool(
@@ -24,16 +28,22 @@ export function registerMoveTools(server: McpServer, client: IOfficeClient): voi
           .string()
           .describe('Filter by status (e.g. pending, approved, completed)')
           .optional(),
-        buildingId: z.number().describe('Filter by building ID').optional(),
-        requesterId: z.number().describe('Filter by requester user ID').optional(),
+        buildingId: z.number().int().positive().describe('Filter by building ID').optional(),
+        requesterId: z.number().int().positive().describe('Filter by requester user ID').optional(),
         startDate: z.string().describe('Filter moves on or after this date (ISO 8601)').optional(),
         endDate: z.string().describe('Filter moves on or before this date (ISO 8601)').optional(),
-        limit: z.number().describe('Max results (default 50, max 100)').optional(),
-        startAt: z.number().describe('Pagination offset (default 0)').optional(),
+        limit: z
+          .number()
+          .int()
+          .min(1)
+          .max(100)
+          .describe('Max results (default 50, max 100)')
+          .optional(),
+        startAt: z.number().int().min(0).describe('Pagination offset (default 0)').optional(),
         orderBy: z.string().describe('Property to sort by (default: id)').optional(),
         orderByType: z.enum(['asc', 'desc']).describe('Sort direction (default: asc)').optional(),
       }),
-      annotations: { readOnlyHint: true },
+      annotations: READ,
     },
     async ({
       search,
@@ -71,9 +81,9 @@ export function registerMoveTools(server: McpServer, client: IOfficeClient): voi
       description: 'Get a single iOffice move request by ID.',
       inputSchema: z.object({
         view: viewArg(),
-        id: z.number().describe('Move request ID'),
+        id: z.number().int().positive().describe('Move request ID'),
       }),
-      annotations: { readOnlyHint: true },
+      annotations: READ,
     },
     async ({ id, view }) => {
       const data = await client.request('GET', `/moves/${id}`);
@@ -88,14 +98,24 @@ export function registerMoveTools(server: McpServer, client: IOfficeClient): voi
       inputSchema: z.object({
         name: z.string().describe('Move request name/title'),
         description: z.string().describe('Description of the move').optional(),
-        requesterId: z.number().describe('User ID of the person requesting the move').optional(),
-        fromSpaceId: z.number().describe('Source space/room ID').optional(),
-        toSpaceId: z.number().describe('Destination space/room ID').optional(),
+        requesterId: z
+          .number()
+          .int()
+          .positive()
+          .describe('User ID of the person requesting the move')
+          .optional(),
+        fromSpaceId: z.number().int().positive().describe('Source space/room ID').optional(),
+        toSpaceId: z.number().int().positive().describe('Destination space/room ID').optional(),
         scheduledDate: z.string().describe('Scheduled move date (ISO 8601)').optional(),
-        buildingId: z.number().describe('Building ID where the move takes place').optional(),
+        buildingId: z
+          .number()
+          .int()
+          .positive()
+          .describe('Building ID where the move takes place')
+          .optional(),
         confirmToken: confirmTokenParam,
       }),
-      annotations: { readOnlyHint: false, destructiveHint: true },
+      annotations: CREATE,
     },
     async ({ confirmToken, ...args }, ctx) => {
       const gate = await confirmWrite(ctx, {
@@ -120,25 +140,28 @@ export function registerMoveTools(server: McpServer, client: IOfficeClient): voi
         'Update an existing iOffice move request. Only provide fields to change. ' +
         CONFIRM_DESCRIPTION,
       inputSchema: z.object({
-        id: z.number().describe('Move request ID'),
+        id: z.number().int().positive().describe('Move request ID'),
         name: z.string().describe('Move request name/title').optional(),
         description: z.string().describe('Description of the move').optional(),
         scheduledDate: z.string().describe('Scheduled move date (ISO 8601)').optional(),
-        fromSpaceId: z.number().describe('Source space/room ID').optional(),
-        toSpaceId: z.number().describe('Destination space/room ID').optional(),
+        fromSpaceId: z.number().int().positive().describe('Source space/room ID').optional(),
+        toSpaceId: z.number().int().positive().describe('Destination space/room ID').optional(),
         confirmToken: confirmTokenParam,
       }),
-      annotations: { readOnlyHint: false, destructiveHint: true },
+      annotations: UPDATE,
     },
     async ({ id, confirmToken, ...body }, ctx) => {
+      requireUpdateFields(body);
+      const subject = await readWriteSubject(client, `/moves/${id}`);
       const gate = await confirmWrite(ctx, {
         tool: 'io_update_move',
         action: 'move.update',
-        summary: `Update iOffice move request ${id}`,
+        summary: subjectSummary('Update iOffice move request', id, subject),
         account: undefined,
         request: { method: 'PUT', path: `/moves/${id}`, body },
         target: id,
-        preview: CONFIRM_PREVIEW,
+        revision: subject.revision,
+        preview: { ...CONFIRM_PREVIEW, current: subject.current },
         confirmToken,
       });
       if (gate) return gate;
@@ -152,11 +175,11 @@ export function registerMoveTools(server: McpServer, client: IOfficeClient): voi
     {
       description: 'Approve an iOffice move request. ' + CONFIRM_DESCRIPTION,
       inputSchema: z.object({
-        id: z.number().describe('Move request ID'),
+        id: z.number().int().positive().describe('Move request ID'),
         notes: z.string().describe('Approval notes (optional)').optional(),
         confirmToken: confirmTokenParam,
       }),
-      annotations: { readOnlyHint: false, destructiveHint: true },
+      annotations: ADVANCE,
     },
     async ({ id, confirmToken, notes }, ctx) => {
       const body = optionalBody({ notes }, ['notes']);
@@ -181,22 +204,24 @@ export function registerMoveTools(server: McpServer, client: IOfficeClient): voi
     {
       description: 'Cancel an iOffice move request. ' + CONFIRM_DESCRIPTION,
       inputSchema: z.object({
-        id: z.number().describe('Move request ID'),
+        id: z.number().int().positive().describe('Move request ID'),
         reason: z.string().describe('Cancellation reason').optional(),
         confirmToken: confirmTokenParam,
       }),
-      annotations: { readOnlyHint: false, destructiveHint: true },
+      annotations: TERMINATE,
     },
     async ({ id, confirmToken, reason }, ctx) => {
       const body = optionalBody({ reason }, ['reason']);
+      const subject = await readWriteSubject(client, `/moves/${id}`);
       const gate = await confirmWrite(ctx, {
         tool: 'io_cancel_move',
         action: 'move.cancel',
-        summary: `Cancel iOffice move request ${id}`,
+        summary: subjectSummary('Cancel iOffice move request', id, subject),
         account: undefined,
         request: { method: 'POST', path: `/moves/${id}/cancel`, body },
         target: id,
-        preview: CONFIRM_PREVIEW,
+        revision: subject.revision,
+        preview: { ...CONFIRM_PREVIEW, current: subject.current },
         confirmToken,
       });
       if (gate) return gate;

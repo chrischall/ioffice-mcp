@@ -1,8 +1,8 @@
 {
   "mcpServers": {
     "ioffice": {
-      "command": "node",
-      "args": ["dist/index.js"],
+      "command": "npx",
+      "args": ["-y", "ioffice-mcp"],
       "env": {
         "IOFFICE_HOST": "${IOFFICE_HOST}",
         "IOFFICE_TOKEN": "${IOFFICE_TOKEN}",

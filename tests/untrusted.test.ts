@@ -70,7 +70,8 @@ describe('confirm-gated writes', () => {
         await h.callTool('io_delete_user', { id: 42 }),
       );
       expect(r.preview.note).toBe(CONFIRM_RULE);
-      expect(client.request).not.toHaveBeenCalled();
+      // Phase 1 only reads the target (fleet-audit#1031); it never writes.
+      expect(vi.mocked(client.request).mock.calls).toEqual([['GET', '/users/42']]);
     } finally {
       await h.close();
     }

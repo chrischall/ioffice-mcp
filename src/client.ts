@@ -31,6 +31,26 @@ export function optionalBody(
   return Object.keys(body).length > 0 ? body : undefined;
 }
 
+/**
+ * Reduce IOFFICE_HOST to the bare `host[:port]` the base URL needs. People
+ * paste the tenant URL from the browser (`https://acme.iofficeconnect.com/app/`),
+ * which used to build `https://https://...` and fail as an unclassified network
+ * error (chrischall/fleet-audit#516). A scheme, path, query or fragment is
+ * dropped; anything that is not an http(s) host returns `null`.
+ */
+export function normalizeHost(raw: string): string | null {
+  const value = raw.trim();
+  const withScheme = /^[a-z][a-z0-9+.-]*:\/\//i.test(value) ? value : `https://${value}`;
+  let url: URL;
+  try {
+    url = new URL(withScheme);
+  } catch {
+    return null;
+  }
+  if (url.protocol !== 'https:' && url.protocol !== 'http:') return null;
+  return url.host;
+}
+
 /** What resolved from the env — never the credential value itself. */
 export interface CredentialDescription {
   /** Which env var supplied the credential, or `null` when none did. */
@@ -50,14 +70,20 @@ export class IOfficeClient {
    * re-raise the error at request time.
    */
   constructor() {
-    const host = readEnvVar('IOFFICE_HOST');
+    const rawHost = readEnvVar('IOFFICE_HOST');
+    const host = rawHost ? normalizeHost(rawHost) : undefined;
     const token = readEnvVar('IOFFICE_TOKEN');
     const username = readEnvVar('IOFFICE_USERNAME');
     const password = readEnvVar('IOFFICE_PASSWORD');
 
     let authHeaders: Record<string, string> | null = null;
-    if (!host) {
+    if (!rawHost) {
       this.configError = new Error('IOFFICE_HOST environment variable is required');
+    } else if (!host) {
+      this.configError = new Error(
+        `IOFFICE_HOST is not a valid iOffice hostname: ${JSON.stringify(rawHost)} ` +
+          '(expected e.g. acme.iofficeconnect.com)',
+      );
     } else if (token) {
       authHeaders = { 'x-auth-token': token };
       this.configError = null;
@@ -79,7 +105,7 @@ export class IOfficeClient {
         : username && password
           ? 'IOFFICE_USERNAME+IOFFICE_PASSWORD'
           : null,
-      host: host ?? null,
+      host: host ?? rawHost ?? null,
     };
 
     // Shared bearer-client kit, configured for iOffice's static header auth

@@ -115,6 +115,17 @@ describe('io_healthcheck', () => {
     expect(out.error.kind).not.toBe('credential_rejected');
   });
 
+  // A pasted URL or other non-hostname used to surface as an unclassified
+  // network failure (chrischall/fleet-audit#516).
+  it('classifies a malformed IOFFICE_HOST as bad_host, pointing at the setting', async () => {
+    const out = await setup(FULL, async () => {
+      throw new Error('IOFFICE_HOST is not a valid iOffice hostname: "ftp://x"');
+    }).call();
+    expect(out.ok).toBe(false);
+    expect(out.error.kind).toBe('bad_host');
+    expect(out.hint).toMatch(/IOFFICE_HOST/);
+  });
+
   it('leaves an unrecognised failure to the helper defaults', async () => {
     const out = await setup(FULL, async () => {
       throw new Error('socket hang up');

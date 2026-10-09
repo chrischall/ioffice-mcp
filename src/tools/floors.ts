@@ -9,7 +9,11 @@ import {
   CONFIRM_PREVIEW,
   confirmTokenParam,
   confirmWrite,
+  readWriteSubject,
+  subjectSummary,
 } from './_confirm.js';
+import { CREATE, DELETE, READ, UPDATE } from './_annotations.js';
+import { requireUpdateFields } from './_inputs.js';
 
 export function registerFloorTools(server: McpServer, client: IOfficeClient): void {
   server.registerTool(
@@ -18,14 +22,20 @@ export function registerFloorTools(server: McpServer, client: IOfficeClient): vo
       description: 'List iOffice floors. Optionally filter by building ID.',
       inputSchema: z.object({
         view: viewArg(),
-        buildingId: z.number().describe('Filter floors by building ID').optional(),
+        buildingId: z.number().int().positive().describe('Filter floors by building ID').optional(),
         search: z.string().describe('Filter by name').optional(),
-        limit: z.number().describe('Max results (default 50, max 100)').optional(),
-        startAt: z.number().describe('Pagination offset (default 0)').optional(),
+        limit: z
+          .number()
+          .int()
+          .min(1)
+          .max(100)
+          .describe('Max results (default 50, max 100)')
+          .optional(),
+        startAt: z.number().int().min(0).describe('Pagination offset (default 0)').optional(),
         orderBy: z.string().describe('Property to sort by (default: id)').optional(),
         orderByType: z.enum(['asc', 'desc']).describe('Sort direction (default: asc)').optional(),
       }),
-      annotations: { readOnlyHint: true },
+      annotations: READ,
     },
     async ({ buildingId, search, limit, startAt, orderBy, orderByType, view }) => {
       const qs = buildQueryString({
@@ -35,7 +45,8 @@ export function registerFloorTools(server: McpServer, client: IOfficeClient): vo
         orderBy,
         orderByType,
       });
-      const path = buildingId ? `/buildings/${buildingId}/floors${qs}` : `/floors${qs}`;
+      const path =
+        buildingId !== undefined ? `/buildings/${buildingId}/floors${qs}` : `/floors${qs}`;
       const data = await client.request('GET', path);
       return viewResponse(view, data);
     },
@@ -47,9 +58,9 @@ export function registerFloorTools(server: McpServer, client: IOfficeClient): vo
       description: 'Get a single iOffice floor by ID.',
       inputSchema: z.object({
         view: viewArg(),
-        id: z.number().describe('Floor ID'),
+        id: z.number().int().positive().describe('Floor ID'),
       }),
-      annotations: { readOnlyHint: true },
+      annotations: READ,
     },
     async ({ id, view }) => {
       const data = await client.request('GET', `/floors/${id}`);
@@ -63,13 +74,17 @@ export function registerFloorTools(server: McpServer, client: IOfficeClient): vo
       description: 'Create a new iOffice floor within a building. ' + CONFIRM_DESCRIPTION,
       inputSchema: z.object({
         name: z.string().describe('Floor name'),
-        buildingId: z.number().describe('ID of the building this floor belongs to'),
+        buildingId: z
+          .number()
+          .int()
+          .positive()
+          .describe('ID of the building this floor belongs to'),
         description: z.string().describe('Floor description').optional(),
         totalSquareFootage: z.number().describe('Total square footage of the floor').optional(),
         floorNumber: z.number().describe('Physical floor number').optional(),
         confirmToken: confirmTokenParam,
       }),
-      annotations: { readOnlyHint: false, destructiveHint: true },
+      annotations: CREATE,
     },
     async ({ confirmToken, ...args }, ctx) => {
       const gate = await confirmWrite(ctx, {
@@ -93,24 +108,27 @@ export function registerFloorTools(server: McpServer, client: IOfficeClient): vo
       description:
         'Update an existing iOffice floor. Only provide fields to change. ' + CONFIRM_DESCRIPTION,
       inputSchema: z.object({
-        id: z.number().describe('Floor ID'),
+        id: z.number().int().positive().describe('Floor ID'),
         name: z.string().describe('Floor name').optional(),
         description: z.string().describe('Floor description').optional(),
         totalSquareFootage: z.number().describe('Total square footage').optional(),
         floorNumber: z.number().describe('Physical floor number').optional(),
         confirmToken: confirmTokenParam,
       }),
-      annotations: { readOnlyHint: false, destructiveHint: true },
+      annotations: UPDATE,
     },
     async ({ id, confirmToken, ...body }, ctx) => {
+      requireUpdateFields(body);
+      const subject = await readWriteSubject(client, `/floors/${id}`);
       const gate = await confirmWrite(ctx, {
         tool: 'io_update_floor',
         action: 'floor.update',
-        summary: `Update iOffice floor ${id}`,
+        summary: subjectSummary('Update iOffice floor', id, subject),
         account: undefined,
         request: { method: 'PUT', path: `/floors/${id}`, body },
         target: id,
-        preview: CONFIRM_PREVIEW,
+        revision: subject.revision,
+        preview: { ...CONFIRM_PREVIEW, current: subject.current },
         confirmToken,
       });
       if (gate) return gate;
@@ -124,20 +142,22 @@ export function registerFloorTools(server: McpServer, client: IOfficeClient): vo
     {
       description: 'Delete an iOffice floor by ID. ' + CONFIRM_DESCRIPTION,
       inputSchema: z.object({
-        id: z.number().describe('Floor ID'),
+        id: z.number().int().positive().describe('Floor ID'),
         confirmToken: confirmTokenParam,
       }),
-      annotations: { readOnlyHint: false, destructiveHint: true },
+      annotations: DELETE,
     },
     async ({ id, confirmToken }, ctx) => {
+      const subject = await readWriteSubject(client, `/floors/${id}`);
       const gate = await confirmWrite(ctx, {
         tool: 'io_delete_floor',
         action: 'floor.delete',
-        summary: `Delete iOffice floor ${id}`,
+        summary: subjectSummary('Delete iOffice floor', id, subject),
         account: undefined,
         request: { method: 'DELETE', path: `/floors/${id}` },
         target: id,
-        preview: CONFIRM_PREVIEW,
+        revision: subject.revision,
+        preview: { ...CONFIRM_PREVIEW, current: subject.current },
         confirmToken,
       });
       if (gate) return gate;

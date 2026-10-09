@@ -9,7 +9,11 @@ import {
   CONFIRM_PREVIEW,
   confirmTokenParam,
   confirmWrite,
+  readWriteSubject,
+  subjectSummary,
 } from './_confirm.js';
+import { CREATE, DELETE, READ, UPDATE } from './_annotations.js';
+import { requireUpdateFields } from './_inputs.js';
 
 export function registerSpaceTools(server: McpServer, client: IOfficeClient): void {
   server.registerTool(
@@ -18,14 +22,20 @@ export function registerSpaceTools(server: McpServer, client: IOfficeClient): vo
       description: 'List iOffice spaces (rooms). Optionally filter by floor ID.',
       inputSchema: z.object({
         view: viewArg(),
-        floorId: z.number().describe('Filter spaces by floor ID').optional(),
+        floorId: z.number().int().positive().describe('Filter spaces by floor ID').optional(),
         search: z.string().describe('Filter by name or description').optional(),
-        limit: z.number().describe('Max results (default 50, max 100)').optional(),
-        startAt: z.number().describe('Pagination offset (default 0)').optional(),
+        limit: z
+          .number()
+          .int()
+          .min(1)
+          .max(100)
+          .describe('Max results (default 50, max 100)')
+          .optional(),
+        startAt: z.number().int().min(0).describe('Pagination offset (default 0)').optional(),
         orderBy: z.string().describe('Property to sort by (default: id)').optional(),
         orderByType: z.enum(['asc', 'desc']).describe('Sort direction (default: asc)').optional(),
       }),
-      annotations: { readOnlyHint: true },
+      annotations: READ,
     },
     async ({ floorId, search, limit, startAt, orderBy, orderByType, view }) => {
       const qs = buildQueryString({
@@ -35,7 +45,7 @@ export function registerSpaceTools(server: McpServer, client: IOfficeClient): vo
         orderBy,
         orderByType,
       });
-      const path = floorId ? `/floors/${floorId}/spaces${qs}` : `/spaces${qs}`;
+      const path = floorId !== undefined ? `/floors/${floorId}/spaces${qs}` : `/spaces${qs}`;
       const data = await client.request('GET', path);
       return viewResponse(view, data);
     },
@@ -47,9 +57,9 @@ export function registerSpaceTools(server: McpServer, client: IOfficeClient): vo
       description: 'Get a single iOffice space (room) by ID.',
       inputSchema: z.object({
         view: viewArg(),
-        id: z.number().describe('Space ID'),
+        id: z.number().int().positive().describe('Space ID'),
       }),
-      annotations: { readOnlyHint: true },
+      annotations: READ,
     },
     async ({ id, view }) => {
       const data = await client.request('GET', `/spaces/${id}`);
@@ -63,14 +73,14 @@ export function registerSpaceTools(server: McpServer, client: IOfficeClient): vo
       description: 'Create a new iOffice space (room) on a floor. ' + CONFIRM_DESCRIPTION,
       inputSchema: z.object({
         name: z.string().describe('Space name'),
-        floorId: z.number().describe('Floor ID this space belongs to'),
+        floorId: z.number().int().positive().describe('Floor ID this space belongs to'),
         description: z.string().describe('Space description').optional(),
         capacity: z.number().describe('Maximum occupancy').optional(),
         squareFootage: z.number().describe('Square footage of the space').optional(),
-        typeId: z.number().describe('Space type ID').optional(),
+        typeId: z.number().int().positive().describe('Space type ID').optional(),
         confirmToken: confirmTokenParam,
       }),
-      annotations: { readOnlyHint: false, destructiveHint: true },
+      annotations: CREATE,
     },
     async ({ confirmToken, ...args }, ctx) => {
       const gate = await confirmWrite(ctx, {
@@ -94,25 +104,28 @@ export function registerSpaceTools(server: McpServer, client: IOfficeClient): vo
       description:
         'Update an existing iOffice space. Only provide fields to change. ' + CONFIRM_DESCRIPTION,
       inputSchema: z.object({
-        id: z.number().describe('Space ID'),
+        id: z.number().int().positive().describe('Space ID'),
         name: z.string().describe('Space name').optional(),
         description: z.string().describe('Space description').optional(),
         capacity: z.number().describe('Maximum occupancy').optional(),
         squareFootage: z.number().describe('Square footage').optional(),
-        typeId: z.number().describe('Space type ID').optional(),
+        typeId: z.number().int().positive().describe('Space type ID').optional(),
         confirmToken: confirmTokenParam,
       }),
-      annotations: { readOnlyHint: false, destructiveHint: true },
+      annotations: UPDATE,
     },
     async ({ id, confirmToken, ...body }, ctx) => {
+      requireUpdateFields(body);
+      const subject = await readWriteSubject(client, `/spaces/${id}`);
       const gate = await confirmWrite(ctx, {
         tool: 'io_update_space',
         action: 'space.update',
-        summary: `Update iOffice space ${id}`,
+        summary: subjectSummary('Update iOffice space', id, subject),
         account: undefined,
         request: { method: 'PUT', path: `/spaces/${id}`, body },
         target: id,
-        preview: CONFIRM_PREVIEW,
+        revision: subject.revision,
+        preview: { ...CONFIRM_PREVIEW, current: subject.current },
         confirmToken,
       });
       if (gate) return gate;
@@ -126,20 +139,22 @@ export function registerSpaceTools(server: McpServer, client: IOfficeClient): vo
     {
       description: 'Delete an iOffice space by ID. ' + CONFIRM_DESCRIPTION,
       inputSchema: z.object({
-        id: z.number().describe('Space ID'),
+        id: z.number().int().positive().describe('Space ID'),
         confirmToken: confirmTokenParam,
       }),
-      annotations: { readOnlyHint: false, destructiveHint: true },
+      annotations: DELETE,
     },
     async ({ id, confirmToken }, ctx) => {
+      const subject = await readWriteSubject(client, `/spaces/${id}`);
       const gate = await confirmWrite(ctx, {
         tool: 'io_delete_space',
         action: 'space.delete',
-        summary: `Delete iOffice space ${id}`,
+        summary: subjectSummary('Delete iOffice space', id, subject),
         account: undefined,
         request: { method: 'DELETE', path: `/spaces/${id}` },
         target: id,
-        preview: CONFIRM_PREVIEW,
+        revision: subject.revision,
+        preview: { ...CONFIRM_PREVIEW, current: subject.current },
         confirmToken,
       });
       if (gate) return gate;

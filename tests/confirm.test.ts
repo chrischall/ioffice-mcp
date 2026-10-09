@@ -113,7 +113,33 @@ const WRITES: Row[] = [
   ['io_cancel_move', { id: 9 }, 'POST', '/moves/9/cancel'],
 ];
 
+/**
+ * The writes that can lose data (updates, deletes, cancel, return) and the
+ * record each reads before previewing, so the person approving sees what will
+ * change rather than a bare id (chrischall/fleet-audit#1031). Creates and
+ * workflow advances stay argument-only.
+ */
+const READS_TARGET: Record<string, string> = {
+  io_update_building: '/buildings/1',
+  io_delete_building: '/buildings/1',
+  io_update_floor: '/floors/2',
+  io_delete_floor: '/floors/2',
+  io_update_space: '/spaces/3',
+  io_delete_space: '/spaces/3',
+  io_update_user: '/users/4',
+  io_delete_user: '/users/4',
+  io_update_reservation: '/reservations/5',
+  io_delete_reservation: '/reservations/5',
+  io_update_visitor: '/visitors/6',
+  io_update_maintenance_request: '/maintenanceRequests/7',
+  io_return_mail: '/mail/8',
+  io_update_move: '/moves/9',
+  io_cancel_move: '/moves/9',
+};
+
 const request = vi.fn();
+/** Every non-GET call: what the gate must hold back until approval. */
+const writes = () => request.mock.calls.filter(([m]) => m !== 'GET');
 const client = { request } as unknown as IOfficeClient;
 
 function harness(options?: TestHarnessOptions): Promise<TestHarness> {
@@ -168,7 +194,7 @@ describe('every gated write (client cannot be prompted)', () => {
   });
 
   it.each(WRITES)(
-    '%s: phase 1 previews without a request; phase 2 writes once',
+    '%s: phase 1 previews without a write; phase 2 writes once',
     async (tool, args, method, path, sent) => {
       h = await harness();
       const first = await h.callTool(tool, args);
@@ -182,14 +208,20 @@ describe('every gated write (client cannot be prompted)', () => {
       });
       if (sent === undefined) expect(p1.preview).not.toHaveProperty('willSend');
       expect(typeof p1.confirmToken).toBe('string');
-      expect(request).not.toHaveBeenCalled();
+      // Phase 1 never writes. A tool that can lose data reads its target first
+      // (and only that), so the preview can name it (fleet-audit#1031).
+      const read = READS_TARGET[tool];
+      expect(request.mock.calls).toEqual(read ? [['GET', read]] : []);
+      request.mockClear();
 
       const second = await h.callTool(tool, { ...args, confirmToken: p1.confirmToken });
       expect(second.isError).toBeFalsy();
-      expect(request).toHaveBeenCalledTimes(1);
-      expect(request.mock.calls[0][0]).toBe(method);
-      expect(request.mock.calls[0][1]).toBe(path);
-      expect(request.mock.calls[0][2]).toEqual(sent);
+      const writes = request.mock.calls.filter(([m]) => m !== 'GET');
+      expect(writes).toHaveLength(1);
+      expect(writes[0][0]).toBe(method);
+      expect(writes[0][1]).toBe(path);
+      expect(writes[0][2]).toEqual(sent);
+      expect(request.mock.calls.length).toBe(read ? 2 : 1);
     },
   );
 });
@@ -200,10 +232,10 @@ describe('token rules', () => {
     const args = { id: 4 };
     const p1 = body(await h.callTool('io_delete_user', args));
     await h.callTool('io_delete_user', { ...args, confirmToken: p1.confirmToken });
-    expect(request).toHaveBeenCalledTimes(1);
+    expect(writes()).toHaveLength(1);
     const replay = await h.callTool('io_delete_user', { ...args, confirmToken: p1.confirmToken });
     expect(JSON.stringify(replay)).toContain('TOKEN_REUSED');
-    expect(request).toHaveBeenCalledTimes(1);
+    expect(writes()).toHaveLength(1);
   });
 
   it('refuses a token when an argument changed between phases (DRAFT_CHANGED)', async () => {
@@ -215,7 +247,7 @@ describe('token rules', () => {
       confirmToken: p1.confirmToken,
     });
     expect(JSON.stringify(changed)).toContain('DRAFT_CHANGED');
-    expect(request).not.toHaveBeenCalled();
+    expect(writes()).toEqual([]);
   });
 
   it('refuses a token minted for a different record (TOKEN_INVALID)', async () => {
@@ -223,13 +255,82 @@ describe('token rules', () => {
     const p1 = body(await h.callTool('io_delete_space', { id: 3 }));
     const other = await h.callTool('io_delete_space', { id: 4, confirmToken: p1.confirmToken });
     expect(JSON.stringify(other)).toContain('TOKEN_INVALID');
-    expect(request).not.toHaveBeenCalled();
+    expect(writes()).toEqual([]);
   });
 
   it('the preview repeats the rule against obeying record text', async () => {
     h = await harness();
     const p1 = body(await h.callTool('io_delete_user', { id: 4 }));
     expect(p1.preview).toMatchObject({ note: CONFIRM_RULE, action: 'Delete iOffice user 4' });
+  });
+});
+
+describe('destructive previews name their target (fleet-audit#1031)', () => {
+  const ALICE = {
+    id: 4,
+    firstName: 'Alice',
+    lastName: 'Smith',
+    email: 'alice@example.com',
+    dateModified: 1700000000000,
+    avatar: { url: 'https://x/y.png' },
+    notes: 'x'.repeat(500),
+  };
+
+  it('shows the record being deleted, not just its id', async () => {
+    request.mockImplementation(async (m: string) => (m === 'GET' ? ALICE : undefined));
+    h = await harness();
+    const p1 = body(await h.callTool('io_delete_user', { id: 4 }));
+    expect(p1.preview).toMatchObject({
+      action: 'Delete iOffice user 4 (Alice Smith)',
+      current: { firstName: 'Alice', lastName: 'Smith', email: 'alice@example.com' },
+    });
+    // Only short identifying scalars are shown, never the whole record.
+    const current = (p1.preview as Body).current as Body;
+    expect(current).not.toHaveProperty('avatar');
+    expect(current).not.toHaveProperty('notes');
+  });
+
+  it('labels a record by its name when it has one', async () => {
+    request.mockImplementation(async () => ({ id: 1, name: 'HQ Tower', code: 'HQ' }));
+    h = await harness();
+    const p1 = body(await h.callTool('io_update_building', { id: 1, city: 'Austin' }));
+    expect(p1.preview).toMatchObject({
+      action: 'Update iOffice building 1 (HQ Tower)',
+      current: { name: 'HQ Tower', code: 'HQ' },
+    });
+  });
+
+  it('a missing record fails the call before any preview or write', async () => {
+    request.mockRejectedValue(new Error('iOffice API error: 404 Not Found'));
+    h = await harness();
+    const r = await h.callTool('io_delete_user', { id: 999 });
+    expect(r.isError).toBe(true);
+    expect(JSON.stringify(r)).toContain('404');
+    expect(request.mock.calls).toEqual([['GET', '/users/999']]);
+  });
+
+  it('refuses the token when the record changed between preview and confirm', async () => {
+    let modified = 1;
+    request.mockImplementation(async (m: string) =>
+      m === 'GET' ? { ...ALICE, dateModified: modified } : undefined,
+    );
+    h = await harness();
+    const p1 = body(await h.callTool('io_update_user', { id: 4, title: 'Eng' }));
+    modified = 2;
+    const r = await h.callTool('io_update_user', {
+      id: 4,
+      title: 'Eng',
+      confirmToken: p1.confirmToken,
+    });
+    expect(JSON.stringify(r)).toContain('DRAFT_CHANGED');
+    expect(request.mock.calls.filter(([m]) => m !== 'GET')).toEqual([]);
+  });
+
+  it('copes with a record that has no identifying fields', async () => {
+    request.mockImplementation(async (m: string) => (m === 'GET' ? 'unexpected' : undefined));
+    h = await harness();
+    const p1 = body(await h.callTool('io_cancel_move', { id: 9 }));
+    expect(p1.preview).toMatchObject({ action: 'Cancel iOffice move request 9', current: {} });
   });
 });
 
@@ -253,13 +354,13 @@ describe('client that can be prompted', () => {
     });
     await h.callTool('io_delete_user', { id: 4 });
     expect(asked).toContain(CONFIRM_RULE);
-    expect(request).not.toHaveBeenCalled();
+    expect(writes()).toEqual([]);
   });
 
   it('does not write when the user declines', async () => {
     h = await harness({ elicitation: async () => ({ action: 'decline' }) });
     await h.callTool('io_cancel_move', { id: 9 });
-    expect(request).not.toHaveBeenCalled();
+    expect(writes()).toEqual([]);
   });
 });
 
@@ -269,6 +370,6 @@ describe('MCP_CONFIRM_MODE', () => {
     h = await harness();
     const r = await h.callTool('io_create_building', { name: 'HQ' });
     expect(JSON.stringify(r)).toContain('confirmation-unsupported');
-    expect(request).not.toHaveBeenCalled();
+    expect(writes()).toEqual([]);
   });
 });

@@ -9,7 +9,11 @@ import {
   CONFIRM_PREVIEW,
   confirmTokenParam,
   confirmWrite,
+  readWriteSubject,
+  subjectSummary,
 } from './_confirm.js';
+import { ADVANCE, CREATE, READ, UPDATE } from './_annotations.js';
+import { requireUpdateFields } from './_inputs.js';
 
 export function registerMaintenanceTools(server: McpServer, client: IOfficeClient): void {
   server.registerTool(
@@ -24,15 +28,26 @@ export function registerMaintenanceTools(server: McpServer, client: IOfficeClien
           .string()
           .describe('Filter by status (e.g. pending, accepted, started, completed, archived)')
           .optional(),
-        spaceId: z.number().describe('Filter by space/room ID').optional(),
-        buildingId: z.number().describe('Filter by building ID').optional(),
-        assignedUserId: z.number().describe('Filter by assigned technician user ID').optional(),
-        limit: z.number().describe('Max results (default 50, max 100)').optional(),
-        startAt: z.number().describe('Pagination offset (default 0)').optional(),
+        spaceId: z.number().int().positive().describe('Filter by space/room ID').optional(),
+        buildingId: z.number().int().positive().describe('Filter by building ID').optional(),
+        assignedUserId: z
+          .number()
+          .int()
+          .positive()
+          .describe('Filter by assigned technician user ID')
+          .optional(),
+        limit: z
+          .number()
+          .int()
+          .min(1)
+          .max(100)
+          .describe('Max results (default 50, max 100)')
+          .optional(),
+        startAt: z.number().int().min(0).describe('Pagination offset (default 0)').optional(),
         orderBy: z.string().describe('Property to sort by (default: id)').optional(),
         orderByType: z.enum(['asc', 'desc']).describe('Sort direction (default: asc)').optional(),
       }),
-      annotations: { readOnlyHint: true },
+      annotations: READ,
     },
     async ({
       search,
@@ -68,9 +83,9 @@ export function registerMaintenanceTools(server: McpServer, client: IOfficeClien
       description: 'Get a single iOffice maintenance request by ID.',
       inputSchema: z.object({
         view: viewArg(),
-        id: z.number().describe('Maintenance request ID'),
+        id: z.number().int().positive().describe('Maintenance request ID'),
       }),
-      annotations: { readOnlyHint: true },
+      annotations: READ,
     },
     async ({ id, view }) => {
       const data = await client.request('GET', `/maintenanceRequests/${id}`);
@@ -85,14 +100,29 @@ export function registerMaintenanceTools(server: McpServer, client: IOfficeClien
       inputSchema: z.object({
         title: z.string().describe('Request title/summary'),
         description: z.string().describe('Detailed description of the issue').optional(),
-        spaceId: z.number().describe('Space/room ID where the issue is located').optional(),
-        buildingId: z.number().describe('Building ID where the issue is located').optional(),
-        priorityId: z.number().describe('Priority level ID').optional(),
-        typeId: z.number().describe('Maintenance type/category ID').optional(),
-        assignedUserId: z.number().describe('Technician user ID to assign').optional(),
+        spaceId: z
+          .number()
+          .int()
+          .positive()
+          .describe('Space/room ID where the issue is located')
+          .optional(),
+        buildingId: z
+          .number()
+          .int()
+          .positive()
+          .describe('Building ID where the issue is located')
+          .optional(),
+        priorityId: z.number().int().positive().describe('Priority level ID').optional(),
+        typeId: z.number().int().positive().describe('Maintenance type/category ID').optional(),
+        assignedUserId: z
+          .number()
+          .int()
+          .positive()
+          .describe('Technician user ID to assign')
+          .optional(),
         confirmToken: confirmTokenParam,
       }),
-      annotations: { readOnlyHint: false, destructiveHint: true },
+      annotations: CREATE,
     },
     async ({ confirmToken, ...args }, ctx) => {
       const gate = await confirmWrite(ctx, {
@@ -117,24 +147,32 @@ export function registerMaintenanceTools(server: McpServer, client: IOfficeClien
         'Update an existing iOffice maintenance request. Only provide fields to change. ' +
         CONFIRM_DESCRIPTION,
       inputSchema: z.object({
-        id: z.number().describe('Maintenance request ID'),
+        id: z.number().int().positive().describe('Maintenance request ID'),
         title: z.string().describe('Request title/summary').optional(),
         description: z.string().describe('Detailed description').optional(),
-        priorityId: z.number().describe('Priority level ID').optional(),
-        assignedUserId: z.number().describe('Assigned technician user ID').optional(),
+        priorityId: z.number().int().positive().describe('Priority level ID').optional(),
+        assignedUserId: z
+          .number()
+          .int()
+          .positive()
+          .describe('Assigned technician user ID')
+          .optional(),
         confirmToken: confirmTokenParam,
       }),
-      annotations: { readOnlyHint: false, destructiveHint: true },
+      annotations: UPDATE,
     },
     async ({ id, confirmToken, ...body }, ctx) => {
+      requireUpdateFields(body);
+      const subject = await readWriteSubject(client, `/maintenanceRequests/${id}`);
       const gate = await confirmWrite(ctx, {
         tool: 'io_update_maintenance_request',
         action: 'maintenance_request.update',
-        summary: `Update iOffice maintenance request ${id}`,
+        summary: subjectSummary('Update iOffice maintenance request', id, subject),
         account: undefined,
         request: { method: 'PUT', path: `/maintenanceRequests/${id}`, body },
         target: id,
-        preview: CONFIRM_PREVIEW,
+        revision: subject.revision,
+        preview: { ...CONFIRM_PREVIEW, current: subject.current },
         confirmToken,
       });
       if (gate) return gate;
@@ -150,10 +188,10 @@ export function registerMaintenanceTools(server: McpServer, client: IOfficeClien
         'Accept an iOffice maintenance request (transition from pending to accepted). ' +
         CONFIRM_DESCRIPTION,
       inputSchema: z.object({
-        id: z.number().describe('Maintenance request ID'),
+        id: z.number().int().positive().describe('Maintenance request ID'),
         confirmToken: confirmTokenParam,
       }),
-      annotations: { readOnlyHint: false, destructiveHint: true },
+      annotations: ADVANCE,
     },
     async ({ id, confirmToken }, ctx) => {
       const gate = await confirmWrite(ctx, {
@@ -179,10 +217,10 @@ export function registerMaintenanceTools(server: McpServer, client: IOfficeClien
         'Start work on an iOffice maintenance request (transition to started/in-progress). ' +
         CONFIRM_DESCRIPTION,
       inputSchema: z.object({
-        id: z.number().describe('Maintenance request ID'),
+        id: z.number().int().positive().describe('Maintenance request ID'),
         confirmToken: confirmTokenParam,
       }),
-      annotations: { readOnlyHint: false, destructiveHint: true },
+      annotations: ADVANCE,
     },
     async ({ id, confirmToken }, ctx) => {
       const gate = await confirmWrite(ctx, {
@@ -206,11 +244,11 @@ export function registerMaintenanceTools(server: McpServer, client: IOfficeClien
     {
       description: 'Mark an iOffice maintenance request as complete. ' + CONFIRM_DESCRIPTION,
       inputSchema: z.object({
-        id: z.number().describe('Maintenance request ID'),
+        id: z.number().int().positive().describe('Maintenance request ID'),
         resolution: z.string().describe('Resolution notes describing what was done').optional(),
         confirmToken: confirmTokenParam,
       }),
-      annotations: { readOnlyHint: false, destructiveHint: true },
+      annotations: ADVANCE,
     },
     async ({ id, confirmToken, resolution }, ctx) => {
       const body = optionalBody({ resolution }, ['resolution']);
@@ -235,10 +273,10 @@ export function registerMaintenanceTools(server: McpServer, client: IOfficeClien
     {
       description: 'Archive a completed iOffice maintenance request. ' + CONFIRM_DESCRIPTION,
       inputSchema: z.object({
-        id: z.number().describe('Maintenance request ID'),
+        id: z.number().int().positive().describe('Maintenance request ID'),
         confirmToken: confirmTokenParam,
       }),
-      annotations: { readOnlyHint: false, destructiveHint: true },
+      annotations: { ...ADVANCE, idempotentHint: true },
     },
     async ({ id, confirmToken }, ctx) => {
       const gate = await confirmWrite(ctx, {

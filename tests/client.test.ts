@@ -310,6 +310,81 @@ describe('IOfficeClient', () => {
   });
 });
 
+// Users paste the tenant URL from the browser; `https://${host}` then built
+// 'https://https://...' and fetch failed with an unclassified network error
+// (chrischall/fleet-audit#516).
+describe('IOFFICE_HOST normalisation', () => {
+  afterEach(() => vi.unstubAllGlobals());
+
+  async function urlFor(host: string): Promise<string> {
+    const orig = process.env.IOFFICE_HOST;
+    process.env.IOFFICE_HOST = host;
+    try {
+      const mockFetch = vi.fn().mockResolvedValue({
+        ok: true,
+        status: 200,
+        text: async () => '{}',
+      });
+      vi.stubGlobal('fetch', mockFetch);
+      const client = new IOfficeClient();
+      await client.request('GET', '/buildings');
+      return mockFetch.mock.calls[0][0];
+    } finally {
+      process.env.IOFFICE_HOST = orig;
+    }
+  }
+
+  it.each([
+    ['https://acme.iofficeconnect.com', 'pasted https URL'],
+    ['http://acme.iofficeconnect.com', 'pasted http URL'],
+    ['https://acme.iofficeconnect.com/', 'trailing slash'],
+    ['acme.iofficeconnect.com/app/#/home', 'trailing app path'],
+    ['  ACME.iofficeconnect.com  ', 'whitespace and case'],
+  ])('reduces %s (%s) to the bare hostname', async (host) => {
+    expect(await urlFor(host)).toBe(
+      'https://acme.iofficeconnect.com/external/api/rest/v2/buildings',
+    );
+  });
+
+  it('reports the normalised host to the healthcheck', () => {
+    const orig = process.env.IOFFICE_HOST;
+    process.env.IOFFICE_HOST = 'https://acme.iofficeconnect.com/';
+    try {
+      expect(new IOfficeClient().describeCredential().host).toBe('acme.iofficeconnect.com');
+    } finally {
+      process.env.IOFFICE_HOST = orig;
+    }
+  });
+
+  it('rejects a value that is not a hostname with a clear config error at request time', async () => {
+    const orig = process.env.IOFFICE_HOST;
+    process.env.IOFFICE_HOST = 'ftp://acme.iofficeconnect.com';
+    try {
+      const fetchSpy = vi.fn();
+      vi.stubGlobal('fetch', fetchSpy);
+      const client = new IOfficeClient();
+      await expect(client.request('GET', '/buildings')).rejects.toThrow(
+        /IOFFICE_HOST is not a valid iOffice hostname/,
+      );
+      expect(fetchSpy).not.toHaveBeenCalled();
+    } finally {
+      process.env.IOFFICE_HOST = orig;
+    }
+  });
+
+  it('rejects an unparseable value', async () => {
+    const orig = process.env.IOFFICE_HOST;
+    process.env.IOFFICE_HOST = 'acme corp';
+    try {
+      await expect(new IOfficeClient().request('GET', '/x')).rejects.toThrow(
+        /IOFFICE_HOST is not a valid iOffice hostname/,
+      );
+    } finally {
+      process.env.IOFFICE_HOST = orig;
+    }
+  });
+});
+
 describe('buildQueryString', () => {
   it('returns empty string when no params', () => {
     expect(buildQueryString({})).toBe('');

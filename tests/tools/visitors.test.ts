@@ -116,14 +116,14 @@ describe('confirm gate - visitors', () => {
     expect(payload.preview.willSend).not.toHaveProperty('confirmToken');
   });
 
-  it('io_update_visitor without confirmToken returns a preview and makes NO request', async () => {
+  it('io_update_visitor without confirmToken returns a preview and makes NO write (only reads its target)', async () => {
     const { call } = setup();
     mockClient.request = vi.fn();
     const result = await call('io_update_visitor', {
       id: 201,
       company: 'Acme',
     });
-    expect(mockClient.request).not.toHaveBeenCalled();
+    expect(vi.mocked(mockClient.request).mock.calls.map(([method]) => method)).toEqual(['GET']);
     expect(JSON.parse(result.content[0].text as string).status).toBe('confirmation-required');
   });
 
