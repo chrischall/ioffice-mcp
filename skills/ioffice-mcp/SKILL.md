@@ -209,7 +209,8 @@ The other 35 tools take no `view`, for two different reasons:
 - **The 34 write and action tools** — `io_create_*`, `io_update_*`,
   `io_delete_*`, and the state transitions (check in/out, accept/start/
   complete/archive, approve/cancel, deliver/return) — answer with a receipt, or,
-  on a client that cannot show a confirmation prompt, with a preview and a
+  on a client that cannot show a confirmation prompt (or on any client when the
+  server sets `MCP_CONFIRM_ELICITATION=off`), with a preview and a
   `confirmToken` on the first call (nothing is written until the call is
   repeated with that token; an update, delete, cancel or return reads its target
   first so the preview names the record, and an unknown id fails there). There is nothing to strip and every field is load-bearing.
