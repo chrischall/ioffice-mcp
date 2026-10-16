@@ -1,5 +1,13 @@
 # Changelog
 
+## [3.2.6](https://github.com/chrischall/ioffice-mcp/compare/v3.2.5...v3.2.6) (2026-10-16)
+
+
+### Bug Fixes
+
+* **deps:** bump the production-dependencies group with 2 updates ([#196](https://github.com/chrischall/ioffice-mcp/issues/196)) ([27253c6](https://github.com/chrischall/ioffice-mcp/commit/27253c6b31983d5999aa8c89956b23d702cf3935))
+* **view:** lead every iOffice read with the untrusted-content fence ([#198](https://github.com/chrischall/ioffice-mcp/issues/198)) ([0a7a8f3](https://github.com/chrischall/ioffice-mcp/commit/0a7a8f3c76ec51220afad01b0b80ed86a505c4e1))
+
 ## [3.2.5](https://github.com/chrischall/ioffice-mcp/compare/v3.2.4...v3.2.5) (2026-10-09)
 
 
