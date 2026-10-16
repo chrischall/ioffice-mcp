@@ -1,7 +1,15 @@
 import { describe, it, expect } from 'vitest';
 import { viewResponse, IO_VIEWS } from '../src/view.js';
 
-const parse = (r: { content: { text: string }[] }) => JSON.parse(r.content[0].text);
+const textOf = (r: { content: unknown[] }) => (r.content[0] as { text: string }).text;
+/**
+ * The payload with the untrusted envelope's marker keys peeled off — these
+ * tests are about the rungs; tests/untrusted.test.ts covers the envelope.
+ */
+const parse = (r: { content: unknown[] }) => {
+  const { untrusted_content: _u, note: _n, ...payload } = JSON.parse(textOf(r));
+  return payload;
+};
 
 describe('the rungs', () => {
   it('offers compact and full, and not raw — full already IS the upstream payload', () => {
@@ -61,7 +69,7 @@ describe('full', () => {
 describe('whitespace', () => {
   it('emits none of its own, and never touches whitespace inside a value', () => {
     const description = 'Line one.\n\n  Indented.   ';
-    const text = viewResponse('compact', { description }).content[0].text;
+    const text = textOf(viewResponse('compact', { description }));
     expect(text.split('\n')).toHaveLength(1);
     expect(JSON.parse(text).description).toBe(description);
   });
