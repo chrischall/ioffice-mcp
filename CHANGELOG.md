@@ -1,5 +1,17 @@
 # Changelog
 
+## [3.2.7](https://github.com/chrischall/ioffice-mcp/compare/v3.2.6...v3.2.7) (2026-10-19)
+
+
+### Bug Fixes
+
+* **deps:** bump dotenv from 18.0.6 to 18.0.8 in the production-dependencies group ([#203](https://github.com/chrischall/ioffice-mcp/issues/203)) ([5b55fba](https://github.com/chrischall/ioffice-mcp/commit/5b55fbaee1ff684c901bbb59918f2e385af53121))
+
+
+### Documentation
+
+* **mint:** add sample prompts for the public catalog ([#206](https://github.com/chrischall/ioffice-mcp/issues/206)) ([fa8d483](https://github.com/chrischall/ioffice-mcp/commit/fa8d48376a6e6dc049ccb6c838184a8110eb6d02))
+
 ## [3.2.6](https://github.com/chrischall/ioffice-mcp/compare/v3.2.5...v3.2.6) (2026-10-16)
 
 
