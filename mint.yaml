@@ -39,3 +39,10 @@ egress:
     # iofficeconnect.com (the older <tenant>.ioffice.com form in the docs no
     # longer resolves) is env-selected and must be added here by hand.
     - "*.iofficeconnect.com"
+examples:
+  - prompt: "Which visitors are expected at the office today?"
+    note: "Lists pre-registered visitors filtered by date"
+  - prompt: "Show me all the room reservations on the calendar for tomorrow."
+    note: "Lists reservations within a date range"
+  - prompt: "What maintenance requests are still pending, and which buildings are they in?"
+    note: "Filters maintenance requests by status"
