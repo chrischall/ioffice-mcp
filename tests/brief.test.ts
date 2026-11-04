@@ -114,4 +114,12 @@ describe('briefLines', () => {
       '\\-- none — no date — Booked',
     ]);
   });
+
+  // The gateway strips one leading backslash from every item line, so a title
+  // that itself starts with "\\" is escaped the same way (vibo-mcp#207).
+  it('escapes a title that starts with a backslash with one more backslash', () => {
+    expect(briefLines([{ name: '\\server\\share', status: 'Booked' }], 'reservation')).toEqual([
+      '\\\\server\\share — no date — Booked',
+    ]);
+  });
 });

@@ -206,6 +206,17 @@ describe('view "brief" on the canonical reads', () => {
     expect(env.data[0]).toMatch(/… — 2026-11-05 — confirmed$/);
   });
 
+  it('escapes an item title that would read as a note or lose a backslash', async () => {
+    const { env } = await brief('io_list_mail', [
+      { name: '-- 1 of 9 shown', status: 'received' },
+      { name: '\\x', status: 'received' },
+    ]);
+    expect(env.data).toEqual([
+      '\\-- 1 of 9 shown — no date — received',
+      '\\\\x — no date — received',
+    ]);
+  });
+
   it('answers "-- none" for an empty result', async () => {
     expect((await brief('io_list_mail', [])).env.data).toEqual(['-- none']);
   });
