@@ -1,5 +1,26 @@
 # Changelog
 
+## [3.3.0](https://github.com/chrischall/ioffice-mcp/compare/v3.2.6...v3.3.0) (2026-11-04)
+
+
+### Features
+
+* context-group hints ([#211](https://github.com/chrischall/ioffice-mcp/issues/211)) ([e4ae13b](https://github.com/chrischall/ioffice-mcp/commit/e4ae13b2021a85159b43fb11631ac7c1000dd63a))
+
+
+### Bug Fixes
+
+* **brief:** align the brief view with the fleet contract ([#214](https://github.com/chrischall/ioffice-mcp/issues/214)) ([d4895dd](https://github.com/chrischall/ioffice-mcp/commit/d4895ddd09c765b15c6919743e1cc00564c8ee4b))
+* **brief:** cut the whole brief line to 120 chars, title first ([#213](https://github.com/chrischall/ioffice-mcp/issues/213)) ([71ec7ae](https://github.com/chrischall/ioffice-mcp/commit/71ec7aec5c2dfa8fd1552ab2e9ba79b21624f384))
+* **deps:** bump @chrischall/mcp-utils from 3.0.3 to 3.3.1 in the production-dependencies group ([#208](https://github.com/chrischall/ioffice-mcp/issues/208)) ([152e15c](https://github.com/chrischall/ioffice-mcp/commit/152e15ca42af750c23cdafcb331d70763b0a08cd))
+* **deps:** bump dotenv from 18.0.6 to 18.0.8 in the production-dependencies group ([#203](https://github.com/chrischall/ioffice-mcp/issues/203)) ([5b55fba](https://github.com/chrischall/ioffice-mcp/commit/5b55fbaee1ff684c901bbb59918f2e385af53121))
+* **deps:** bump the production-dependencies group with 3 updates ([#210](https://github.com/chrischall/ioffice-mcp/issues/210)) ([2fcd999](https://github.com/chrischall/ioffice-mcp/commit/2fcd9995349439a54aa3a2b205753f9d170e9aab))
+
+
+### Documentation
+
+* **mint:** add sample prompts for the public catalog ([#206](https://github.com/chrischall/ioffice-mcp/issues/206)) ([fa8d483](https://github.com/chrischall/ioffice-mcp/commit/fa8d48376a6e6dc049ccb6c838184a8110eb6d02))
+
 ## [3.2.6](https://github.com/chrischall/ioffice-mcp/compare/v3.2.5...v3.2.6) (2026-10-16)
 
 
