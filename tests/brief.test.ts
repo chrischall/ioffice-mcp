@@ -77,4 +77,41 @@ describe('briefLines', () => {
     expect(briefLines({ data: [], count: 0 }, 'mail')).toEqual(['-- none']);
     expect(briefLines(null, 'mail')[0]).toMatch(/^-- error: /);
   });
+
+  // The whole line is cut to 120 chars, title first (ioffice-mcp#212): a long
+  // third-party status must not push the line past the contract's limit.
+  it('cuts a long title before touching a status that fits', () => {
+    const [l] = briefLines(
+      [{ name: 'T'.repeat(200), start: '2026-11-05', status: 'Booked' }],
+      'reservation',
+    );
+    expect(l.length).toBe(120);
+    expect(l).toMatch(/^T+… — 2026-11-05 — Booked$/);
+  });
+
+  it('cuts a long status too once the title is down to its floor', () => {
+    const [l] = briefLines(
+      [{ name: 'Board room', start: '2026-11-05', status: 'S'.repeat(300) }],
+      'reservation',
+    );
+    expect(l.length).toBeLessThanOrEqual(120);
+    expect(l.startsWith('Board room — 2026-11-05 — S')).toBe(true);
+    expect(l.endsWith('…')).toBe(true);
+  });
+
+  it('keeps a title floor when both title and status are long', () => {
+    const [l] = briefLines(
+      [{ description: 'D'.repeat(200), date: '2026-11-01', status: { name: 'X'.repeat(200) } }],
+      'mail',
+    );
+    expect(l.length).toBe(120);
+    expect(l).toMatch(/^D{23}… — 2026-11-01 — X+…$/);
+  });
+
+  // An item whose own title starts with "-- " must not read as a note.
+  it('escapes a title that starts with "-- " with one backslash', () => {
+    expect(briefLines([{ name: '-- none', status: 'Booked' }], 'reservation')).toEqual([
+      '\\-- none — no date — Booked',
+    ]);
+  });
 });

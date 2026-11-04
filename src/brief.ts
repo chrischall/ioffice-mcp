@@ -58,11 +58,26 @@ const first = (it: Rec, keys: string[]): unknown => {
   return undefined;
 };
 
-function line(title: string, date: string, status: string): string {
-  const tail = ` — ${date} — ${status}`;
-  const room = BRIEF_MAX - tail.length;
-  const shown = title.length > room ? `${title.slice(0, Math.max(room - 1, 0))}…` : title;
-  return `${shown}${tail}`;
+/** The shortest a title is cut to before the status gives way too. */
+const TITLE_FLOOR = 24;
+
+const cut = (s: string, n: number): string =>
+  s.length > n ? `${s.slice(0, Math.max(n - 1, 0))}…` : s;
+
+/**
+ * One brief line, cut to ≤ 120 chars as a WHOLE, title first: the title
+ * shortens until the line fits; if the status alone would still overflow
+ * once the title is at its floor, the status is cut as well. A title that
+ * starts with `-- ` is escaped with one `\` so it never reads as a note.
+ */
+function line(rawTitle: string, date: string, rawStatus: string): string {
+  const title = rawTitle.startsWith('-- ') ? `\\${rawTitle}` : rawTitle;
+  const sep = ` — ${date} — `;
+  const room = BRIEF_MAX - sep.length;
+  if (title.length + rawStatus.length <= room) return `${title}${sep}${rawStatus}`;
+  const titleRoom = Math.max(room - rawStatus.length, Math.min(title.length, TITLE_FLOOR));
+  const shownTitle = cut(title, titleRoom);
+  return `${shownTitle}${sep}${cut(rawStatus, room - shownTitle.length)}`;
 }
 
 export type BriefKind = 'reservation' | 'mail';
