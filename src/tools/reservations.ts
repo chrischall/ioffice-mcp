@@ -13,6 +13,8 @@ import {
   subjectSummary,
 } from './_confirm.js';
 import { ADVANCE, CREATE, DELETE, READ, UPDATE } from './_annotations.js';
+import { CHANGE_META, LOOKUP_META, RESERVATIONS_META } from './_hints.js';
+import { briefResponse, briefViewArg } from '../brief.js';
 import { requireUpdateFields } from './_inputs.js';
 
 export function registerReservationTools(server: McpServer, client: IOfficeClient): void {
@@ -21,7 +23,7 @@ export function registerReservationTools(server: McpServer, client: IOfficeClien
     {
       description: 'List iOffice reservations. Supports filtering by date range, space, or user.',
       inputSchema: z.object({
-        view: viewArg(),
+        view: briefViewArg(),
         search: z.string().describe('Filter by title or description').optional(),
         startDate: z
           .string()
@@ -45,6 +47,7 @@ export function registerReservationTools(server: McpServer, client: IOfficeClien
         orderByType: z.enum(['asc', 'desc']).describe('Sort direction (default: asc)').optional(),
       }),
       annotations: READ,
+      _meta: RESERVATIONS_META,
     },
     async ({
       search,
@@ -70,6 +73,7 @@ export function registerReservationTools(server: McpServer, client: IOfficeClien
         orderByType,
       });
       const data = await client.request('GET', `/reservations${qs}`);
+      if (view === 'brief') return briefResponse(data, 'reservation', limit);
       return viewResponse(view, data);
     },
   );
@@ -83,6 +87,7 @@ export function registerReservationTools(server: McpServer, client: IOfficeClien
         id: z.number().int().positive().describe('Reservation ID'),
       }),
       annotations: READ,
+      _meta: LOOKUP_META,
     },
     async ({ id, view }) => {
       const data = await client.request('GET', `/reservations/${id}`);
@@ -110,6 +115,7 @@ export function registerReservationTools(server: McpServer, client: IOfficeClien
         confirmToken: confirmTokenParam,
       }),
       annotations: CREATE,
+      _meta: CHANGE_META,
     },
     async ({ confirmToken, ...args }, ctx) => {
       const gate = await confirmWrite(ctx, {
@@ -143,6 +149,7 @@ export function registerReservationTools(server: McpServer, client: IOfficeClien
         confirmToken: confirmTokenParam,
       }),
       annotations: UPDATE,
+      _meta: CHANGE_META,
     },
     async ({ id, confirmToken, ...body }, ctx) => {
       requireUpdateFields(body);
@@ -173,6 +180,7 @@ export function registerReservationTools(server: McpServer, client: IOfficeClien
         confirmToken: confirmTokenParam,
       }),
       annotations: DELETE,
+      _meta: CHANGE_META,
     },
     async ({ id, confirmToken }, ctx) => {
       const subject = await readWriteSubject(client, `/reservations/${id}`);
@@ -205,6 +213,7 @@ export function registerReservationTools(server: McpServer, client: IOfficeClien
         confirmToken: confirmTokenParam,
       }),
       annotations: ADVANCE,
+      _meta: CHANGE_META,
     },
     async ({ id, confirmToken }, ctx) => {
       const gate = await confirmWrite(ctx, {
@@ -234,6 +243,7 @@ export function registerReservationTools(server: McpServer, client: IOfficeClien
         confirmToken: confirmTokenParam,
       }),
       annotations: ADVANCE,
+      _meta: CHANGE_META,
     },
     async ({ id, confirmToken }, ctx) => {
       const gate = await confirmWrite(ctx, {

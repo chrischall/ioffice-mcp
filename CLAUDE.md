@@ -27,7 +27,10 @@ All tools are prefixed `io_` (e.g. `io_list_buildings`, `io_create_reservation`,
 src/
   index.ts          # MCP server entry — runMcp() from @chrischall/mcp-utils, registers all tool modules, stdio transport
   client.ts         # IOfficeClient (thin wrapper over createApiClient from @chrischall/mcp-utils) + re-exported buildQueryString/buildOptionalBody + local optionalBody helper
+  view.ts           # the compact/full rungs + untrusted-data envelope every read answers in
+  brief.ts          # view: "brief" for the two canonical reads (one line per item, `-- ` note lines)
   tools/
+    _hints.ts       # _meta.mint context-group hints (group "work"; tests/hints.test.ts holds the rules)
     buildings.ts    # io_{list,get,create,update,delete}_building
     floors.ts       # io_{list,get,create,update,delete}_floor
     spaces.ts       # io_{list,get,create,update,delete}_space

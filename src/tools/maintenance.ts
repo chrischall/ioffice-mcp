@@ -13,6 +13,7 @@ import {
   subjectSummary,
 } from './_confirm.js';
 import { ADVANCE, CREATE_PERMANENT, READ, UPDATE } from './_annotations.js';
+import { CHANGE_META, LOOKUP_META } from './_hints.js';
 import { requireUpdateFields } from './_inputs.js';
 
 export function registerMaintenanceTools(server: McpServer, client: IOfficeClient): void {
@@ -48,6 +49,7 @@ export function registerMaintenanceTools(server: McpServer, client: IOfficeClien
         orderByType: z.enum(['asc', 'desc']).describe('Sort direction (default: asc)').optional(),
       }),
       annotations: READ,
+      _meta: LOOKUP_META,
     },
     async ({
       search,
@@ -86,6 +88,7 @@ export function registerMaintenanceTools(server: McpServer, client: IOfficeClien
         id: z.number().int().positive().describe('Maintenance request ID'),
       }),
       annotations: READ,
+      _meta: LOOKUP_META,
     },
     async ({ id, view }) => {
       const data = await client.request('GET', `/maintenanceRequests/${id}`);
@@ -123,6 +126,7 @@ export function registerMaintenanceTools(server: McpServer, client: IOfficeClien
         confirmToken: confirmTokenParam,
       }),
       annotations: CREATE_PERMANENT,
+      _meta: CHANGE_META,
     },
     async ({ confirmToken, ...args }, ctx) => {
       const gate = await confirmWrite(ctx, {
@@ -160,6 +164,7 @@ export function registerMaintenanceTools(server: McpServer, client: IOfficeClien
         confirmToken: confirmTokenParam,
       }),
       annotations: UPDATE,
+      _meta: CHANGE_META,
     },
     async ({ id, confirmToken, ...body }, ctx) => {
       requireUpdateFields(body);
@@ -192,6 +197,7 @@ export function registerMaintenanceTools(server: McpServer, client: IOfficeClien
         confirmToken: confirmTokenParam,
       }),
       annotations: ADVANCE,
+      _meta: CHANGE_META,
     },
     async ({ id, confirmToken }, ctx) => {
       const gate = await confirmWrite(ctx, {
@@ -221,6 +227,7 @@ export function registerMaintenanceTools(server: McpServer, client: IOfficeClien
         confirmToken: confirmTokenParam,
       }),
       annotations: ADVANCE,
+      _meta: CHANGE_META,
     },
     async ({ id, confirmToken }, ctx) => {
       const gate = await confirmWrite(ctx, {
@@ -249,6 +256,7 @@ export function registerMaintenanceTools(server: McpServer, client: IOfficeClien
         confirmToken: confirmTokenParam,
       }),
       annotations: ADVANCE,
+      _meta: CHANGE_META,
     },
     async ({ id, confirmToken, resolution }, ctx) => {
       const body = optionalBody({ resolution }, ['resolution']);
@@ -277,6 +285,7 @@ export function registerMaintenanceTools(server: McpServer, client: IOfficeClien
         confirmToken: confirmTokenParam,
       }),
       annotations: { ...ADVANCE, idempotentHint: true },
+      _meta: CHANGE_META,
     },
     async ({ id, confirmToken }, ctx) => {
       const gate = await confirmWrite(ctx, {

@@ -13,6 +13,7 @@ import {
   subjectSummary,
 } from './_confirm.js';
 import { CREATE, DELETE, READ, UPDATE } from './_annotations.js';
+import { CHANGE_META, LOOKUP_META } from './_hints.js';
 import { requireUpdateFields } from './_inputs.js';
 
 export function registerUserTools(server: McpServer, client: IOfficeClient): void {
@@ -35,6 +36,7 @@ export function registerUserTools(server: McpServer, client: IOfficeClient): voi
         orderByType: z.enum(['asc', 'desc']).describe('Sort direction (default: asc)').optional(),
       }),
       annotations: READ,
+      _meta: LOOKUP_META,
     },
     async ({ search, limit, startAt, orderBy, orderByType, view }) => {
       const qs = buildQueryString({
@@ -58,6 +60,7 @@ export function registerUserTools(server: McpServer, client: IOfficeClient): voi
         id: z.number().int().positive().describe('User ID'),
       }),
       annotations: READ,
+      _meta: LOOKUP_META,
     },
     async ({ id, view }) => {
       const data = await client.request('GET', `/users/${id}`);
@@ -81,6 +84,7 @@ export function registerUserTools(server: McpServer, client: IOfficeClient): voi
         confirmToken: confirmTokenParam,
       }),
       annotations: CREATE,
+      _meta: CHANGE_META,
     },
     async ({ confirmToken, ...args }, ctx) => {
       const gate = await confirmWrite(ctx, {
@@ -115,6 +119,7 @@ export function registerUserTools(server: McpServer, client: IOfficeClient): voi
         confirmToken: confirmTokenParam,
       }),
       annotations: UPDATE,
+      _meta: CHANGE_META,
     },
     async ({ id, confirmToken, ...body }, ctx) => {
       requireUpdateFields(body);
@@ -145,6 +150,7 @@ export function registerUserTools(server: McpServer, client: IOfficeClient): voi
         confirmToken: confirmTokenParam,
       }),
       annotations: DELETE,
+      _meta: CHANGE_META,
     },
     async ({ id, confirmToken }, ctx) => {
       const subject = await readWriteSubject(client, `/users/${id}`);

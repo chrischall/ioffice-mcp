@@ -13,6 +13,7 @@ import {
   subjectSummary,
 } from './_confirm.js';
 import { ADVANCE, CREATE_PERMANENT, READ, UPDATE } from './_annotations.js';
+import { CHANGE_META, LOOKUP_META, VISITORS_META } from './_hints.js';
 import { requireUpdateFields } from './_inputs.js';
 
 export function registerVisitorTools(server: McpServer, client: IOfficeClient): void {
@@ -44,6 +45,7 @@ export function registerVisitorTools(server: McpServer, client: IOfficeClient): 
         orderByType: z.enum(['asc', 'desc']).describe('Sort direction (default: asc)').optional(),
       }),
       annotations: READ,
+      _meta: VISITORS_META,
     },
     async ({
       search,
@@ -80,6 +82,7 @@ export function registerVisitorTools(server: McpServer, client: IOfficeClient): 
         id: z.number().int().positive().describe('Visitor ID'),
       }),
       annotations: READ,
+      _meta: LOOKUP_META,
     },
     async ({ id, view }) => {
       const data = await client.request('GET', `/visitors/${id}`);
@@ -113,6 +116,7 @@ export function registerVisitorTools(server: McpServer, client: IOfficeClient): 
         confirmToken: confirmTokenParam,
       }),
       annotations: CREATE_PERMANENT,
+      _meta: CHANGE_META,
     },
     async ({ confirmToken, ...args }, ctx) => {
       const gate = await confirmWrite(ctx, {
@@ -152,6 +156,7 @@ export function registerVisitorTools(server: McpServer, client: IOfficeClient): 
         confirmToken: confirmTokenParam,
       }),
       annotations: UPDATE,
+      _meta: CHANGE_META,
     },
     async ({ id, confirmToken, ...body }, ctx) => {
       requireUpdateFields(body);
@@ -182,6 +187,7 @@ export function registerVisitorTools(server: McpServer, client: IOfficeClient): 
         confirmToken: confirmTokenParam,
       }),
       annotations: ADVANCE,
+      _meta: CHANGE_META,
     },
     async ({ id, confirmToken }, ctx) => {
       const gate = await confirmWrite(ctx, {
@@ -209,6 +215,7 @@ export function registerVisitorTools(server: McpServer, client: IOfficeClient): 
         confirmToken: confirmTokenParam,
       }),
       annotations: ADVANCE,
+      _meta: CHANGE_META,
     },
     async ({ id, confirmToken }, ctx) => {
       const gate = await confirmWrite(ctx, {

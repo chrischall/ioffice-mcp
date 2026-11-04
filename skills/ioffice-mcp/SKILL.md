@@ -204,6 +204,9 @@ There is **no `raw` rung**: `full` already *is* iOffice's payload untouched, so 
 third value could only silently alias one of the other two. `view: "raw"` is a
 schema validation error, not a quiet downgrade to compact.
 
+Two of the reads — `io_list_reservations` and `io_list_mail` — also take
+`view: "brief"` (see "In context groups" below).
+
 The other 35 tools take no `view`, for two different reasons:
 
 - **The 34 write and action tools** — `io_create_*`, `io_update_*`,
@@ -217,6 +220,41 @@ The other 35 tools take no `view`, for two different reasons:
 - **`io_healthcheck`** is read-only, but its output is its own verdict — which
   credential resolved, whether iOffice accepted it, what to fix — rather than an
   iOffice record.
+
+## In context groups
+
+This server is a member of the **work** group (mcp-host context groups). Every
+tool except `io_healthcheck` carries a `_meta.mint` hint — inert to any other
+client.
+
+- **What's on at work** → `io_list_reservations` (canonical `whats-on`): room
+  and desk bookings over `startDate`/`endDate`.
+- **Anything new at work** → `io_list_mail` (canonical `whats-new`): mail and
+  packages logged at the mailroom over `startDate`/`endDate`.
+- **What's due** → nothing here answers it: iOffice records carry no due
+  dates a person is chasing, so the group asks the other work members.
+- **No subjects.** iOffice's listable sets (buildings, floors, spaces, the
+  tenant's user directory) are the organisation's, not the person's, so no
+  argument publishes a subject enum.
+
+`io_list_visitors` is a non-canonical `whats-on` read; every other read is a
+`lookup` and every write is a `change`.
+
+The canonical reads answer `view: "brief"` with one line per item —
+`title — <ISO date | no date> — <status>`, at most 120 characters — inside the
+same untrusted-data envelope as every other read (`data` is the list of
+lines), because titles are written by other people. A line starting `-- ` is a
+note, not an item: `-- none` for an empty page, `-- N of M shown` when iOffice
+states a total, `-- more` for a full page without one, and `-- error: …` when
+the payload is in a shape the brief view does not read (ask with
+`view: "full"`). The field names a line reads are a best reading of iOffice's
+payload, not a verified shape; a missing field falls back to the record id,
+`no date` or `no status` rather than dropping the item.
+
+A compound ask looks like "what's on at work tomorrow — and any packages for
+me?": the group calls `io_list_reservations` with tomorrow's range and
+`io_list_mail`, each in `view: "brief"`, and merges the lines with the other
+work members' answers.
 
 ## Workflows
 
