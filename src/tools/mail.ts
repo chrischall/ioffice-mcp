@@ -13,6 +13,8 @@ import {
   subjectSummary,
 } from './_confirm.js';
 import { ADVANCE, CREATE_PERMANENT, READ, TERMINATE } from './_annotations.js';
+import { CHANGE_META, LOOKUP_META, MAIL_META } from './_hints.js';
+import { briefResponse, briefViewArg } from '../brief.js';
 
 export function registerMailTools(server: McpServer, client: IOfficeClient): void {
   server.registerTool(
@@ -21,7 +23,7 @@ export function registerMailTools(server: McpServer, client: IOfficeClient): voi
       description:
         'List iOffice mail items (packages and letters). Supports filtering and pagination.',
       inputSchema: z.object({
-        view: viewArg(),
+        view: briefViewArg(),
         search: z
           .string()
           .describe('Filter by recipient name, tracking number, or sender')
@@ -52,6 +54,7 @@ export function registerMailTools(server: McpServer, client: IOfficeClient): voi
         orderByType: z.enum(['asc', 'desc']).describe('Sort direction (default: asc)').optional(),
       }),
       annotations: READ,
+      _meta: MAIL_META,
     },
     async ({
       search,
@@ -79,6 +82,7 @@ export function registerMailTools(server: McpServer, client: IOfficeClient): voi
         orderByType,
       });
       const data = await client.request('GET', `/mail${qs}`);
+      if (view === 'brief') return briefResponse(data, 'mail', limit);
       return viewResponse(view, data);
     },
   );
@@ -92,6 +96,7 @@ export function registerMailTools(server: McpServer, client: IOfficeClient): voi
         id: z.number().int().positive().describe('Mail item ID'),
       }),
       annotations: READ,
+      _meta: LOOKUP_META,
     },
     async ({ id, view }) => {
       const data = await client.request('GET', `/mail/${id}`);
@@ -118,6 +123,7 @@ export function registerMailTools(server: McpServer, client: IOfficeClient): voi
         confirmToken: confirmTokenParam,
       }),
       annotations: CREATE_PERMANENT,
+      _meta: CHANGE_META,
     },
     async ({ confirmToken, ...args }, ctx) => {
       const gate = await confirmWrite(ctx, {
@@ -150,6 +156,7 @@ export function registerMailTools(server: McpServer, client: IOfficeClient): voi
         confirmToken: confirmTokenParam,
       }),
       annotations: ADVANCE,
+      _meta: CHANGE_META,
     },
     async ({ id, confirmToken, deliveredDate, signature }, ctx) => {
       const body = optionalBody({ deliveredDate, signature }, ['deliveredDate', 'signature']);
@@ -179,6 +186,7 @@ export function registerMailTools(server: McpServer, client: IOfficeClient): voi
         confirmToken: confirmTokenParam,
       }),
       annotations: TERMINATE,
+      _meta: CHANGE_META,
     },
     async ({ id, confirmToken, reason }, ctx) => {
       const body = optionalBody({ reason }, ['reason']);
