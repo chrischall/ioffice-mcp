@@ -241,11 +241,13 @@ client.
 `lookup` and every write is a `change`.
 
 The canonical reads answer `view: "brief"` with one line per item —
-`title — <ISO date | no date> — <status>`, at most 120 characters — inside the
+`title — <ISO date | no date> — <status>`, at most 120 characters (the whole
+line is cut, title first, then the status if it alone would overflow) — inside the
 same untrusted-data envelope as every other read (`data` is the list of
 lines), because titles are written by other people. A line starting `-- ` is a
-note, not an item: `-- none` for an empty page, `-- N of M shown` when iOffice
-states a total, `-- more` for a full page without one, and `-- error: …` when
+note, not an item (an item whose own title starts `-- ` is escaped as
+`\-- …`): `-- none` for an empty page, `-- N of M shown` when iOffice states a
+total, `-- more` for a full page without one, and `-- error: …` when
 the payload is in a shape the brief view does not read (ask with
 `view: "full"`). The field names a line reads are a best reading of iOffice's
 payload, not a verified shape; a missing field falls back to the record id,
