@@ -68,10 +68,13 @@ const cut = (s: string, n: number): string =>
  * One brief line, cut to ≤ 120 chars as a WHOLE, title first: the title
  * shortens until the line fits; if the status alone would still overflow
  * once the title is at its floor, the status is cut as well. A title that
- * starts with `-- ` is escaped with one `\` so it never reads as a note.
+ * starts with `-- ` is escaped with one `\` so it never reads as a note, and
+ * so is one that starts with `\`, since the gateway strips one leading
+ * backslash from every item line.
  */
 function line(rawTitle: string, date: string, rawStatus: string): string {
-  const title = rawTitle.startsWith('-- ') ? `\\${rawTitle}` : rawTitle;
+  const title =
+    rawTitle.startsWith('-- ') || rawTitle.startsWith('\\') ? `\\${rawTitle}` : rawTitle;
   const sep = ` — ${date} — `;
   const room = BRIEF_MAX - sep.length;
   if (title.length + rawStatus.length <= room) return `${title}${sep}${rawStatus}`;
