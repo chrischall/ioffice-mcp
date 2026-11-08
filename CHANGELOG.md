@@ -1,5 +1,12 @@
 # Changelog
 
+## [3.3.1](https://github.com/chrischall/ioffice-mcp/compare/v3.3.0...v3.3.1) (2026-11-08)
+
+
+### Bug Fixes
+
+* **deps:** bump @chrischall/mcp-utils from 3.3.2 to 3.4.1 in the production-dependencies group ([#216](https://github.com/chrischall/ioffice-mcp/issues/216)) ([397e7e7](https://github.com/chrischall/ioffice-mcp/commit/397e7e768d71766fad768c08c8bf657de341f8c8))
+
 ## [3.3.0](https://github.com/chrischall/ioffice-mcp/compare/v3.2.6...v3.3.0) (2026-11-04)
 
 
